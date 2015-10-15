@@ -3,13 +3,13 @@
 <configuration status="WARN">
 	<appenders>
 		<Console name="Console" target="SYSTEM_OUT">
-			<PatternLayout pattern="%d{dd MMM yyyy - HH:mm:ss.SSS} %t [%-5level] %logger{36} - %msg%n"/>
+			<PatternLayout pattern="%d{dd MMM yyyy - HH:mm:ss.SSS} [%-5level] %t %logger{36} - %msg%n"/>
 		</Console>
 		<File name="Main" fileName="logs/Main.log">
-			<PatternLayout pattern="%d{dd MMM yyyy - HH:mm:ss.SSS} %t [%-5level] %logger{36} - %msg%n"/>
+			<PatternLayout pattern="%d{dd MMM yyyy - HH:mm:ss.SSS} [%-5level] %t %logger{36} - %msg%n"/>
 		</File>
 		<File name="DBConnection" fileName="logs/DBConnection.log">
-			<PatternLayout pattern="%d{dd MMM yyyy - HH:mm:ss.SSS} %t [%-5level] %logger{36} - %msg%n"/>
+			<PatternLayout pattern="%d{dd MMM yyyy - HH:mm:ss.SSS} [%-5level] %t %logger{36} - %msg%n"/>
 		</File>
 	</appenders>
 	<loggers>
@@ -17,7 +17,7 @@
 			<appenderRef ref="Console"/>
 			<appenderRef ref="Main"/>
 		</logger>
-		<logger name="main.DataBaseConnection" level="info" additivity="false">
+		<logger name="main.DataBaseConnection" level="debug" additivity="false">
 			<appenderRef ref="Console"/>
 			<appenderRef ref="DBConnection"/>
 		</logger>
