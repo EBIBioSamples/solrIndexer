@@ -32,16 +32,34 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>uk.ac.ebi.fg</groupId>
+			<artifactId>biosd_model</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>uk.ac.ebi.fg</groupId>
+			<artifactId>core_model</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>junit</groupId>
 		    <artifactId>junit</artifactId>
 		    <scope>test</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.apache.solr</groupId>
 			<artifactId>solr-solrj</artifactId>
 			<version>5.2.1</version>
 		 </dependency>
-		 <dependency>
+
+		<!--dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<scope>test</scope>
+		</dependency-->
+		 
+		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
 			<version>1.2</version>
@@ -64,6 +82,7 @@
 			<version>2.4</version>
 			<scope>runtime</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.hibernate.javax.persistence</groupId>
 			<artifactId>hibernate-jpa-2.1-api</artifactId>

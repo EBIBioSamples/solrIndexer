@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration status="WARN">
+
 	<appenders>
 		<Console name="Console" target="SYSTEM_OUT">
 			<PatternLayout pattern="%d{dd MMM yyyy - HH:mm:ss.SSS} [%-5level] %t %logger{36} - %msg%n"/>
@@ -11,8 +12,16 @@
 		<File name="DBConnection" fileName="logs/DBConnection.log">
 			<PatternLayout pattern="%d{dd MMM yyyy - HH:mm:ss.SSS} [%-5level] %t %logger{36} - %msg%n"/>
 		</File>
+		<File name="biosd_model" fileName="logs/biosd_model.log">
+			<PatternLayout pattern="%d{dd MMM yyyy - HH:mm:ss.SSS} [%-5level] %t %logger{36} - %msg%n"/>
+		</File>
 	</appenders>
+
 	<loggers>
+		<logger name="uk.ac.ebi.fg.core_model.resources" level="debug">
+			<appenderRef ref="Console"/>
+			<appenderRef ref="biosd_model"/>
+		</logger>
 		<logger name="main.App" level="info" additivity="false">
 			<appenderRef ref="Console"/>
 			<appenderRef ref="Main"/>
@@ -25,4 +34,5 @@
 			<appenderRef ref="Console"/>
 		</root>
 	</loggers>
+	
 </configuration>

@@ -4,10 +4,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class App {
-	private static final Logger logger = LogManager.getLogger(App.class.getName());
+	private static Logger log = LogManager.getLogger (App.class.getName());
 
     public static void main( String[] args ) {
-    	logger.info("Entering application.");
+    	log.info("Entering application.");
 
     	DataBaseConnection dbc = new DataBaseConnection();
     }
