@@ -9,7 +9,7 @@
 		<File name="Main" fileName="logs/Main.log">
 			<PatternLayout pattern="%d{dd MMM yyyy - HH:mm:ss.SSS} [%-5level] %t %logger{36} - %msg%n"/>
 		</File>
-		<File name="DBConnection" fileName="logs/DBConnection.log">
+		<File name="DBInteraction" fileName="logs/DBInteraction.log">
 			<PatternLayout pattern="%d{dd MMM yyyy - HH:mm:ss.SSS} [%-5level] %t %logger{36} - %msg%n"/>
 		</File>
 		<File name="biosd_model" fileName="logs/biosd_model.log">
@@ -26,9 +26,9 @@
 			<appenderRef ref="Console"/>
 			<appenderRef ref="Main"/>
 		</logger>
-		<logger name="main.DataBaseConnection" level="debug" additivity="false">
+		<logger name="main.DataBaseInteraction" level="debug" additivity="false">
 			<appenderRef ref="Console"/>
-			<appenderRef ref="DBConnection"/>
+			<appenderRef ref="DBInteraction"/>
 		</logger>
 		<root level="error">
 			<appenderRef ref="Console"/>
