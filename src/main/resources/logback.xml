@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+
+	<appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %logger{36}: %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="File" class="ch.qos.logback.core.FileAppender">
+		<Append>true</Append>
+		<File>logs/App.log</File>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>%d{dd MMM yyyy - HH:mm:ss.SSS} %-5level [%thread] %logger{36}: %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<logger name = "org.hibernate" level="INFO" />
+	<logger name = "org.hibernate.type" level = "INFO" />
+
+	<root level="INFO">
+		<appender-ref ref="Console" />
+		<appender-ref ref="File" />
+	</root>
+
+</configuration>

@@ -8,15 +8,15 @@ import javax.persistence.EntityTransaction;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.fg.core_model.resources.Resources;
 
 public class DataBaseInteraction {
-	private static Logger log = LogManager.getLogger (App.class.getName());
+	private static Logger log = LoggerFactory.getLogger (App.class.getName());
 
 	private static EntityManagerFactory factory;
 	//@PersistenceUnit(unitName="BioSampleGroup")
