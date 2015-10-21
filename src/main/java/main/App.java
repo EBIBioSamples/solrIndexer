@@ -1,5 +1,6 @@
 package main;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.MSI;
 import uk.ac.ebi.fg.biosd.sampletab.loader.Loader;
 import uk.ac.ebi.fg.biosd.sampletab.persistence.Persister;
+import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 
 public class App {
 	private static Logger log = LoggerFactory.getLogger(App.class.getName());
@@ -22,22 +24,36 @@ public class App {
     	
     	try {
     		// --- Populate the in-memory DB ---
-    		MSI msi = null;
-    		String path = args [0];
-    		String msiAcc = null;
+    		MSI msi1 = null;
+    		String path1 = args [0];
+    		String msiAcc1 = null;
+
+    		MSI msi2 = null;
+    		String path2 = args [1];
+    		String msiAcc2 = null;
 
 			try {
-				if(msi == null) {
-					msi = loadSampleTab (path);
-					msiAcc = msi.getAcc ();
-					if(msi.getSamples().size() + msi.getSampleGroups().size() > 0) {
-						log.info ("Now persisting data, MSI acc: " + msiAcc);
-						new Persister ().persist (msi);
+				if(msi1 == null) {
+					msi1 = loadSampleTab (path1);
+					msiAcc1 = msi1.getAcc ();
+					if(msi1.getSamples().size() + msi1.getSampleGroups().size() > 0) {
+						log.info ("Now persisting data, MSI acc: " + msiAcc1);
+						new Persister ().persist (msi1);
+					}
+				}
+
+				if(msi2 == null) {
+					msi2 = loadSampleTab (path2);
+					msiAcc2 = msi2.getAcc ();
+					if(msi2.getSamples().size() + msi2.getSampleGroups().size() > 0) {
+						log.info ("Now persisting data, MSI acc: " + msiAcc2);
+						new Persister ().persist (msi2);
 					}
 				}
 
 			} catch ( RuntimeException ex ) {
-				msi = null;
+				msi1 = null;
+				msi2 = null;
 				ex.printStackTrace();
 			}
     		// --- Populate the in-memory DB ---
@@ -55,10 +71,16 @@ public class App {
 */
         	List<BioSample> samples = dbi.fetchSamples();
         	//debugging purposes
-        	int j = 0;
-        	for (BioSample bs : samples) {
-        		log.info(bs.getAcc());
-        		if (++j == 10) break;
+        	BioSample bs = samples.get(0);
+    		System.out.println("ID: " + bs.getId().toString());
+    		System.out.println("ACC: " + bs.getAcc());
+    		//System.out.println("Release Date: " + bs.getReleaseDate() != null ? bs.getReleaseDate().toString() : "--");
+
+    		Collection<ExperimentalPropertyValue> collection = bs.getPropertyValues();
+        	for(ExperimentalPropertyValue epv : collection) {
+        		System.out.println("TermText: " + epv.getTermText());
+        		System.out.println("Type: " + epv.getType());
+        		System.out.println("Unit: " + epv.getUnit());
         	}
 
     	} catch (Exception e) {
