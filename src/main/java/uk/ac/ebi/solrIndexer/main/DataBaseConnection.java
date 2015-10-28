@@ -9,22 +9,22 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.fg.core_model.resources.Resources;
 
-public class DataBaseInteraction {
+public class DataBaseConnection {
 	private static Logger log = LoggerFactory.getLogger (App.class.getName());
+
+	private static DataBaseConnection instance = null;
 
 	private static EntityManagerFactory entityManagerFactory;
 	private EntityManager manager = null;
 	private static EntityTransaction transaction = null;
-
-	public DataBaseInteraction() {
-		log.debug("Creating DataBaseInteraction");
+	
+	private DataBaseConnection() {
+		log.debug("Creating DataBaseConnection");
 		try {
-			if (!transaction.isActive()) {
-	    		entityManagerFactory = Resources.getInstance().getEntityManagerFactory();
-	    		manager = entityManagerFactory.createEntityManager();
-	    		transaction = manager.getTransaction();
-	    		transaction.begin();
-			}
+    		entityManagerFactory = Resources.getInstance().getEntityManagerFactory();
+    		manager = entityManagerFactory.createEntityManager();
+    		transaction = manager.getTransaction();
+    		transaction.begin();
 
     	} catch (Exception e) {
     		if(transaction != null && transaction.isActive()) {
@@ -35,6 +35,13 @@ public class DataBaseInteraction {
     	}
 	}
 
+	public static DataBaseConnection getInstance() {
+		if (instance == null) {
+			instance = new DataBaseConnection();
+		}
+		return instance;
+	}
+
 	public EntityManager getEntityManager() {
 		return this.manager;
 	}
@@ -42,7 +49,7 @@ public class DataBaseInteraction {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("DataBaseInteraction []");
+		builder.append("DataBaseConnection []");
 		return builder.toString();
 	}
 

@@ -12,9 +12,19 @@ public class App {
 
     public static void main( String[] args ) {
     	log.info("Entering application.");
-    	/*
-    	DataBaseInteraction dbi = null;
+
+    	DataBaseConnection dbi = null;
+    	try {
+    		dbi = DataBaseConnection.getInstance();
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    	} finally {
+        	if (dbi.getEntityManager()!= null && dbi.getEntityManager().isOpen()) {
+        		dbi.getEntityManager().close();
+    		}
+    	}
     	
+    	/*
     	
     	try {
 
@@ -54,7 +64,7 @@ public class App {
     		// --- Populate the in-memory DB ---
     		
     		
-    		dbi = new DataBaseInteraction();
+    		dbi = new DataBaseConnection();
 
         	List<BioSampleGroup> groups = dbi.fetchGroups();
         	//debugging purposes

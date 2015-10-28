@@ -1,4 +1,4 @@
-package solrIndexer.solrIndexer;
+package uk.ac.ebi.solrIndexer.mainTest;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
