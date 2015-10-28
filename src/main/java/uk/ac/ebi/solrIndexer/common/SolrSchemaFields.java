@@ -1,4 +1,4 @@
-package common;
+package uk.ac.ebi.solrIndexer.common;
 
 public class SolrSchemaFields {
 

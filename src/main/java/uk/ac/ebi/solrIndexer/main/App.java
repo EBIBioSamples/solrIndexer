@@ -1,28 +1,23 @@
-package main;
-
-import java.util.Collection;
-import java.util.List;
+package uk.ac.ebi.solrIndexer.main;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
-import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.MSI;
 import uk.ac.ebi.fg.biosd.sampletab.loader.Loader;
-import uk.ac.ebi.fg.biosd.sampletab.persistence.Persister;
-import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 
 public class App {
 	private static Logger log = LoggerFactory.getLogger(App.class.getName());
 
     public static void main( String[] args ) {
     	log.info("Entering application.");
-
+    	/*
     	DataBaseInteraction dbi = null;
     	
     	
     	try {
+
     		// --- Populate the in-memory DB ---
     		MSI msi1 = null;
     		String path1 = args [0];
@@ -60,7 +55,7 @@ public class App {
     		
     		
     		dbi = new DataBaseInteraction();
-/*
+
         	List<BioSampleGroup> groups = dbi.fetchGroups();
         	//debugging purposes
         	int i = 0;
@@ -68,16 +63,16 @@ public class App {
         		System.out.println(bsg.getReleaseDate());
         		if (++i == 10) break;
         	}
-*/
+
         	List<BioSample> samples = dbi.fetchSamples();
         	//debugging purposes
         	BioSample bs = samples.get(0);
+        	
     		System.out.println("ID: " + bs.getId().toString());
     		System.out.println("ACC: " + bs.getAcc());
     		//System.out.println("Release Date: " + bs.getReleaseDate() != null ? bs.getReleaseDate().toString() : "--");
 
-    		Collection<ExperimentalPropertyValue> collection = bs.getPropertyValues();
-        	for(ExperimentalPropertyValue epv : collection) {
+        	for(ExperimentalPropertyValue epv : dbi.fetchExperimentalPropertyValues(bs)) {
         		System.out.println("TermText: " + epv.getTermText());
         		System.out.println("Type: " + epv.getType());
         		System.out.println("Unit: " + epv.getUnit());
@@ -90,6 +85,7 @@ public class App {
         		dbi.getEntityManager().close();
     		}
     	}
+    	*/
     }
 
 	private static MSI loadSampleTab (String path) throws ParseException {
