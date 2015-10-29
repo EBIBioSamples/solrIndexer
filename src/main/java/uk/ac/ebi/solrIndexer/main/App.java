@@ -4,98 +4,69 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
+import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
+import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.fg.biosd.model.organizational.MSI;
 import uk.ac.ebi.fg.biosd.sampletab.loader.Loader;
+import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 
 public class App {
 	private static Logger log = LoggerFactory.getLogger(App.class.getName());
 
     public static void main( String[] args ) {
     	log.info("Entering application.");
-
+    	
     	DataBaseConnection dbi = null;
+
     	try {
+
+    		/* --- Populate the in-memory DB --- 
+    		MSI msi1 = null, msi2 = null;
+        	try {
+        		// SampleTab File 1
+        		if(msi1 == null) {
+        			msi1 = loadSampleTab (args [0]);
+        			if(msi1.getSamples().size() + msi1.getSampleGroups().size() > 0) {
+        				new Persister ().persist (msi1);
+        			}
+        		}
+        		// SampleTab File 2
+        		if(msi2 == null) {
+        			msi2 = loadSampleTab (args [1]);
+        			if(msi2.getSamples().size() + msi2.getSampleGroups().size() > 0) {
+        				new Persister ().persist (msi2);
+        			}
+        		}
+        		
+        	} catch (RuntimeException | ParseException e) {
+    			msi1 = null;
+    			msi2 = null;
+        		e.printStackTrace();
+        	}
+        	/* --- ------------------------- --- */
+    		
     		dbi = DataBaseConnection.getInstance();
-    	} catch (Exception e) {
-    		e.printStackTrace();
-    	} finally {
-        	if (dbi.getEntityManager()!= null && dbi.getEntityManager().isOpen()) {
-        		dbi.getEntityManager().close();
+
+    		for (BioSampleGroup bsg : BioSDEntities.fetchGroups()) {
+    			System.out.println("Group ACC: " + bsg.getAcc());
     		}
-    	}
-    	
-    	/*
-    	
-    	try {
 
-    		// --- Populate the in-memory DB ---
-    		MSI msi1 = null;
-    		String path1 = args [0];
-    		String msiAcc1 = null;
-
-    		MSI msi2 = null;
-    		String path2 = args [1];
-    		String msiAcc2 = null;
-
-			try {
-				if(msi1 == null) {
-					msi1 = loadSampleTab (path1);
-					msiAcc1 = msi1.getAcc ();
-					if(msi1.getSamples().size() + msi1.getSampleGroups().size() > 0) {
-						log.info ("Now persisting data, MSI acc: " + msiAcc1);
-						new Persister ().persist (msi1);
-					}
-				}
-
-				if(msi2 == null) {
-					msi2 = loadSampleTab (path2);
-					msiAcc2 = msi2.getAcc ();
-					if(msi2.getSamples().size() + msi2.getSampleGroups().size() > 0) {
-						log.info ("Now persisting data, MSI acc: " + msiAcc2);
-						new Persister ().persist (msi2);
-					}
-				}
-
-			} catch ( RuntimeException ex ) {
-				msi1 = null;
-				msi2 = null;
-				ex.printStackTrace();
-			}
-    		// --- Populate the in-memory DB ---
-    		
-    		
-    		dbi = new DataBaseConnection();
-
-        	List<BioSampleGroup> groups = dbi.fetchGroups();
-        	//debugging purposes
-        	int i = 0;
-        	for (BioSampleGroup bsg : groups) {
-        		System.out.println(bsg.getReleaseDate());
-        		if (++i == 10) break;
-        	}
-
-        	List<BioSample> samples = dbi.fetchSamples();
-        	//debugging purposes
-        	BioSample bs = samples.get(0);
-        	
-    		System.out.println("ID: " + bs.getId().toString());
-    		System.out.println("ACC: " + bs.getAcc());
-    		//System.out.println("Release Date: " + bs.getReleaseDate() != null ? bs.getReleaseDate().toString() : "--");
-
-        	for(ExperimentalPropertyValue epv : dbi.fetchExperimentalPropertyValues(bs)) {
-        		System.out.println("TermText: " + epv.getTermText());
-        		System.out.println("Type: " + epv.getType());
-        		System.out.println("Unit: " + epv.getUnit());
-        	}
+    		for (BioSample bs : BioSDEntities.fetchSamples()) {
+    			System.out.println("Sample ACC: " + bs.getAcc());
+    			for (ExperimentalPropertyValue epv : BioSDEntities.fetchExperimentalPropertyValues(bs)) {
+    				System.out.println(epv.getType().getTermText() + ":: " +epv.getTermText());
+    			}
+    		}
 
     	} catch (Exception e) {
     		e.printStackTrace();
     	} finally {
         	if (dbi.getEntityManager()!= null && dbi.getEntityManager().isOpen()) {
         		dbi.getEntityManager().close();
+        		System.exit(0);
     		}
     	}
-    	*/
+
     }
 
 	private static MSI loadSampleTab (String path) throws ParseException {

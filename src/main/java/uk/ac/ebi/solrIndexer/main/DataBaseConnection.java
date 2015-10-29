@@ -35,21 +35,22 @@ public class DataBaseConnection {
     	}
 	}
 
-	public static DataBaseConnection getInstance() {
+	public static synchronized DataBaseConnection getInstance() {
 		if (instance == null) {
 			instance = new DataBaseConnection();
 		}
 		return instance;
 	}
 
-	public EntityManager getEntityManager() {
+	public synchronized EntityManager getEntityManager() {
 		return this.manager;
 	}
 
 	@Override
-	public String toString() {
+	public synchronized String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("DataBaseConnection []");
+		builder.append("DataBaseConnection [Connection Open: " 
+		+ entityManagerFactory.isOpen() + "; Transaction Active: " + transaction.isActive() + "]");
 		return builder.toString();
 	}
 

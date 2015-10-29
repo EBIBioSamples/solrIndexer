@@ -15,9 +15,22 @@ public class DataBaseConnectionTest {
 
 	@Test
 	public void testUnique() {
-		setUp();
-		log.info("Checking singletons for equalty");
-		Assert.assertEquals(true, dbc1 == dbc2);
+		try 
+		{
+			setUp();
+			log.info("Checking singletons for equalty");
+			Assert.assertEquals(true, dbc1 == dbc2);
+		} 
+		catch (Exception e)
+		{
+    		e.printStackTrace();
+    	}
+		finally
+		{
+        	if (dbc1.getEntityManager()!= null && dbc1.getEntityManager().isOpen()) {
+        		dbc1.getEntityManager().close();
+    		}
+    	}
 	}
 
 	public void setUp() {
