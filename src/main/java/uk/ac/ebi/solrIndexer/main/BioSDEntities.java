@@ -1,10 +1,14 @@
 package uk.ac.ebi.solrIndexer.main;
 
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,18 +25,30 @@ public class BioSDEntities {
 	public static List<BioSample> fetchSamples() {
 		log.debug("fetchSamples()");
 
-		CriteriaBuilder criteria = dbc.getEntityManager().getCriteriaBuilder();
-		CriteriaQuery<BioSample> querySample = criteria.createQuery(BioSample.class);
-		List<BioSample> samples = dbc.getEntityManager().createQuery(querySample.select(querySample.from(BioSample.class))).getResultList();
+		CriteriaBuilder criteriaBuilder = dbc.getEntityManager().getCriteriaBuilder();
+		CriteriaQuery<BioSample> criteriaQuery = criteriaBuilder.createQuery(BioSample.class);
+		Root<BioSample> bioSample = criteriaQuery.from(BioSample.class);
+
+		Calendar calendar = Calendar.getInstance();
+		Date end = calendar.getTime();
+		calendar.set(0, 0, 0);
+		Date start = calendar.getTime();
+
+		criteriaQuery.where(criteriaBuilder.between(bioSample.get("releaseDate"), start, end));
+		TypedQuery<BioSample> typedQuery = dbc.getEntityManager().createQuery(criteriaQuery);
+		List<BioSample> samples = typedQuery.getResultList();
 		return samples;
 	}
 
 	public static List<BioSampleGroup> fetchGroups() {
 		log.debug("fetchGroups()");
 
-		CriteriaBuilder criteria = dbc.getEntityManager().getCriteriaBuilder();
-		CriteriaQuery<BioSampleGroup> queryGroup = criteria.createQuery(BioSampleGroup.class);
-		List<BioSampleGroup> groups = dbc.getEntityManager().createQuery(queryGroup.select(queryGroup.from(BioSampleGroup.class))).getResultList();
+		CriteriaBuilder criteriaBuilder = dbc.getEntityManager().getCriteriaBuilder();
+		CriteriaQuery<BioSampleGroup> criteriaQuery = criteriaBuilder.createQuery(BioSampleGroup.class);
+		Root<BioSampleGroup> bioSampleGroup = criteriaQuery.from(BioSampleGroup.class);
+		criteriaQuery.select(bioSampleGroup);
+		TypedQuery<BioSampleGroup> query = dbc.getEntityManager().createQuery(criteriaQuery);
+		List<BioSampleGroup> groups = query.getResultList();
 		return groups;
 	}
 

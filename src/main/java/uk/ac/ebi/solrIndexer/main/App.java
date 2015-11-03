@@ -1,11 +1,12 @@
 package uk.ac.ebi.solrIndexer.main;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.arrayexpress2.magetab.exception.ParseException;
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
-import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.fg.biosd.model.organizational.MSI;
 import uk.ac.ebi.fg.biosd.sampletab.loader.Loader;
 import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
@@ -46,17 +47,24 @@ public class App {
         	/* --- ------------------------- --- */
     		
     		dbi = DataBaseConnection.getInstance();
-
+/*
     		for (BioSampleGroup bsg : BioSDEntities.fetchGroups()) {
     			System.out.println("Group ACC: " + bsg.getAcc());
     		}
-
-    		for (BioSample bs : BioSDEntities.fetchSamples()) {
-    			System.out.println("Sample ACC: " + bs.getAcc());
-    			for (ExperimentalPropertyValue epv : BioSDEntities.fetchExperimentalPropertyValues(bs)) {
-    				System.out.println(epv.getType().getTermText() + ":: " +epv.getTermText());
-    			}
+*/
+    		
+    		List<BioSample> samples = BioSDEntities.fetchSamples();
+    		if (!samples.isEmpty()) {
+        		for (BioSample bs : samples) {
+        			System.out.println("---Sample ACC: " + bs.getAcc());
+        			for (ExperimentalPropertyValue epv : BioSDEntities.fetchExperimentalPropertyValues(bs)) {
+        				System.out.println(epv.getType().getTermText() + ":: " +epv.getTermText());
+        			}
+        		}
+    		} else {
+    			System.out.println("---Empty ResultList");
     		}
+
 
     	} catch (Exception e) {
     		e.printStackTrace();

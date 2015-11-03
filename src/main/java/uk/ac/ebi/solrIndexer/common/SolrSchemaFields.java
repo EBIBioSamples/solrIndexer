@@ -7,6 +7,8 @@ public class SolrSchemaFields {
 	/* ------------------------------- */
 	public static final String ID = "id";
 	public static final String SAMPLE_ACC = "sample_acc";
+	public static final String SAMPLE_UPDATE_DATE = "sample_update_date";
+	public static final String SAMPLE_RELEASE_DATE = "sample_release_date";
 
 	/* ------------------------------- */
 	/* --            MSI            -- */
@@ -14,7 +16,6 @@ public class SolrSchemaFields {
 	public static final String SUBMISSION_ACC = "submission_acc";
 	public static final String SUBMISSION_DESCRIPTION = "submission_description";
 	public static final String SUBMISSION_TITLE = "submission_title";
-	public static final String RELEASE_DATE = "sample_release_date";
 	public static final String SUBMISSION_UPDATE_DATE = "submission_update_date";
 	public static final String FORMATVERSION = "format_version";
 
