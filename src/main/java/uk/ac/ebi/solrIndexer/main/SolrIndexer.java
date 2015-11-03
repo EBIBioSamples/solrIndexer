@@ -17,9 +17,6 @@ import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_DESCRIPTI
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_TITLE;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_UPDATE_DATE;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.apache.solr.common.SolrInputDocument;
@@ -32,7 +29,7 @@ import uk.ac.ebi.solrIndexer.common.Formater;
 public class SolrIndexer {
 
 	private ConcurrentUpdateSolrClient client;
-	private Collection<SolrInputDocument> docs = new ArrayList<SolrInputDocument>();
+	//private Collection<SolrInputDocument> docs = new ArrayList<SolrInputDocument>();
 
 	private SolrIndexer() {
 		client = new ConcurrentUpdateSolrClient("path to solr core", 10, 8);
