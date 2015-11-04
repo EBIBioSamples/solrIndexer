@@ -20,6 +20,8 @@ import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_UPDATE_DA
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.apache.solr.common.SolrInputDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
@@ -27,19 +29,28 @@ import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 import uk.ac.ebi.solrIndexer.common.Formater;
 
 public class SolrIndexer {
+	private static Logger log = LoggerFactory.getLogger (SolrIndexer.class.getName());
 
+	private static SolrIndexer instance = null;
 	private ConcurrentUpdateSolrClient client;
-	//private Collection<SolrInputDocument> docs = new ArrayList<SolrInputDocument>();
 
 	private SolrIndexer() {
-		client = new ConcurrentUpdateSolrClient("path to solr core", 10, 8);
+		log.debug("Create SolrIndexer Client Connection");
+		client = new ConcurrentUpdateSolrClient("", 10, 8);
 		client.setSoTimeout(1000);
 		client.setConnectionTimeout(1000);
 		client.setParser(new XMLResponseParser());
 	}
 
-	public void buildIndexer() {
-		//TODO
+	public static synchronized SolrIndexer getInstance() {
+		if (instance == null) {
+			instance = new SolrIndexer();
+		}
+		return instance;
+	}
+
+	public synchronized ConcurrentUpdateSolrClient getConcurrentUpdateSolrClient() {
+		return this.client;
 	}
 
 	@SuppressWarnings({ "rawtypes" })
@@ -52,7 +63,7 @@ public class SolrIndexer {
 		document.addField(SUBMISSION_ACC, ""); //TODO
 		document.addField(SUBMISSION_DESCRIPTION, ""); //TODO
 		document.addField(SUBMISSION_TITLE, ""); //TODO
-		document.addField(SUBMISSION_UPDATE_DATE, ""); //TODO
+		document.addField(SUBMISSION_UPDATE_DATE, Formater.formatDateToSolr(null)); //TODO
 		document.addField(FORMATVERSION, ""); //TODO
 		document.addField(DB_ACC, ""); //TODO
 		document.addField(DB_NAME, ""); //TODO
@@ -66,7 +77,7 @@ public class SolrIndexer {
 		return document;
 	}
 
-	public static void generateBioSampleGroupSolrDocument(BioSampleGroup bsg) {
+	public static SolrInputDocument generateBioSampleGroupSolrDocument(BioSampleGroup bsg) {
 		SolrInputDocument document = new SolrInputDocument();
 		document.addField(ID, bsg.getId());
 		document.addField(GROUP_ACC, bsg.getAcc());
@@ -80,5 +91,7 @@ public class SolrIndexer {
 		 */
 		document.addField(NUMBER_OF_SAMPLES, bsg.getSamples().size());
 		document.addField(CONTENT_TYPE, "group");
+
+		return document;
 	}
 }
