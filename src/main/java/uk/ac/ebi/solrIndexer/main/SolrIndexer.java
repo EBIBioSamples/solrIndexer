@@ -17,6 +17,8 @@ import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_DESCRIPTI
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_TITLE;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_UPDATE_DATE;
 
+import java.util.Set;
+
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.apache.solr.common.SolrInputDocument;
@@ -25,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
+import uk.ac.ebi.fg.biosd.model.organizational.MSI;
 import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 import uk.ac.ebi.solrIndexer.common.Formater;
 
@@ -36,7 +39,7 @@ public class SolrIndexer {
 
 	private SolrIndexer() {
 		log.debug("Create SolrIndexer Client Connection");
-		client = new ConcurrentUpdateSolrClient("", 10, 8);
+		client = new ConcurrentUpdateSolrClient("", 10, 8); //FIXME
 		client.setSoTimeout(1000);
 		client.setConnectionTimeout(1000);
 		client.setParser(new XMLResponseParser());
@@ -56,22 +59,36 @@ public class SolrIndexer {
 	@SuppressWarnings({ "rawtypes" })
 	public static SolrInputDocument generateBioSampleSolrDocument(BioSample bs) {
 		SolrInputDocument document = new SolrInputDocument();
-		document.addField(ID, bs.getId());
-		document.addField(SAMPLE_ACC, bs.getAcc());
-		document.addField(SAMPLE_UPDATE_DATE, Formater.formatDateToSolr(bs.getUpdateDate()));
-		document.addField(SAMPLE_RELEASE_DATE, Formater.formatDateToSolr(bs.getReleaseDate()));
-		document.addField(SUBMISSION_ACC, ""); //TODO
-		document.addField(SUBMISSION_DESCRIPTION, ""); //TODO
-		document.addField(SUBMISSION_TITLE, ""); //TODO
-		document.addField(SUBMISSION_UPDATE_DATE, Formater.formatDateToSolr(null)); //TODO
-		document.addField(FORMATVERSION, ""); //TODO
-		document.addField(DB_ACC, ""); //TODO
-		document.addField(DB_NAME, ""); //TODO
-		document.addField(DB_URL, ""); //TODO
-		document.addField(CONTENT_TYPE, "sample");
 
-		for (ExperimentalPropertyValue epv : bs.getPropertyValues()) {
-			document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());
+		Set<MSI> msi = bs.getMSIs();
+		if (msi.size() > 1) {
+			String msiAccs = "";
+			while (msi.iterator().hasNext()) {
+				MSI m = msi.iterator().next();
+				msiAccs += m.getAcc() + "|";
+			}
+
+			log.error("Sample with accession [" + bs.getAcc() + "] has multiple MSI [" + msiAccs + "] - sample skipped.");
+			return null;
+
+		} else {
+			document.addField(ID, bs.getId());
+			document.addField(SAMPLE_ACC, bs.getAcc());
+			document.addField(SAMPLE_UPDATE_DATE, Formater.formatDateToSolr(bs.getUpdateDate()));
+			document.addField(SAMPLE_RELEASE_DATE, Formater.formatDateToSolr(bs.getReleaseDate()));
+			document.addField(SUBMISSION_ACC, ""); //TODO
+			document.addField(SUBMISSION_DESCRIPTION, ""); //TODO
+			document.addField(SUBMISSION_TITLE, ""); //TODO
+			document.addField(SUBMISSION_UPDATE_DATE, Formater.formatDateToSolr(null)); //TODO
+			document.addField(FORMATVERSION, ""); //TODO
+			document.addField(DB_ACC, ""); //TODO
+			document.addField(DB_NAME, ""); //TODO
+			document.addField(DB_URL, ""); //TODO
+			document.addField(CONTENT_TYPE, "sample");
+
+			for (ExperimentalPropertyValue epv : bs.getPropertyValues()) {
+				document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());
+			}
 		}
 
 		return document;

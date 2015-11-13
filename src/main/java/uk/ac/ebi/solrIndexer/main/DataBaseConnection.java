@@ -12,12 +12,12 @@ import uk.ac.ebi.fg.core_model.resources.Resources;
 public class DataBaseConnection {
 	private static Logger log = LoggerFactory.getLogger (App.class.getName());
 
-	private static DataBaseConnection instance = null;
+	private static DataBaseConnection instance = new DataBaseConnection();
 
 	private static EntityManagerFactory entityManagerFactory;
 	private EntityManager manager = null;
 	private static EntityTransaction transaction = null;
-	
+
 	private DataBaseConnection() {
 		log.debug("Creating DataBaseConnection");
 		try {
@@ -28,30 +28,20 @@ public class DataBaseConnection {
 
     	} catch (Exception e) {
     		if(transaction != null && transaction.isActive()) {
+    			log.error("Rolling back.");
     			transaction.rollback();
-    			e.printStackTrace();
     		}
-    		e.printStackTrace();
+    		log.error("Error while creating DataBaseConnection: ", e);
+    		instance = null;
     	}
 	}
 
-	public static synchronized DataBaseConnection getInstance() {
-		if (instance == null) {
-			instance = new DataBaseConnection();
-		}
+	public static DataBaseConnection getInstance() {
 		return instance;
 	}
 
-	public synchronized EntityManager getEntityManager() {
+	public EntityManager getEntityManager() {
 		return this.manager;
-	}
-
-	@Override
-	public synchronized String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("DataBaseConnection [Connection Open: " 
-		+ entityManagerFactory.isOpen() + "; Transaction Active: " + transaction.isActive() + "]");
-		return builder.toString();
 	}
 
 }

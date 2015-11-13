@@ -1,8 +1,7 @@
 package uk.ac.ebi.solrIndexer.main;
 
-import java.util.Calendar;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 import javax.persistence.TypedQuery;
@@ -19,40 +18,46 @@ import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 
 public class BioSDEntities {
 	private static Logger log = LoggerFactory.getLogger(App.class.getName());
-	
-	private static DataBaseConnection dbc = DataBaseConnection.getInstance();
-
-	public static List<BioSample> fetchSamples() {
+/*
+	public static List<BioSample> fetchSamples(DataBaseConnection dbc) {
 		log.debug("fetchSamples()");
+		List<BioSample> samples = new ArrayList<BioSample>();
 
-		CriteriaBuilder criteriaBuilder = dbc.getEntityManager().getCriteriaBuilder();
-		CriteriaQuery<BioSample> criteriaQuery = criteriaBuilder.createQuery(BioSample.class);
-		Root<BioSample> bioSample = criteriaQuery.from(BioSample.class);
+		if (dbc != null) {
+			CriteriaBuilder criteriaBuilder = dbc.getEntityManager().getCriteriaBuilder();
+			CriteriaQuery<BioSample> criteriaQuery = criteriaBuilder.createQuery(BioSample.class);
+			Root<BioSample> bioSample = criteriaQuery.from(BioSample.class);
 
-		Calendar calendar = Calendar.getInstance();
-		Date end = calendar.getTime();
-		calendar.set(0, 0, 0);
-		Date start = calendar.getTime();
+			Calendar calendar = Calendar.getInstance();
+			Date end = new Date(calendar.getTimeInMillis());
+			calendar.set(0, 0, 0);
+			Date start = new Date(calendar.getTimeInMillis());
 
-		criteriaQuery.select(bioSample);
-		TypedQuery<BioSample> typedQuery = dbc.getEntityManager().createQuery(criteriaQuery);
-		
+			criteriaQuery.select(bioSample);
+			//TypedQuery<BioSample> typedQuery = dbc.getEntityManager().createQuery(criteriaQuery);
+			
+			criteriaQuery.where(criteriaBuilder.between(bioSample.<Date>get("releaseDate"), start, end));
+			TypedQuery<BioSample> typedQuery = dbc.getEntityManager().createQuery(criteriaQuery);
+			samples = typedQuery.getResultList();
+		}
 
-		//criteriaQuery.where(criteriaBuilder.between(bioSample.get("releaseDate"), start, end));
-		//TypedQuery<BioSample> typedQuery = dbc.getEntityManager().createQuery(criteriaQuery);
-		List<BioSample> samples = typedQuery.getResultList();
 		return samples;
 	}
-
-	public static List<BioSampleGroup> fetchGroups() {
+*/
+	public static List<BioSampleGroup> fetchGroups(DataBaseConnection dbc) {
 		log.debug("fetchGroups()");
+		
+		List<BioSampleGroup> groups = new ArrayList<BioSampleGroup>();
 
-		CriteriaBuilder criteriaBuilder = dbc.getEntityManager().getCriteriaBuilder();
-		CriteriaQuery<BioSampleGroup> criteriaQuery = criteriaBuilder.createQuery(BioSampleGroup.class);
-		Root<BioSampleGroup> bioSampleGroup = criteriaQuery.from(BioSampleGroup.class);
-		criteriaQuery.select(bioSampleGroup);
-		TypedQuery<BioSampleGroup> query = dbc.getEntityManager().createQuery(criteriaQuery);
-		List<BioSampleGroup> groups = query.getResultList();
+		if (dbc != null) {
+			CriteriaBuilder criteriaBuilder = dbc.getEntityManager().getCriteriaBuilder();
+			CriteriaQuery<BioSampleGroup> criteriaQuery = criteriaBuilder.createQuery(BioSampleGroup.class);
+			Root<BioSampleGroup> bioSampleGroup = criteriaQuery.from(BioSampleGroup.class);
+			criteriaQuery.select(bioSampleGroup);
+			TypedQuery<BioSampleGroup> query = dbc.getEntityManager().createQuery(criteriaQuery);
+			groups = query.getResultList();
+		}
+
 		return groups;
 	}
 
