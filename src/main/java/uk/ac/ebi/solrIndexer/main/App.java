@@ -1,7 +1,10 @@
 package uk.ac.ebi.solrIndexer.main;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
+import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,30 +17,28 @@ public class App {
     	log.info("Entering application.");
 
     	DataBaseConnection dbc = null;
-    	//Collection<SolrInputDocument> docs = null;
+    	Collection<SolrInputDocument> docs = null;
 
     	try {
     		dbc = DataBaseConnection.getInstance();
-    		//docs = new ArrayList<SolrInputDocument>();
+    		docs = new ArrayList<SolrInputDocument>();
 
     		List<BioSampleGroup> groups = BioSDEntities.fetchGroups(dbc);
     		if (groups != null && !groups.isEmpty()) {
+
     			log.info("Generating Solr group documents");
-    			int i = 1;
         		for (BioSampleGroup bsg : groups) {
-        			log.info("---Group ACC: " + bsg.getAcc());
-        			i++;
-        			if (i == 11) break;
-        			/*
         			docs.add(SolrIndexer.generateBioSampleGroupSolrDocument(bsg));
+
         			if (docs.size() > 1000) {
+        				/*
         				UpdateResponse response = SolrIndexer.getInstance().getConcurrentUpdateSolrClient().add(docs);
         				if (response.getStatus() != 0) {
         					log.error("Indexing groups error: " + response.getStatus());
         				}
         				docs.clear();
-        			}
-        			*/
+        				*/
+        			} 
         		}
     		}
 /*
