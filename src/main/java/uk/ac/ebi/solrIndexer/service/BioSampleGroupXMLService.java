@@ -1,8 +1,18 @@
-package org.ebi.ac.uk.service;
+package uk.ac.ebi.solrIndexer.service;
 
-import org.jdom2.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import org.jdom2.Attribute;
+import org.jdom2.Comment;
+import org.jdom2.Content;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.Namespace;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
+
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.fg.biosd.model.organizational.MSI;
@@ -14,10 +24,6 @@ import uk.ac.ebi.fg.core_model.organizational.Organization;
 import uk.ac.ebi.fg.core_model.organizational.Publication;
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.fg.core_model.xref.ReferenceSource;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 
 public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
@@ -363,7 +369,7 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 
 			Set<BioSample> biosamples = group.getMSIs().stream().findFirst().get().getSamples();
 			biosamples.forEach(biosample -> {
-				biosampleElements.add(xmlService.getBiosampleElement(biosample));
+				biosampleElements.add(xmlService.getXMLElement(biosample));
 			});
 		}
 

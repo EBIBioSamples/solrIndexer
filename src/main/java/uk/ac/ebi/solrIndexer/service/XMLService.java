@@ -1,4 +1,4 @@
-package org.ebi.ac.uk.service;
+package uk.ac.ebi.solrIndexer.service;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
