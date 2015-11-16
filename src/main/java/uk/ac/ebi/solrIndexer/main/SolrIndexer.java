@@ -52,8 +52,26 @@ public class SolrIndexer {
 		return instance;
 	}
 
-	public synchronized ConcurrentUpdateSolrClient getConcurrentUpdateSolrClient() {
+	public ConcurrentUpdateSolrClient getConcurrentUpdateSolrClient() {
 		return this.client;
+	}
+
+	public static SolrInputDocument generateBioSampleGroupSolrDocument(BioSampleGroup bsg) {
+		SolrInputDocument document = new SolrInputDocument();
+		document.addField(ID, bsg.getId());
+		document.addField(GROUP_ACC, bsg.getAcc());
+		document.addField(GROUP_UPDATE_DATE, Formater.formatDateToSolr(bsg.getUpdateDate()));
+		/*
+		String samples = "";
+		for (BioSample bs : bsg.getSamples()) {
+			samples += bs.getAcc() + ";";
+		}
+		document.addField(GROUP_SAMPLES, samples);
+		 */
+		document.addField(NUMBER_OF_SAMPLES, bsg.getSamples().size());
+		document.addField(CONTENT_TYPE, "group");
+
+		return document;
 	}
 
 	@SuppressWarnings({ "rawtypes" })
@@ -94,21 +112,4 @@ public class SolrIndexer {
 		return document;
 	}
 
-	public static SolrInputDocument generateBioSampleGroupSolrDocument(BioSampleGroup bsg) {
-		SolrInputDocument document = new SolrInputDocument();
-		document.addField(ID, bsg.getId());
-		document.addField(GROUP_ACC, bsg.getAcc());
-		document.addField(GROUP_UPDATE_DATE, Formater.formatDateToSolr(bsg.getUpdateDate()));
-		/*
-		String samples = "";
-		for (BioSample bs : bsg.getSamples()) {
-			samples += bs.getAcc() + ";";
-		}
-		document.addField(GROUP_SAMPLES, samples);
-		 */
-		document.addField(NUMBER_OF_SAMPLES, bsg.getSamples().size());
-		document.addField(CONTENT_TYPE, "group");
-
-		return document;
-	}
 }
