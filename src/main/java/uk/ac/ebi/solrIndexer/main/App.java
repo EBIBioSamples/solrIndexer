@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
+import uk.ac.ebi.solrIndexer.service.BioSampleGroupXMLService;
 
 public class App {
 	private static Logger log = LoggerFactory.getLogger(App.class.getName());
@@ -27,18 +28,23 @@ public class App {
     		if (groups != null && !groups.isEmpty()) {
 
     			log.info("Generating Solr group documents");
+    			BioSampleGroupXMLService xmlService = new BioSampleGroupXMLService();
         		for (BioSampleGroup bsg : groups) {
+        			log.info("---xml: " + xmlService.getXMLString(bsg));
+        			break;
+        			/*
         			docs.add(SolrIndexer.generateBioSampleGroupSolrDocument(bsg));
 
         			if (docs.size() > 1000) {
-        				/*
+        				
         				UpdateResponse response = SolrIndexer.getInstance().getConcurrentUpdateSolrClient().add(docs);
         				if (response.getStatus() != 0) {
         					log.error("Indexing groups error: " + response.getStatus());
         				}
         				docs.clear();
-        				*/
+        				
         			} 
+        			 */
         		}
     		}
 /*
