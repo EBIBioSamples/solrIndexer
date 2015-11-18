@@ -55,7 +55,7 @@ public class BioSDEntities {
 			Date start = new Date(calendar.getTimeInMillis());
 
 			criteriaQuery.select(bioSample);
-			criteriaQuery.where(criteriaBuilder.between(bioSample.<Date>get("releaseDate"), start, end));
+			criteriaQuery.where(criteriaBuilder.between(bioSample.<Date>get("releaseDate"), start, end)); //FIXME!!!
 
 			TypedQuery<BioSample> typedQuery = dbc.getEntityManager().createQuery(criteriaQuery);
 			samples = typedQuery.getResultList();

@@ -18,9 +18,12 @@
 
 	<logger name = "org.hibernate" level="INFO" />
 	<logger name = "org.hibernate.type" level = "INFO" />
-	<logger name = "uk.ac.ebi.fg.biosd.model" level = "OFF" />
+	<logger name = "uk.ac.ebi.fg.biosd.model" level = "INFO" />
+	<logger name = "org.apache.http.wire" level = "WARN" />
+	<logger name = "o.s.c.i.s.PathMatchingResourcePatternResolver" level = "OFF" />
+	<logger name = "org.apache.http.headers" level = "WARN" />
 
-	<root level="INFO">
+	<root level="DEBUG">
 		<appender-ref ref="Console" />
 		<appender-ref ref="File" />
 	</root>
