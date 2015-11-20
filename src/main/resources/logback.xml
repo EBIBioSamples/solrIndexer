@@ -23,7 +23,7 @@
 	<logger name = "o.s.c.i.s.PathMatchingResourcePatternResolver" level = "OFF" />
 	<logger name = "org.apache.http.headers" level = "WARN" />
 
-	<root level="DEBUG">
+	<root level="INFO">
 		<appender-ref ref="Console" />
 		<appender-ref ref="File" />
 	</root>

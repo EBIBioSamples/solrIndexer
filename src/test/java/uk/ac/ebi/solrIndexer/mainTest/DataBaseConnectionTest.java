@@ -6,13 +6,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.solrIndexer.main.App;
-import uk.ac.ebi.solrIndexer.main.DataBaseConnection;
+import uk.ac.ebi.solrIndexer.main.DataBaseManager;
 
 public class DataBaseConnectionTest {
 
 	private static Logger log = LoggerFactory.getLogger (App.class.getName());
 
-	private DataBaseConnection dbc1 = null, dbc2 = null;
+	private DataBaseManager dbc1 = null, dbc2 = null;
 
 	@Test
 	public void testUnique() {
@@ -36,11 +36,11 @@ public class DataBaseConnectionTest {
 
 	public void setUp() {
 		log.info("Getting singleton...");
-		dbc1 = DataBaseConnection.getInstance();
+		dbc1 = DataBaseManager.getConnection();
 		log.info("...got singleton: " + dbc1);
 
 		log.info("Getting singleton...");
-		dbc2 = DataBaseConnection.getInstance();
+		dbc2 = DataBaseManager.getConnection();
 		log.info("...got singleton: " + dbc2);
 	}
 

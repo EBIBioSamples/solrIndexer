@@ -19,14 +19,14 @@ public class App {
     public static void main( String[] args ) {
     	log.info("Entering application.");
 
-    	DataBaseConnection dbc = null;
+    	DataBaseManager dbc = null;
     	Collection<SolrInputDocument> docs = null;
 
     	try {
-    		dbc = DataBaseConnection.getInstance();
+    		dbc = DataBaseManager.getConnection();
     		docs = new ArrayList<SolrInputDocument>();
 
-    		/* -- Handle Groups -- 
+    		/* -- Handle Groups -- *
     		List<BioSampleGroup> groups = BioSDEntities.fetchGroups(dbc);
     		if (groups != null && !groups.isEmpty()) {
 
@@ -48,15 +48,18 @@ public class App {
         		}
 
     		}
-*/
+    		/*  ------------------  */
+
 			/* -- Handle Samples -- */
-    		List<BioSample> samples = BioSDEntities.fetchSamples(dbc);
+    		List<String> samples = DataBaseManager.fetchSamplesAccessions();
     		if (samples != null && !samples.isEmpty()) {
-    			log.info("Generating Solr sample documents");
-    			//BioSampleXMLService xmlService = new BioSampleXMLService();
-        		for (BioSample bs : samples) {
-        			SolrInputDocument document = SolrIndexer.generateBioSampleSolrDocument(bs);
-        			if (document != null) {
+    			log.info("Accessions received!");
+
+    			BioSample sample = null;
+    			for (String acc : samples) {
+    				sample = DataBaseManager.fetchSample(acc);
+    				SolrInputDocument document = SolrIndexer.generateBioSampleSolrDocument(sample);
+    				if (document != null) {
         				docs.add(document);
         			}
 
@@ -66,14 +69,14 @@ public class App {
         					log.error("Indexing groups error: " + response.getStatus());
         				}
         				docs.clear();
-        				break;
+        				break; //FIXME test purposes
         			}
+    			}
 
-        		}
-        		
     		} else {
     			log.debug("No samples to index.");
     		}
+    		/*  ------------------  */
 
     		log.info("Indexing finished!");
 
@@ -81,9 +84,8 @@ public class App {
     		log.error("Error creating index", e);
 
     	} finally {
-        	if (dbc.getEntityManager()!= null && dbc.getEntityManager().isOpen()) {
-        		dbc.getEntityManager().close();
-    		}
+
+    		DataBaseManager.closeConnection();
 
         	try {
             	if (docs.size() > 0) {
