@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
+import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 
 public class App {
 	private static Logger log = LoggerFactory.getLogger(App.class.getName());
@@ -19,19 +20,16 @@ public class App {
     public static void main( String[] args ) {
     	log.info("Entering application.");
 
-    	DataBaseManager dbc = null;
     	Collection<SolrInputDocument> docs = null;
 
     	try {
-    		dbc = DataBaseManager.getConnection();
     		docs = new ArrayList<SolrInputDocument>();
 
-    		/* -- Handle Groups -- *
-    		List<BioSampleGroup> groups = BioSDEntities.fetchGroups(dbc);
+    		/* -- Handle Groups -- */
+    		List<BioSampleGroup> groups = DataBaseManager.fetchGroups();
     		if (groups != null && !groups.isEmpty()) {
+    			log.info("[" + groups.size() + "]" + "groups fetched.");
 
-    			log.info("Generating Solr group documents");
-    			//BioSampleGroupXMLService xmlService = new BioSampleGroupXMLService();
         		for (BioSampleGroup bsg : groups) {
         			SolrInputDocument document = SolrIndexer.generateBioSampleGroupSolrDocument(bsg);
         			if (document != null) {
@@ -48,35 +46,38 @@ public class App {
         		}
 
     		}
-    		/*  ------------------  */
+
 
 			/* -- Handle Samples -- */
-    		List<String> samples = DataBaseManager.fetchSamplesAccessions();
-    		if (samples != null && !samples.isEmpty()) {
-    			log.info("Accessions received!");
+    		List<String> submissions = DataBaseManager.fetchSubmissionsAccessions();
+    		if (submissions != null && !submissions.isEmpty()) {
+    			log.info("[" + submissions.size() + "]" + " submissions accessions fetched.");
 
-    			BioSample sample = null;
-    			for (String acc : samples) {
-    				sample = DataBaseManager.fetchSample(acc);
-    				SolrInputDocument document = SolrIndexer.generateBioSampleSolrDocument(sample);
-    				if (document != null) {
-        				docs.add(document);
-        			}
+    			for (String acc : submissions) {
 
-        			if (docs.size() > 1000) {
-        				UpdateResponse response = SolrIndexer.getInstance().getConcurrentUpdateSolrClient().add(docs);
-        				if (response.getStatus() != 0) {
-        					log.error("Indexing groups error: " + response.getStatus());
+    				for (BioSample sample : DataBaseManager.fetchSubmission(acc).getSamples()) {
+
+    					SolrInputDocument document = SolrIndexer.generateBioSampleSolrDocument(sample);
+        				if (document != null) {
+            				docs.add(document);
+            			}
+
+        				if (docs.size() > 1000) {
+        					UpdateResponse response = SolrIndexer.getInstance().getConcurrentUpdateSolrClient().add(docs);
+        					if (response.getStatus() != 0) {
+            					log.error("Indexing groups error: " + response.getStatus());
+            				}
+        					docs.clear();
+
         				}
-        				docs.clear();
-        				break; //FIXME test purposes
-        			}
+
+    				}
+
     			}
 
     		} else {
     			log.debug("No samples to index.");
     		}
-    		/*  ------------------  */
 
     		log.info("Indexing finished!");
 

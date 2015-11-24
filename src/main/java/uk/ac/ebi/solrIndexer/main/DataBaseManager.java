@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
+import uk.ac.ebi.fg.biosd.model.organizational.MSI;
 import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 import uk.ac.ebi.fg.core_model.resources.Resources;
 
@@ -66,6 +67,14 @@ public class DataBaseManager {
 		return manager;
 	}
 
+	/* --------------------- */
+	/* -- Querying the DB -- */
+	/* --------------------- */
+
+	/**
+	 * Queries the Biosamples DB retrieving all the groups.
+	 * @return List<BioSampleGroup>
+	 */
 	public static List<BioSampleGroup> fetchGroups() {
 		log.debug("Fetching Groups . . .");
 
@@ -81,16 +90,16 @@ public class DataBaseManager {
 	}
 
 	/**
-	 * Queries the Biosamples DB retrieving all the public samples accessions.
-	 * @param dbc DB Connection
-	 * @return List<String> of all the public samples accessions
+	 * Queries the Biosamples DB retrieving all the public submissions accessions.
+	 * @return List<String>
 	 */
-	public static List<String> fetchSamplesAccessions() {
+	public static List<String> fetchSubmissionsAccessions() {
 		log.debug("Fetching Samples Accessions . . .");
 
-		CriteriaBuilder criteriaBuilder = getConnection().getEntityManager().getCriteriaBuilder();
+		EntityManager entityManager = getConnection().getEntityManager();
+		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<String> criteriaQuery = criteriaBuilder.createQuery(String.class);
-		Root<BioSample> root = criteriaQuery.from(BioSample.class);
+		Root<MSI> root = criteriaQuery.from(MSI.class);
 
 		Calendar calendar = Calendar.getInstance();
 		Date end = new Date(calendar.getTimeInMillis());
@@ -98,11 +107,31 @@ public class DataBaseManager {
 		Date start = new Date(calendar.getTimeInMillis());
 
 		criteriaQuery.select(root.<String>get("acc"));
-		criteriaQuery.where(criteriaBuilder.between(root.get("updateDate"), start, end)); //FIXME updateDate -> releaseDate
+		criteriaQuery.where(criteriaBuilder.between(root.get("releaseDate"), start, end));
 		TypedQuery<String> typedQuery = getConnection().getEntityManager().createQuery(criteriaQuery);
 		List<String> accessions = (List<String>) typedQuery.getResultList();
 
 		return accessions;
+	}
+
+	/**
+	 * Queries the Biosamples DB retrieving the submission with the accession acc.
+	 * @param acc
+	 * @return
+	 */
+	public static MSI fetchSubmission(String acc) {
+		log.debug("Fetching Submission with accession: " + acc);
+	
+		EntityManager entityManager = getConnection().getEntityManager();
+		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+		CriteriaQuery<MSI> criteriaQuery = criteriaBuilder.createQuery(MSI.class);
+		Root<MSI> root = criteriaQuery.from(MSI.class);
+
+		criteriaQuery.select(root);
+		criteriaQuery.where(criteriaBuilder.equal(root.get("acc"), acc));
+		TypedQuery<MSI> query = getConnection().getEntityManager().createQuery(criteriaQuery);
+		MSI msi = (MSI) query.getResultList().get(0);
+		return msi;
 	}
 
 	/**
@@ -126,7 +155,7 @@ public class DataBaseManager {
 	}
 
 	/**
-	 * Receives a BioSample and returns a Collection<ExperimentalPropertyValue>
+	 * Receives a BioSample and returns all its properties pairs.
 	 * @param bs BioSample
 	 * @return Collection<ExperimentalPropertyValue>
 	 */
