@@ -47,7 +47,6 @@ public class App {
 
     		}
 
-
 			/* -- Handle Samples -- */
     		List<String> submissions = DataBaseManager.fetchSubmissionsAccessions();
     		if (submissions != null && !submissions.isEmpty()) {

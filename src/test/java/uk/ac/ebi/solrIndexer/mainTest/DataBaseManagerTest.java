@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.solrIndexer.main.App;
 import uk.ac.ebi.solrIndexer.main.DataBaseManager;
 
-public class DataBaseConnectionTest {
+public class DataBaseManagerTest {
 
 	private static Logger log = LoggerFactory.getLogger (App.class.getName());
 

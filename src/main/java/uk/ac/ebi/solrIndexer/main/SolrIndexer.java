@@ -39,7 +39,7 @@ public class SolrIndexer {
 
 	private SolrIndexer() {
 		log.debug("Create SolrIndexer Client Connection");
-		client = new ConcurrentUpdateSolrClient("http://localhost:8983/solr/biosamples6_2_1", 10, 8); //FIXME
+		client = new ConcurrentUpdateSolrClient("", 10, 8); //FIXME
 		client.setSoTimeout(1000);
 		client.setConnectionTimeout(1000);
 		client.setParser(new XMLResponseParser());
