@@ -1,4 +1,4 @@
-package uk.ac.ebi.solrIndexer.service;
+package uk.ac.ebi.solrIndexer.service.xml;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +24,7 @@ import uk.ac.ebi.fg.core_model.organizational.Organization;
 import uk.ac.ebi.fg.core_model.organizational.Publication;
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.fg.core_model.xref.ReferenceSource;
+import uk.ac.ebi.solrIndexer.service.xml.filters.EmptyElementFilter;
 
 
 public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
@@ -57,15 +58,15 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 		completeRootAttributes.addAll(specificRootAttribute);
 		root.setAttributes(completeRootAttributes);
 
-		List<Element> groupAnnotations = getAnnotationsElements(group);
-		List<Element> groupTermSource  = getTermSourceElements(group);
-		List<Element> groupProperties  = getPropertiesElements(group);
-		List<Element> groupOrganizations = getOrganizationElements(group);
-		List<Element> groupPersons 	= getPersonElements(group);
-		List<Element> groupDatabases = getDatabaseElements(group);
-		List<Element> groupPublication = getPublicationElements(group);
-		Content groupSampleIds = getSampleIdsElement(group);
-		List<Element> groupBiosamples = getBiosampleElements(group);
+		List<Element> groupAnnotations 		= getAnnotationsElements(group);
+		List<Element> groupTermSource  		= getTermSourceElements(group);
+		List<Element> groupProperties  		= getPropertiesElements(group);
+		List<Element> groupOrganizations 	= getOrganizationElements(group);
+		List<Element> groupPersons 			= getPersonElements(group);
+		List<Element> groupDatabases 		= getDatabaseElements(group);
+		List<Element> groupPublication 		= getPublicationElements(group);
+		Content groupSampleIds 				= getSampleIdsElement(group);
+		List<Element> groupBiosamples 		= getBiosampleElements(group);
 
 		root.addContent(groupAnnotations)
 				.addContent(groupTermSource)
@@ -76,6 +77,8 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 				.addContent(groupPublication)
 				.addContent(groupSampleIds)
 				.addContent(groupBiosamples);
+
+		root.removeContent(new EmptyElementFilter());
 
 		return root;
 
@@ -386,9 +389,6 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 		xmlOutput.setFormat(Format.getPrettyFormat());
 		return xmlOutput.outputString(doc);
 	}
-
-
-
 
 
 

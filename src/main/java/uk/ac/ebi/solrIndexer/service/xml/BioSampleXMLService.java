@@ -1,4 +1,4 @@
-package uk.ac.ebi.solrIndexer.service;
+package uk.ac.ebi.solrIndexer.service.xml;
 
 import java.util.ArrayList;
 import java.util.Collection;

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+        <!--BioSamples XML API - version 1.0-->
+<BioSampleGroup xmlns="http://www.ebi.ac.uk/biosamples/SampleGroupExport/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="SAMEG272513" xsi:schemaLocation="http://www.ebi.ac.uk/biosamples/SampleGroupExport/1.0 http://www.ebi.ac.uk/biosamples/assets/xsd/v1.0/BioSDSchema.xsd">
+    <Property class="Group Name" type="STRING" characteristic="true" comment="false">
+        <QualifiedValue>
+            <Value>Other Group</Value>
+        </QualifiedValue>
+    </Property>
+    <Property  class="SampleTab FTP location" type="STRING" characteristic="true" comment="false">
+        <QualifiedValue>
+            <Value>ftp://ftp.ebi.ac.uk/pub/databases/biosamples/ae/GAE-MEXP-3980/sampletab.txt</Value>
+        </QualifiedValue>
+    </Property>
+    <Organization>
+        <Name>Universiti Kebangsaan Malaysia</Name>
+        <Address />
+        <URI />
+        <Email />
+        <Role>submitter</Role>
+    </Organization>
+    <Person>
+        <FirstName>Norfilza</FirstName>
+        <LastName>Mokhtar</LastName>
+        <MidInitials>M</MidInitials>
+        <Email>norfilza@yahoo.co.uk</Email>
+        <Role>submitter</Role>
+    </Person>
+    <SampleIds>
+        <Id>SAMEA4562491</Id>
+        <Id>SAMEA4562492</Id>
+        <Id>SAMEA4562470</Id>
+        <Id>SAMEA4562471</Id>
+        <Id>SAMEA4562493</Id>
+        <Id>SAMEA4562472</Id>
+        <Id>SAMEA4562494</Id>
+        <Id>SAMEA4562490</Id>
+        <Id>SAMEA4562477</Id>
+        <Id>SAMEA4562478</Id>
+        <Id>SAMEA4562479</Id>
+        <Id>SAMEA4562495</Id>
+        <Id>SAMEA4562473</Id>
+        <Id>SAMEA4562474</Id>
+        <Id>SAMEA4562475</Id>
+        <Id>SAMEA4562476</Id>
+        <Id>SAMEA4562480</Id>
+        <Id>SAMEA4562481</Id>
+        <Id>SAMEA4562482</Id>
+        <Id>SAMEA4562483</Id>
+        <Id>SAMEA4562488</Id>
+        <Id>SAMEA4562466</Id>
+        <Id>SAMEA4562489</Id>
+        <Id>SAMEA4562467</Id>
+        <Id>SAMEA4562468</Id>
+        <Id>SAMEA4562469</Id>
+        <Id>SAMEA4562484</Id>
+        <Id>SAMEA4562485</Id>
+        <Id>SAMEA4562486</Id>
+        <Id>SAMEA4562487</Id>
+    </SampleIds>
+</BioSampleGroup>
