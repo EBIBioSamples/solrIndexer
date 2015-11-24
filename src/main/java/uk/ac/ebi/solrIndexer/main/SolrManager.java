@@ -31,23 +31,23 @@ import uk.ac.ebi.fg.biosd.model.xref.DatabaseRecordRef;
 import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 import uk.ac.ebi.solrIndexer.common.Formater;
 
-public class SolrIndexer {
-	private static Logger log = LoggerFactory.getLogger (SolrIndexer.class.getName());
+public class SolrManager {
+	private static Logger log = LoggerFactory.getLogger (SolrManager.class.getName());
 
-	private static SolrIndexer instance = null;
+	private static SolrManager instance = null;
 	private ConcurrentUpdateSolrClient client;
 
-	private SolrIndexer() {
-		log.debug("Create SolrIndexer Client Connection");
+	private SolrManager() {
+		log.debug("Create SolrManager Client Connection");
 		client = new ConcurrentUpdateSolrClient("", 10, 8); //FIXME
 		client.setSoTimeout(1000);
 		client.setConnectionTimeout(1000);
 		client.setParser(new XMLResponseParser());
 	}
 
-	public static synchronized SolrIndexer getInstance() {
+	public static synchronized SolrManager getInstance() {
 		if (instance == null) {
-			instance = new SolrIndexer();
+			instance = new SolrManager();
 		}
 		return instance;
 	}

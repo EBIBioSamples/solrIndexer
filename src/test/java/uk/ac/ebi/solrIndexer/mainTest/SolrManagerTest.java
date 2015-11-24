@@ -2,7 +2,7 @@ package uk.ac.ebi.solrIndexer.mainTest;
 
 import org.junit.Test;
 
-public class SolrIndexerTest {
+public class SolrManagerTest {
 
 	@Test
 	public void test() {

@@ -31,13 +31,13 @@ public class App {
     			log.info("[" + groups.size() + "]" + "groups fetched.");
 
         		for (BioSampleGroup bsg : groups) {
-        			SolrInputDocument document = SolrIndexer.generateBioSampleGroupSolrDocument(bsg);
+        			SolrInputDocument document = SolrManager.generateBioSampleGroupSolrDocument(bsg);
         			if (document != null) {
         				docs.add(document);
         			}
 
         			if (docs.size() > 1000) {
-        				UpdateResponse response = SolrIndexer.getInstance().getConcurrentUpdateSolrClient().add(docs);
+        				UpdateResponse response = SolrManager.getInstance().getConcurrentUpdateSolrClient().add(docs);
         				if (response.getStatus() != 0) {
         					log.error("Indexing groups error: " + response.getStatus());
         				}
@@ -56,13 +56,13 @@ public class App {
 
     				for (BioSample sample : DataBaseManager.fetchSubmission(acc).getSamples()) {
 
-    					SolrInputDocument document = SolrIndexer.generateBioSampleSolrDocument(sample);
+    					SolrInputDocument document = SolrManager.generateBioSampleSolrDocument(sample);
         				if (document != null) {
             				docs.add(document);
             			}
 
         				if (docs.size() > 1000) {
-        					UpdateResponse response = SolrIndexer.getInstance().getConcurrentUpdateSolrClient().add(docs);
+        					UpdateResponse response = SolrManager.getInstance().getConcurrentUpdateSolrClient().add(docs);
         					if (response.getStatus() != 0) {
             					log.error("Indexing groups error: " + response.getStatus());
             				}
@@ -89,9 +89,9 @@ public class App {
 
         	try {
             	if (docs.size() > 0) {
-            		SolrIndexer.getInstance().getConcurrentUpdateSolrClient().add(docs, 300000);
+            		SolrManager.getInstance().getConcurrentUpdateSolrClient().add(docs, 300000);
     			}
-				SolrIndexer.getInstance().getConcurrentUpdateSolrClient().commit();
+				SolrManager.getInstance().getConcurrentUpdateSolrClient().commit();
 			} catch (SolrServerException | IOException e) {
 				log.error("Error creating index", e);
 			}
