@@ -53,10 +53,10 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 	public Element getXMLElement(BioSampleGroup group) {
 		Element root = getDocumentRoot(group);
 
-		List<Attribute> completeRootAttributes = root.getAttributes();
-		List<Attribute> specificRootAttribute  = getRootAttributes(group);
-		completeRootAttributes.addAll(specificRootAttribute);
-		root.setAttributes(completeRootAttributes);
+		//List<Attribute> completeRootAttributes = root.getAttributes();
+		//List<Attribute> specificRootAttribute  = getRootAttributes(group);
+		//completeRootAttributes.addAll(specificRootAttribute);
+		//root.setAttributes(completeRootAttributes);
 
 		List<Element> groupAnnotations 		= getAnnotationsElements(group);
 		List<Element> groupTermSource  		= getTermSourceElements(group);
@@ -191,8 +191,10 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 
 		Element value         = new Element("Value").setText(propertyValue.getTermText());
 		Element termSourceRef = getQualityValue_TermSourceRef(propertyValue);
-		Element unit          = new Element("Unit").setText(propertyValue.getUnit().getTermText());
-
+		Element unit = new Element("Unit");
+		if (propertyValue.getUnit() != null) {
+			unit.setText(propertyValue.getUnit().getTermText());
+		}
 
 		qualifiedValue.addContent(value);
 
@@ -214,22 +216,24 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 
 		Element termSourceRef = new Element("TermSourceRef");
 
-		OntologyEntry   ontology          = pv.getSingleOntologyTerm();
-		ReferenceSource ontologyRefSource = ontology.getSource();
-		Element         tsrName           = new Element("Name").setText(ontologyRefSource.getName());
-		Element         tsrDescription    = new Element("Description").setText(ontologyRefSource.getDescription());
-		Element         tsrURI            = new Element("URI").setText(ontologyRefSource.getUrl());
-		Element         tsrVersion        = new Element("Version").setText(ontologyRefSource.getVersion());
-		Element         tsrTermSourceID   = new Element("TermSourceID").setText(ontology.getAcc());
+		if (pv.getSingleOntologyTerm() != null) {
+			OntologyEntry ontology = pv.getSingleOntologyTerm();
+			ReferenceSource ontologyRefSource = ontology.getSource();
+			Element tsrName 		= new Element("Name").setText(ontologyRefSource.getName());
+			Element tsrDescription 	= new Element("Description").setText(ontologyRefSource.getDescription());
+			Element tsrURI 			= new Element("URI").setText(ontologyRefSource.getUrl());
+			Element tsrVersion 		= new Element("Version").setText(ontologyRefSource.getVersion());
+			Element tsrTermSourceID = new Element("TermSourceID").setText(ontology.getAcc());
 
-		List<Element> allContents = new ArrayList<>();
-		allContents.add(tsrName);
-		allContents.add(tsrDescription);
-		allContents.add(tsrURI);
-		allContents.add(tsrVersion);
-		allContents.add(tsrTermSourceID);
+			List<Element> allContents = new ArrayList<>();
+			allContents.add(tsrName);
+			allContents.add(tsrDescription);
+			allContents.add(tsrURI);
+			allContents.add(tsrVersion);
+			allContents.add(tsrTermSourceID);
 
-		termSourceRef.addContent(allContents);
+			termSourceRef.addContent(allContents);
+		}
 
 		return termSourceRef;
 
@@ -366,15 +370,15 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 	private List<Element> getBiosampleElements(BioSampleGroup group) {
 		List<Element> biosampleElements = new ArrayList<>();
 
-		if ( existsAndUniqueMSI(group) ) {
-
-			BioSampleXMLService xmlService = new BioSampleXMLService();
-
-			Set<BioSample> biosamples = group.getMSIs().stream().findFirst().get().getSamples();
-			biosamples.forEach(biosample -> {
-				biosampleElements.add(xmlService.getXMLElement(biosample));
-			});
-		}
+//		if ( existsAndUniqueMSI(group) ) {
+//
+//			BioSampleXMLService xmlService = new BioSampleXMLService();
+//
+//			Set<BioSample> biosamples = group.getMSIs().stream().findFirst().get().getSamples();
+//			biosamples.forEach(biosample -> {
+//				biosampleElements.add(xmlService.getXMLElement(biosample));
+//			});
+//		}
 
 
 		return biosampleElements;

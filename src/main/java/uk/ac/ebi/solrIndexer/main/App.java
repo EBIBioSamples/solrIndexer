@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
+import uk.ac.ebi.solrIndexer.service.xml.BioSampleGroupXMLService;
+import uk.ac.ebi.solrIndexer.service.xml.XMLService;
 
 public class App {
 	private static Logger log = LoggerFactory.getLogger(App.class.getName());
@@ -31,23 +33,28 @@ public class App {
     			log.info("[" + groups.size() + "]" + "groups fetched.");
 
         		for (BioSampleGroup bsg : groups) {
-        			SolrInputDocument document = SolrManager.generateBioSampleGroupSolrDocument(bsg);
-        			if (document != null) {
-        				docs.add(document);
-        			}
+					BioSampleGroupXMLService xmlDocCreator = new BioSampleGroupXMLService();
+					String xmlString = xmlDocCreator.getXMLString(bsg);
+					log.info("\n" + xmlString);
 
-        			if (docs.size() > 1000) {
-        				UpdateResponse response = SolrManager.getInstance().getConcurrentUpdateSolrClient().add(docs);
-        				if (response.getStatus() != 0) {
-        					log.error("Indexing groups error: " + response.getStatus());
-        				}
-        				docs.clear();
-        			} 
+//        			SolrInputDocument document = SolrManager.generateBioSampleGroupSolrDocument(bsg);
+//        			if (document != null) {
+//        				docs.add(document);
+//        			}
+//
+//        			if (docs.size() > 1000) {
+//        				UpdateResponse response = SolrManager.getInstance().getConcurrentUpdateSolrClient().add(docs);
+//        				if (response.getStatus() != 0) {
+//        					log.error("Indexing groups error: " + response.getStatus());
+//        				}
+//        				docs.clear();
+//        			}
         		}
 
     		}
 
 			/* -- Handle Samples -- */
+			/*
     		List<String> submissions = DataBaseManager.fetchSubmissionsAccessions();
     		if (submissions != null && !submissions.isEmpty()) {
     			log.info("[" + submissions.size() + "]" + " submissions accessions fetched.");
@@ -77,6 +84,7 @@ public class App {
     		} else {
     			log.debug("No samples to index.");
     		}
+			*/
 
     		log.info("Indexing finished!");
 
@@ -87,14 +95,14 @@ public class App {
 
     		DataBaseManager.closeConnection();
 
-        	try {
-            	if (docs.size() > 0) {
-            		SolrManager.getInstance().getConcurrentUpdateSolrClient().add(docs, 300000);
-    			}
-				SolrManager.getInstance().getConcurrentUpdateSolrClient().commit();
-			} catch (SolrServerException | IOException e) {
-				log.error("Error creating index", e);
-			}
+//        	try {
+//            	if (docs.size() > 0) {
+//            		SolrManager.getInstance().getConcurrentUpdateSolrClient().add(docs, 300000);
+//    			}
+//				SolrManager.getInstance().getConcurrentUpdateSolrClient().commit();
+//			} catch (SolrServerException | IOException e) {
+//				log.error("Error creating index", e);
+//			}
 
         	System.exit(0);
     	}
