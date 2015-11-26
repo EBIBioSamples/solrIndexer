@@ -1,6 +1,6 @@
 package uk.ac.ebi.solrIndexer.main;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -32,10 +32,20 @@ public class App {
     		if (groups != null && !groups.isEmpty()) {
     			log.info("[" + groups.size() + "]" + "groups fetched.");
 
+
         		for (BioSampleGroup bsg : groups) {
 					BioSampleGroupXMLService xmlDocCreator = new BioSampleGroupXMLService();
 					String xmlString = xmlDocCreator.getXMLString(bsg);
+
+
+					PrintWriter pw = new PrintWriter("./TestFiles/biosample-test.xml","UTF-8");
+
+					pw.write(xmlString);
+					pw.close();
+
 					log.info("\n" + xmlString);
+
+					break;
 
 //        			SolrInputDocument document = SolrManager.generateBioSampleGroupSolrDocument(bsg);
 //        			if (document != null) {

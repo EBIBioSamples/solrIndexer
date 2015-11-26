@@ -14,6 +14,8 @@ import org.jdom2.Namespace;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.fg.biosd.model.xref.DatabaseRecordRef;
@@ -23,9 +25,13 @@ import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.fg.core_model.toplevel.Annotation;
 import uk.ac.ebi.fg.core_model.xref.ReferenceSource;
+import uk.ac.ebi.solrIndexer.service.xml.filters.EmptyElementFilter;
 
 public class BioSampleXMLService implements XMLService<BioSample> {
 
+	private static Logger log = LoggerFactory.getLogger(BioSampleGroupXMLService.class.getName());
+	private final Namespace XMLNS =
+			Namespace.getNamespace("http://www.ebi.ac.uk/biosamples/SampleGroupExport/1.0");
 
 	public BioSampleXMLService() {}
 
@@ -59,10 +65,12 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 		Content groupIds 		  = getBiosampleGroupIds(sample);
 
 		root.addContent(annotations)
-				.addContent(properties)
-				.addContent(derivedFrom)
-				.addContent(databases)
-				.addContent(groupIds);
+			.addContent(properties)
+			.addContent(derivedFrom)
+			.addContent(databases)
+			.addContent(groupIds);
+
+		filterDescendantOf(root, new EmptyElementFilter().negate());
 
 		return root;
 	}
@@ -78,8 +86,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 
 	private Element getDocumentRoot(BioSample sample) {
 
-		Namespace xmlns = Namespace.getNamespace("http://www.ebi.ac.uk/biosamples/SampleGroupExport/1.0");
-		Element   root  = new Element("Biosample", xmlns);
+		Element   root  = new Element("BioSample", XMLNS);
 
 		Namespace xsi = Namespace.getNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance");
 		root.addNamespaceDeclaration(xsi);
@@ -115,11 +122,13 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 		Collection<ExperimentalPropertyValue> allProperties = sample.getPropertyValues();
 
 
-		for (ExperimentalPropertyValue val : allProperties) {
+		allProperties.forEach(
+				propertyValue -> {
+					Element property = getProperty(propertyValue);
+					properties.add(property);
+				}
+		);
 
-			Element property = getProperty(val);
-			properties.add(property);
-		}
 
 		return properties;
 
@@ -128,7 +137,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 	//TODO Handle the situation where each property has multiple qualified values
 	private Element getProperty(ExperimentalPropertyValue pv) {
 
-		Element propertyElement = new Element("Property");
+		Element propertyElement = new Element("Property",XMLNS);
 
 		ExperimentalPropertyType propType = pv.getType();
 
@@ -145,6 +154,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 
 		propertyElement.setAttributes(propertyAttributes);
 
+
 		Element qualityValue = getPropertyQualifiedValue(pv);
 		propertyElement.setContent(qualityValue);
 
@@ -155,12 +165,16 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 	//TODO a property can have multiple qualified values
 	private Element getPropertyQualifiedValue(ExperimentalPropertyValue pv) {
 
-		Element qualityValueElement = new Element("QualifiedValue");
+		Element qualityValueElement = new Element("QualifiedValue",XMLNS);
 
 
-		Element value         = new Element("Value").setText(pv.getTermText());
+		Element value         = new Element("Value",XMLNS).setText(pv.getTermText());
+
 		Element termSourceRef = getQualityValue_TermSourceRef(pv);
-		Element unit          = new Element("Unit").setText(pv.getUnit().getTermText());
+		Element unit = new Element("Unit",XMLNS);
+		if (pv.getUnit() != null) {
+			unit.setText(pv.getUnit().getTermText());
+		}
 
 
 		qualityValueElement.addContent(value);
@@ -181,24 +195,26 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 	private Element getQualityValue_TermSourceRef(ExperimentalPropertyValue pv) {
 
 
-		Element termSourceRef = new Element("TermSourceRef");
+		Element termSourceRef = new Element("TermSourceREF",XMLNS);
 
 		OntologyEntry   ontology          = pv.getSingleOntologyTerm();
-		ReferenceSource ontologyRefSource = ontology.getSource();
-		Element         tsrName           = new Element("Name").setText(ontologyRefSource.getName());
-		Element         tsrDescription    = new Element("Description").setText(ontologyRefSource.getDescription());
-		Element         tsrURI            = new Element("URI").setText(ontologyRefSource.getUrl());
-		Element         tsrVersion        = new Element("Version").setText(ontologyRefSource.getVersion());
-		Element         tsrTermSourceID   = new Element("TermSourceID").setText(ontology.getAcc());
+		if (ontology != null) {
+			ReferenceSource ontologyRefSource = ontology.getSource();
+			Element tsrName = new Element("Name", XMLNS).setText(ontologyRefSource.getName());
+			Element tsrDescription = new Element("Description", XMLNS).setText(ontologyRefSource.getDescription());
+			Element tsrURI = new Element("URI", XMLNS).setText(ontologyRefSource.getUrl());
+			Element tsrVersion = new Element("Version", XMLNS).setText(ontologyRefSource.getVersion());
+			Element tsrTermSourceID = new Element("TermSourceID", XMLNS).setText(ontology.getAcc());
 
-		List<Element> allContents = new ArrayList<>();
-		allContents.add(tsrName);
-		allContents.add(tsrDescription);
-		allContents.add(tsrURI);
-		allContents.add(tsrVersion);
-		allContents.add(tsrTermSourceID);
+			List<Element> allContents = new ArrayList<>();
+			allContents.add(tsrName);
+			allContents.add(tsrDescription);
+			allContents.add(tsrURI);
+			allContents.add(tsrVersion);
+			allContents.add(tsrTermSourceID);
 
-		termSourceRef.addContent(allContents);
+			termSourceRef.addContent(allContents);
+		}
 
 		return termSourceRef;
 
@@ -212,7 +228,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 		Set<Annotation> annotationSet = sample.getAnnotations();
 		annotationSet.forEach(annotation -> {
 
-			Element annotationElement = new Element("Annotation").setText(annotation.getInternalNotes());
+			Element annotationElement = new Element("Annotation",XMLNS).setText(annotation.getInternalNotes());
 			annotationElement.setAttribute("type",annotation.getType().getName());
 			annotations.add(annotationElement);
 
@@ -227,11 +243,11 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 		Set<DatabaseRecordRef> dbSet = sample.getDatabaseRecordRefs();
 		dbSet.forEach(db -> {
 
-			Element dbElement = new Element("Database");
+			Element dbElement = new Element("Database",XMLNS);
 
-			Element nameElement = new Element("Name").setText(db.getDbName());
-			Element idElement = new Element("ID").setText(db.getAcc());
-			Element uriElement = new Element("URI").setText(db.getUrl());
+			Element nameElement = new Element("Name",XMLNS).setText(db.getDbName());
+			Element idElement = new Element("ID",XMLNS).setText(db.getAcc());
+			Element uriElement = new Element("URI",XMLNS).setText(db.getUrl());
 
 			dbElement.addContent(nameElement).addContent(idElement).addContent(uriElement);
 
@@ -244,12 +260,12 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 
 	private Element getBiosampleGroupIds(BioSample sample) {
 
-		Element groupElement = new Element("GroupIds");
+		Element groupElement = new Element("GroupIds",XMLNS);
 
 		Set<BioSampleGroup> sampleGroups = sample.getGroups();
 		sampleGroups.forEach(gr -> {
 
-			Element grId = new Element("Id").setText(gr.getAcc());
+			Element grId = new Element("Id",XMLNS).setText(gr.getAcc());
 			groupElement.addContent(grId);
 
 		});
@@ -264,7 +280,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 
 		Set<Product> derivedFromSet = sample.getDerivedFrom();
 		derivedFromSet.forEach(product -> {
-			Element derivation = new Element("derivedFrom").setText(product.getAcc());
+			Element derivation = new Element("derivedFrom",XMLNS).setText(product.getAcc());
 			derivations.add(derivation);
 		});
 
@@ -276,8 +292,6 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 		xmlOutput.setFormat(Format.getPrettyFormat());
 		return xmlOutput.outputString(doc);
 	}
-
-
 
 
 }
