@@ -30,6 +30,7 @@ import uk.ac.ebi.fg.biosd.model.organizational.MSI;
 import uk.ac.ebi.fg.biosd.model.xref.DatabaseRecordRef;
 import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 import uk.ac.ebi.solrIndexer.common.Formater;
+import uk.ac.ebi.solrIndexer.properties.LoadProperties;
 
 public class SolrManager {
 	private static Logger log = LoggerFactory.getLogger (SolrManager.class.getName());
@@ -38,8 +39,8 @@ public class SolrManager {
 	private ConcurrentUpdateSolrClient client;
 
 	private SolrManager() {
-		log.debug("Create SolrManager Client Connection");
-		client = new ConcurrentUpdateSolrClient("", 10, 8); //FIXME
+		log.debug("Creating SolrManager Client Connection");
+		client = new ConcurrentUpdateSolrClient(LoadProperties.getSolrCorePath(), 10, 8); //FIXME
 		client.setSoTimeout(1000);
 		client.setConnectionTimeout(1000);
 		client.setParser(new XMLResponseParser());
