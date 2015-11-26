@@ -28,7 +28,7 @@ public class App {
     		/* -- Handle Groups -- */
     		List<BioSampleGroup> groups = DataBaseManager.fetchGroups();
     		if (groups != null && !groups.isEmpty()) {
-    			log.info("[" + groups.size() + "]" + "groups fetched.");
+    			log.info("[" + groups.size() + "]" + " groups fetched.");
 
         		for (BioSampleGroup bsg : groups) {
         			SolrInputDocument document = SolrManager.generateBioSampleGroupSolrDocument(bsg);
@@ -36,15 +36,9 @@ public class App {
         				docs.add(document);
         			}
 
-        			if (docs.size() > 1000) {
-        				UpdateResponse response = SolrManager.getInstance().getConcurrentUpdateSolrClient().add(docs);
-        				if (response.getStatus() != 0) {
-        					log.error("Indexing groups error: " + response.getStatus());
-        				}
-        				docs.clear();
-        			} 
+        			checkDocsSize(docs); 
         		}
-
+        		log.info("Group documents generated.");
     		}
 
 			/* -- Handle Samples -- */
@@ -61,17 +55,9 @@ public class App {
             				docs.add(document);
             			}
 
-        				if (docs.size() > 1000) {
-        					UpdateResponse response = SolrManager.getInstance().getConcurrentUpdateSolrClient().add(docs);
-        					if (response.getStatus() != 0) {
-            					log.error("Indexing groups error: " + response.getStatus());
-            				}
-        					docs.clear();
-
-        				}
-
+        				checkDocsSize(docs);
     				}
-
+            		log.info("Sample documents generated.");
     			}
 
     		} else {
@@ -100,5 +86,20 @@ public class App {
     	}
 
     }
+
+	/**
+	 * @param docs
+	 * @throws SolrServerException
+	 * @throws IOException
+	 */
+	private static void checkDocsSize(Collection<SolrInputDocument> docs) throws SolrServerException, IOException {
+		if (docs.size() > 1000) {
+			UpdateResponse response = SolrManager.getInstance().getConcurrentUpdateSolrClient().add(docs);
+			if (response.getStatus() != 0) {
+				log.error("Indexing groups error: " + response.getStatus());
+			}
+			docs.clear();
+		}
+	}
 
 }
