@@ -7,6 +7,7 @@ import org.jdom2.output.XMLOutputter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
+import uk.ac.ebi.fg.biosd.model.expgraph.properties.SampleCommentValue;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.fg.biosd.model.organizational.MSI;
 import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyType;
@@ -148,12 +149,13 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 
 		Element property = new Element("Property",XMLNS);
 
-		ExperimentalPropertyType propType = propertyValue.getType();
 
-		Attribute classAttr          = new Attribute("class", propType.getTermText());
+		ExperimentalPropertyType propertyType = propertyValue.getType();
+
+		Attribute classAttr          = new Attribute("class", propertyType.getTermText());
 		Attribute typeAttr           = new Attribute("type", "STRING");
-		Attribute characteristicAttr = new Attribute("characteristic", "true");
-		Attribute commentAttr        = new Attribute("comment", "false");
+		Attribute characteristicAttr = new Attribute("characteristic", Boolean.toString(!isComment(propertyValue)));
+		Attribute commentAttr        = new Attribute("comment", Boolean.toString(isComment(propertyValue)));
 
 		List<Attribute> propertyAttributes = new ArrayList<>();
 		propertyAttributes.add(classAttr);
@@ -168,6 +170,10 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 
 		return property;
 
+	}
+
+	private Boolean isComment(ExperimentalPropertyValue propertyValue) {
+		return propertyValue instanceof SampleCommentValue;
 	}
 
 	public List<Element> getQualifiedValues(ExperimentalPropertyValue propertyValue) {
