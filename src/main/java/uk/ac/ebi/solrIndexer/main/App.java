@@ -28,7 +28,7 @@ public class App {
     		/* -- Handle Groups -- */
     		List<BioSampleGroup> groups = DataBaseManager.fetchGroups();
     		if (groups != null && !groups.isEmpty()) {
-    			log.info("[" + groups.size() + "]" + " groups fetched.");
+    			log.info("[" + groups.size() + "]" + " groups found in BioSamples.");
 
         		for (BioSampleGroup bsg : groups) {
         			SolrInputDocument document = SolrManager.generateBioSampleGroupSolrDocument(bsg);
@@ -44,7 +44,7 @@ public class App {
 			/* -- Handle Samples -- */
     		List<String> submissions = DataBaseManager.fetchSubmissionsAccessions();
     		if (submissions != null && !submissions.isEmpty()) {
-    			log.info("[" + submissions.size() + "]" + " submissions accessions fetched.");
+    			log.info("[" + submissions.size() + "]" + " submissions accessions found in BioSamples.");
 
     			for (String acc : submissions) {
 

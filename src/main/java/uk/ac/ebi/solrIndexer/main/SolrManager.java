@@ -40,9 +40,9 @@ public class SolrManager {
 
 	private SolrManager() {
 		log.debug("Creating SolrManager Client Connection");
-		client = new ConcurrentUpdateSolrClient(LoadProperties.getSolrCorePath(), 10, 8); //FIXME
+		client = new ConcurrentUpdateSolrClient(LoadProperties.getSolrCorePath(), 10, 8);
 		client.setSoTimeout(1000);
-		client.setConnectionTimeout(1000);
+		//client.setConnectionTimeout(1000);
 		client.setParser(new XMLResponseParser());
 	}
 
