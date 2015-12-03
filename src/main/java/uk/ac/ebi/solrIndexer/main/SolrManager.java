@@ -58,9 +58,10 @@ public class SolrManager {
 	}
 
 	public static SolrInputDocument generateBioSampleGroupSolrDocument(BioSampleGroup bsg) {
-		SolrInputDocument document = new SolrInputDocument();
+		SolrInputDocument document;
 
 		try{
+			document = new SolrInputDocument();
 			document.addField(ID, bsg.getId());
 			document.addField(GROUP_ACC, bsg.getAcc());
 			document.addField(GROUP_UPDATE_DATE, Formater.formatDateToSolr(bsg.getUpdateDate()));
@@ -79,7 +80,7 @@ public class SolrManager {
 
 	@SuppressWarnings({ "rawtypes" })
 	public static SolrInputDocument generateBioSampleSolrDocument(BioSample bs) {
-		SolrInputDocument document = new SolrInputDocument();
+		SolrInputDocument document;
 
 		try {
 			Set<MSI> msi = bs.getMSIs();
@@ -88,7 +89,8 @@ public class SolrManager {
 				msi.forEach(m -> msiAccs.append(m.getAcc() + "|"));
 				log.error("Sample with accession [" + bs.getAcc() + "] has multiple MSI [" + msiAccs.substring(0, msiAccs.length() - 1) + "] - sample skipped.");
 				return null;
-			} 
+			}
+			document = new SolrInputDocument();
 	
 			document.addField(ID, bs.getId());
 			document.addField(SAMPLE_ACC, bs.getAcc());

@@ -36,7 +36,14 @@ public class App {
         				docs.add(document);
         			}
 
-        			checkDocsSize(docs); 
+        			if (docs.size() > 1000) {
+        				UpdateResponse response = SolrManager.getInstance().getConcurrentUpdateSolrClient().add(docs);
+        				if (response.getStatus() != 0) {
+        					log.error("Indexing groups error: " + response.getStatus());
+        				}
+        				docs.clear();
+        			}
+
         		}
         		log.info("Group documents generated.");
     		}
@@ -55,7 +62,14 @@ public class App {
             				docs.add(document);
             			}
 
-        				checkDocsSize(docs);
+        				if (docs.size() > 1000) {
+        					UpdateResponse response = SolrManager.getInstance().getConcurrentUpdateSolrClient().add(docs);
+        					if (response.getStatus() != 0) {
+        						log.error("Indexing groups error: " + response.getStatus());
+        					}
+        					docs.clear();
+        				}
+
     				}
             		log.info("Sample documents generated.");
     			}
@@ -86,20 +100,5 @@ public class App {
     	}
 
     }
-
-	/**
-	 * @param docs
-	 * @throws SolrServerException
-	 * @throws IOException
-	 */
-	private static void checkDocsSize(Collection<SolrInputDocument> docs) throws SolrServerException, IOException {
-		if (docs.size() > 1000) {
-			UpdateResponse response = SolrManager.getInstance().getConcurrentUpdateSolrClient().add(docs);
-			if (response.getStatus() != 0) {
-				log.error("Indexing groups error: " + response.getStatus());
-			}
-			docs.clear();
-		}
-	}
 
 }
