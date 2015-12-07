@@ -18,8 +18,6 @@ import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_UPDATE_DA
 
 import java.util.Set;
 
-import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
-import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,38 +28,16 @@ import uk.ac.ebi.fg.biosd.model.organizational.MSI;
 import uk.ac.ebi.fg.biosd.model.xref.DatabaseRecordRef;
 import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 import uk.ac.ebi.solrIndexer.common.Formater;
-import uk.ac.ebi.solrIndexer.properties.LoadProperties;
 
 public class SolrManager {
 	private static Logger log = LoggerFactory.getLogger (SolrManager.class.getName());
-
-	private static SolrManager instance = null;
-	private ConcurrentUpdateSolrClient client;
-
-	private SolrManager() {
-		log.debug("Creating SolrManager Client Connection");
-		client = new ConcurrentUpdateSolrClient(LoadProperties.getSolrCorePath(), 10, 8);
-		client.setSoTimeout(1000);
-		//client.setConnectionTimeout(1000);
-		client.setParser(new XMLResponseParser());
-	}
-
-	public static synchronized SolrManager getInstance() {
-		if (instance == null) {
-			instance = new SolrManager();
-		}
-		return instance;
-	}
-
-	public ConcurrentUpdateSolrClient getConcurrentUpdateSolrClient() {
-		return this.client;
-	}
 
 	public static SolrInputDocument generateBioSampleGroupSolrDocument(BioSampleGroup bsg) {
 		SolrInputDocument document;
 
 		try{
 			document = new SolrInputDocument();
+
 			document.addField(ID, bsg.getId());
 			document.addField(GROUP_ACC, bsg.getAcc());
 			document.addField(GROUP_UPDATE_DATE, Formater.formatDateToSolr(bsg.getUpdateDate()));
@@ -73,7 +49,6 @@ public class SolrManager {
 			log.error("Error creating group [" + bsg.getAcc() + "] solr document: ", e);
 			return null;
 		}
-
 
 		return document;
 	}
@@ -90,6 +65,7 @@ public class SolrManager {
 				log.error("Sample with accession [" + bs.getAcc() + "] has multiple MSI [" + msiAccs.substring(0, msiAccs.length() - 1) + "] - sample skipped.");
 				return null;
 			}
+
 			document = new SolrInputDocument();
 	
 			document.addField(ID, bs.getId());

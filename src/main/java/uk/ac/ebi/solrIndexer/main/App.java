@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
+import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
@@ -13,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
+import uk.ac.ebi.solrIndexer.properties.LoadProperties;
 
 public class App {
 	private static Logger log = LoggerFactory.getLogger(App.class.getName());
@@ -21,6 +24,9 @@ public class App {
     	log.info("Entering application.");
 
     	Collection<SolrInputDocument> docs = null;
+
+    	ConcurrentUpdateSolrClient client = new ConcurrentUpdateSolrClient(LoadProperties.getSolrCorePath(), 10, 8);
+    	client.setParser(new XMLResponseParser());
 
     	try {
     		docs = new ArrayList<SolrInputDocument>();
@@ -32,20 +38,25 @@ public class App {
 
         		for (BioSampleGroup bsg : groups) {
         			SolrInputDocument document = SolrManager.generateBioSampleGroupSolrDocument(bsg);
+
         			if (document != null) {
         				docs.add(document);
-        			}
 
-        			if (docs.size() > 1000) {
-        				UpdateResponse response = SolrManager.getInstance().getConcurrentUpdateSolrClient().add(docs);
-        				if (response.getStatus() != 0) {
-        					log.error("Indexing groups error: " + response.getStatus());
-        				}
-        				docs.clear();
+        				if (docs.size() > 1000) {
+            				UpdateResponse response = client.add(docs, 30000);
+            				//client.commit();
+            				if (response.getStatus() != 0) {
+            					log.error("Indexing groups error: " + response.getStatus());
+            				}
+            				docs.clear();
+            			}
         			}
 
         		}
         		log.info("Group documents generated.");
+
+    		} else {
+    			log.info("No groups to index.");
     		}
 
 			/* -- Handle Samples -- */
@@ -60,22 +71,23 @@ public class App {
     					SolrInputDocument document = SolrManager.generateBioSampleSolrDocument(sample);
         				if (document != null) {
             				docs.add(document);
-            			}
 
-        				if (docs.size() > 1000) {
-        					UpdateResponse response = SolrManager.getInstance().getConcurrentUpdateSolrClient().add(docs);
-        					if (response.getStatus() != 0) {
-        						log.error("Indexing groups error: " + response.getStatus());
-        					}
-        					docs.clear();
-        				}
+            				if (docs.size() > 1000) {
+            					UpdateResponse response = client.add(docs, 30000);
+                				//client.commit();
+            					if (response.getStatus() != 0) {
+            						log.error("Indexing groups error: " + response.getStatus());
+            					}
+            					docs.clear();
+            				}
+            			}
 
     				}
             		log.info("Sample documents generated.");
     			}
 
     		} else {
-    			log.debug("No samples to index.");
+    			log.info("No samples to index.");
     		}
 
     		log.info("Indexing finished!");
@@ -85,16 +97,19 @@ public class App {
 
     	} finally {
 
-    		DataBaseManager.closeConnection();
-
         	try {
             	if (docs.size() > 0) {
-            		SolrManager.getInstance().getConcurrentUpdateSolrClient().add(docs, 300000);
+            		client.add(docs);
+            		client.commit();
     			}
-				SolrManager.getInstance().getConcurrentUpdateSolrClient().commit();
+				docs.clear();
+
 			} catch (SolrServerException | IOException e) {
-				log.error("Error creating index", e);
+				log.error("Finally - Error creating index", e);
 			}
+
+			DataBaseManager.closeConnection();
+    		client.close();
 
         	System.exit(0);
     	}
