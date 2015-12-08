@@ -44,7 +44,6 @@ public class App {
 
         				if (docs.size() > 1000) {
             				UpdateResponse response = client.add(docs, 30000);
-            				//client.commit();
             				if (response.getStatus() != 0) {
             					log.error("Indexing groups error: " + response.getStatus());
             				}
@@ -74,7 +73,6 @@ public class App {
 
             				if (docs.size() > 1000) {
             					UpdateResponse response = client.add(docs, 30000);
-                				//client.commit();
             					if (response.getStatus() != 0) {
             						log.error("Indexing groups error: " + response.getStatus());
             					}
@@ -83,8 +81,8 @@ public class App {
             			}
 
     				}
-            		log.info("Sample documents generated.");
     			}
+    			log.info("Sample documents generated.");
 
     		} else {
     			log.info("No samples to index.");

@@ -7,7 +7,6 @@ import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.DB_URL;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.GROUP_ACC;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.GROUP_UPDATE_DATE;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.ID;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.NUMBER_OF_SAMPLES;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SAMPLE_ACC;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SAMPLE_RELEASE_DATE;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SAMPLE_UPDATE_DATE;
@@ -32,6 +31,7 @@ import uk.ac.ebi.solrIndexer.common.Formater;
 public class SolrManager {
 	private static Logger log = LoggerFactory.getLogger (SolrManager.class.getName());
 
+	@SuppressWarnings({ "rawtypes" })
 	public static SolrInputDocument generateBioSampleGroupSolrDocument(BioSampleGroup bsg) {
 		SolrInputDocument document;
 
@@ -42,8 +42,27 @@ public class SolrManager {
 			document.addField(GROUP_ACC, bsg.getAcc());
 			document.addField(GROUP_UPDATE_DATE, Formater.formatDateToSolr(bsg.getUpdateDate()));
 			document.addField(CONTENT_TYPE, "group");
-			document.addField(NUMBER_OF_SAMPLES, bsg.getSamples().size());
-			//document.addField(GROUP_SAMPLES, samples); TODO - is required?
+
+			Set<MSI> msi = bsg.getMSIs();
+			if (msi.iterator().hasNext()) {
+				MSI submission = msi.iterator().next();
+				document.addField(SUBMISSION_ACC,submission.getAcc());
+				document.addField(SUBMISSION_DESCRIPTION,submission.getDescription());
+				document.addField(SUBMISSION_TITLE, submission.getTitle());
+				document.addField(SUBMISSION_UPDATE_DATE,Formater.formatDateToSolr(submission.getUpdateDate()));
+			}
+
+			Set<DatabaseRecordRef> db = bsg.getDatabaseRecordRefs();
+			if (db.iterator().hasNext()) {
+				DatabaseRecordRef dbrr = db.iterator().next();
+				document.addField(DB_ACC, dbrr.getAcc());
+				document.addField(DB_NAME, dbrr.getDbName());
+				document.addField(DB_URL, dbrr.getUrl());
+			}
+
+			for (ExperimentalPropertyValue epv : bsg.getPropertyValues()) {
+				document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());
+			}
 
 		} catch (Exception e) {
 			log.error("Error creating group [" + bsg.getAcc() + "] solr document: ", e);
