@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
-import uk.ac.ebi.solrIndexer.properties.LoadProperties;
+import uk.ac.ebi.solrIndexer.properties.PropertiesManager;
 
 public class App {
 	private static Logger log = LoggerFactory.getLogger(App.class.getName());
@@ -25,42 +25,47 @@ public class App {
 
     	Collection<SolrInputDocument> docs = null;
 
-    	ConcurrentUpdateSolrClient client = new ConcurrentUpdateSolrClient(LoadProperties.getSolrCorePath(), 10, 8);
+    	ConcurrentUpdateSolrClient client = new ConcurrentUpdateSolrClient(PropertiesManager.getSolrCorePath(), 10, 8);
     	client.setParser(new XMLResponseParser());
 
     	try {
     		docs = new ArrayList<SolrInputDocument>();
+    		int offset;
 
     		/* -- Handle Groups -- */
-    		List<BioSampleGroup> groups = DataBaseManager.fetchGroups();
-    		if (groups != null && !groups.isEmpty()) {
-    			log.info("[" + groups.size() + "]" + " groups found in BioSamples.");
+    		log.info("Handling Groups");
+			offset = 0;
+    		
+    		List<BioSampleGroup> groups;
+    		while ( (groups = DataBaseManager.getAllIterableGroups(offset, 25000)).size() > 0) {
 
-        		for (BioSampleGroup bsg : groups) {
-        			SolrInputDocument document = SolrManager.generateBioSampleGroupSolrDocument(bsg);
+    			for (BioSampleGroup group : groups) {
+    				SolrInputDocument document = SolrManager.generateBioSampleGroupSolrDocument(group);
 
-        			if (document != null) {
+    				if (document != null) {
         				docs.add(document);
 
-        				if (docs.size() > 1000) {
-            				UpdateResponse response = client.add(docs, 30000);
-            				if (response.getStatus() != 0) {
-            					log.error("Indexing groups error: " + response.getStatus());
-            				}
-            				docs.clear();
-            			}
-        			}
+        				if (docs.size() > 9999) {
+        					UpdateResponse response = client.add(docs, 30000);
+        					if (response.getStatus() != 0) {
+        						log.error("Indexing groups error: " + response.getStatus());
+        					}
+        					docs.clear();
+        				}
+					}
+    			}
 
-        		}
-        		log.info("Group documents generated.");
-
+    			offset += groups.size();
     		}
+    		log.info("Group documents generated.");
+    		/* -------------------- */
 
 			/* -- Handle Samples -- */
     		log.info("Handling Samples");
-			int offset = 0;
+			offset = 0;
+
 			List<BioSample> samples;
-			while ( (samples = DataBaseManager.getAllIterableBioSamples(offset, 10000)).size() > 0) {
+			while ( (samples = DataBaseManager.getAllIterableSamples(offset, 25000)).size() > 0) {
 				
 				for (BioSample sample : samples) {
 					SolrInputDocument document = SolrManager.generateBioSampleSolrDocument(sample);
@@ -81,6 +86,7 @@ public class App {
 				offset += samples.size();
 			}
 			log.info("Sample documents generated.");
+			/* -------------------- */
 
     		log.info("Indexing finished!");
 

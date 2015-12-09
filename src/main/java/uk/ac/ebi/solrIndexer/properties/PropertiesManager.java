@@ -8,9 +8,9 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LoadProperties {
-	private static Logger log = LoggerFactory.getLogger (LoadProperties.class.getName());
-	
+public class PropertiesManager {
+	private static Logger log = LoggerFactory.getLogger (PropertiesManager.class.getName());
+
 	/**
 	 * Gets the solr.path property value from
 	 * the ./solrIndexer.properties
