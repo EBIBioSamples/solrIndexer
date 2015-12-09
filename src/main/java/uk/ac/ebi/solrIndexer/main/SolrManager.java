@@ -15,6 +15,7 @@ import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_DESCRIPTI
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_TITLE;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_UPDATE_DATE;
 
+import java.util.Calendar;
 import java.util.Set;
 
 import org.apache.solr.common.SolrInputDocument;
@@ -74,7 +75,7 @@ public class SolrManager {
 
 	@SuppressWarnings({ "rawtypes" })
 	public static SolrInputDocument generateBioSampleSolrDocument(BioSample bs) {
-		SolrInputDocument document;
+		SolrInputDocument document = null;
 
 		try {
 			Set<MSI> msi = bs.getMSIs();
@@ -85,21 +86,25 @@ public class SolrManager {
 				return null;
 			}
 
-			document = new SolrInputDocument();
-	
-			document.addField(ID, bs.getId());
-			document.addField(SAMPLE_ACC, bs.getAcc());
-			document.addField(SAMPLE_UPDATE_DATE, Formater.formatDateToSolr(bs.getUpdateDate()));
-			document.addField(SAMPLE_RELEASE_DATE, Formater.formatDateToSolr(bs.getReleaseDate()));
-			document.addField(CONTENT_TYPE, "sample");
-	
 			if (msi.iterator().hasNext()) {
 				MSI submission = msi.iterator().next();
+				if (submission.getReleaseDate().after(Calendar.getInstance().getTime())) {
+					log.info("Private sample skipped [" + bs.getAcc() + "]");
+					return null;
+				} 
+				document = new SolrInputDocument();
+
 				document.addField(SUBMISSION_ACC,submission.getAcc());
 				document.addField(SUBMISSION_DESCRIPTION,submission.getDescription());
 				document.addField(SUBMISSION_TITLE, submission.getTitle());
 				document.addField(SUBMISSION_UPDATE_DATE,Formater.formatDateToSolr(submission.getUpdateDate()));
 			}
+
+			document.addField(ID, bs.getId());
+			document.addField(SAMPLE_ACC, bs.getAcc());
+			document.addField(SAMPLE_UPDATE_DATE, Formater.formatDateToSolr(bs.getUpdateDate()));
+			document.addField(SAMPLE_RELEASE_DATE, Formater.formatDateToSolr(bs.getReleaseDate()));
+			document.addField(CONTENT_TYPE, "sample");
 	
 			Set<DatabaseRecordRef> db = bs.getDatabaseRecordRefs();
 			if (db.iterator().hasNext()) {
@@ -108,7 +113,7 @@ public class SolrManager {
 				document.addField(DB_NAME, dbrr.getDbName());
 				document.addField(DB_URL, dbrr.getUrl());
 			}
-	
+
 			for (ExperimentalPropertyValue epv : bs.getPropertyValues()) {
 				document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());
 			}

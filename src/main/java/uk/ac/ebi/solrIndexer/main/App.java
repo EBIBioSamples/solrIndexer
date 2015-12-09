@@ -54,39 +54,33 @@ public class App {
         		}
         		log.info("Group documents generated.");
 
-    		} else {
-    			log.info("No groups to index.");
     		}
 
 			/* -- Handle Samples -- */
-    		List<String> submissions = DataBaseManager.fetchSubmissionsAccessions();
-    		if (submissions != null && !submissions.isEmpty()) {
-    			log.info("[" + submissions.size() + "]" + " submissions accessions found in BioSamples.");
+    		log.info("Handling Samples");
+			int offset = 0;
+			List<BioSample> samples;
+			while ( (samples = DataBaseManager.getAllIterableBioSamples(offset, 10000)).size() > 0) {
+				
+				for (BioSample sample : samples) {
+					SolrInputDocument document = SolrManager.generateBioSampleSolrDocument(sample);
 
-    			for (String acc : submissions) {
+					if (document != null) {
+        				docs.add(document);
 
-    				for (BioSample sample : DataBaseManager.fetchSubmission(acc).getSamples()) {
+        				if (docs.size() > 9999) {
+        					UpdateResponse response = client.add(docs, 30000);
+        					if (response.getStatus() != 0) {
+        						log.error("Indexing groups error: " + response.getStatus());
+        					}
+        					docs.clear();
+        				}
+					}
+				}
 
-    					SolrInputDocument document = SolrManager.generateBioSampleSolrDocument(sample);
-        				if (document != null) {
-            				docs.add(document);
-
-            				if (docs.size() > 1000) {
-            					UpdateResponse response = client.add(docs, 30000);
-            					if (response.getStatus() != 0) {
-            						log.error("Indexing groups error: " + response.getStatus());
-            					}
-            					docs.clear();
-            				}
-            			}
-
-    				}
-    			}
-    			log.info("Sample documents generated.");
-
-    		} else {
-    			log.info("No samples to index.");
-    		}
+				offset += samples.size();
+			}
+			log.info("Sample documents generated.");
 
     		log.info("Indexing finished!");
 

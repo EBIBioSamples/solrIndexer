@@ -2,7 +2,6 @@ package uk.ac.ebi.solrIndexer.main;
 
 import java.sql.Date;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -19,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.fg.biosd.model.organizational.MSI;
-import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 import uk.ac.ebi.fg.core_model.resources.Resources;
 
 public class DataBaseManager {
@@ -90,6 +88,24 @@ public class DataBaseManager {
 	}
 
 	/**
+	 * 
+	 * @return
+	 */
+	public static List<BioSample> fetchSamples() {
+		log.debug("Fetching Samples . . .");
+
+		CriteriaBuilder criteriaBuilder = getConnection().getEntityManager().getCriteriaBuilder();
+		CriteriaQuery<BioSample> criteriaQuery = criteriaBuilder.createQuery(BioSample.class);
+		Root<BioSample> root = criteriaQuery.from(BioSample.class);
+
+		criteriaQuery.select(root);
+		TypedQuery<BioSample> query = getConnection().getEntityManager().createQuery(criteriaQuery);
+		List<BioSample> samples = query.getResultList();
+
+		return samples;
+	}
+
+	/**
 	 * Queries the Biosamples DB retrieving all the public submissions accessions.
 	 * @return List<String>
 	 */
@@ -130,7 +146,7 @@ public class DataBaseManager {
 		criteriaQuery.select(root);
 		criteriaQuery.where(criteriaBuilder.equal(root.get("acc"), acc));
 		TypedQuery<MSI> query = getConnection().getEntityManager().createQuery(criteriaQuery);
-		MSI msi = (MSI) query.getResultList().get(0);
+		MSI msi = (MSI) query.getSingleResult();
 		return msi;
 	}
 
@@ -149,19 +165,25 @@ public class DataBaseManager {
 		criteriaQuery.select(root);
 		criteriaQuery.where(criteriaBuilder.equal(root.get("acc"), acc));
 		TypedQuery<BioSample> query = getConnection().getEntityManager().createQuery(criteriaQuery);
-		BioSample sample = (BioSample) query.getResultList();
+		BioSample sample = (BioSample) query.getSingleResult();
 
 		return sample;
 	}
 
 	/**
-	 * Receives a BioSample and returns all its properties pairs.
-	 * @param bs BioSample
-	 * @return Collection<ExperimentalPropertyValue>
+	 * 
+	 * @param offset
+	 * @param max
+	 * @return
 	 */
-	@SuppressWarnings({ "rawtypes" })
-	public static Collection<ExperimentalPropertyValue> fetchExperimentalPropertyValues(BioSample bs){
-		log.debug("fetchExperimentalPropertyValues()");
-		return bs.getPropertyValues();
+	public static List<BioSample> getAllIterableBioSamples (int offset, int max) {
+		log.debug("Fetching Samples");
+		
+		CriteriaBuilder criteriaBuilder = getConnection().getEntityManager().getCriteriaBuilder();
+		CriteriaQuery<BioSample> criteriaQuery = criteriaBuilder.createQuery(BioSample.class);
+		Root<BioSample> root = criteriaQuery.from(BioSample.class);
+
+		criteriaQuery.select(root);
+		return getConnection().getEntityManager().createQuery(criteriaQuery).setFirstResult(offset).setMaxResults(max).getResultList();
 	}
 }
