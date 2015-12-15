@@ -11,15 +11,11 @@ import org.slf4j.LoggerFactory;
 public class PropertiesManager {
 	private static Logger log = LoggerFactory.getLogger (PropertiesManager.class.getName());
 
-	/**
-	 * Gets the solr.path property value from
-	 * the ./solrIndexer.properties
-	 * @return String corePath
-	 * @throws IOException
-	 */
-	public static String getSolrCorePath() {
+	private static PropertiesManager propertiesManager = null;
+	private static Properties properties = null;
 
-		Properties properties = new Properties();
+	private PropertiesManager () {
+		properties = new Properties();
 		FileInputStream file;
 
 		String filePath = "./solrIndexer.properties";
@@ -32,10 +28,27 @@ public class PropertiesManager {
 			log.error("Properties file not found: ", e);
 			System.exit(0);
 		} catch (IOException e) {
-			log.error("Error reading properties file: ", e);
+			log.error("Error reading propertiesManager file: ", e);
 			System.exit(0);
 		}
+	}
 
-		return properties.getProperty("solrIndexer.corePath");
+	/**
+	 * Returns a pointer to the sigleton properties.
+	 * @return properties
+	 */
+	public synchronized static Properties getProperties() {
+		if (propertiesManager == null) {
+			propertiesManager = new PropertiesManager();
+		}
+		return properties;
+	}
+
+	/**
+	 * Fetches the value of property 'solrIndexer.corePath'
+	 * @return String
+	 */
+	public static String getSolrCorePath() {
+		return getProperties().getProperty("solrIndexer.corePath");
 	}
 }
