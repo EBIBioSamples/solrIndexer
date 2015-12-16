@@ -19,16 +19,16 @@ import uk.ac.ebi.fg.core_model.resources.Resources;
 public class DataBaseManager {
 	private static Logger log = LoggerFactory.getLogger (App.class.getName());
 
-	private static DataBaseManager connection = null;
-
-	private static EntityManagerFactory entityManagerFactory;
+	//private static EntityManagerFactory entityManagerFactory;
 	private static EntityManager manager = null;
-	private static EntityTransaction transaction = null;
+	//private static EntityTransaction transaction = null;
 
 	private DataBaseManager() {
 		log.debug("Creating DataBaseManager");
+		
+		EntityTransaction transaction = null;
 		try {
-    		entityManagerFactory = Resources.getInstance().getEntityManagerFactory();
+			EntityManagerFactory entityManagerFactory = Resources.getInstance().getEntityManagerFactory();
     		manager = entityManagerFactory.createEntityManager();
     		transaction = manager.getTransaction();
     		transaction.begin();
@@ -39,26 +39,18 @@ public class DataBaseManager {
     			transaction.rollback();
     		}
     		log.error("Error while creating DataBaseManager: ", e);
-    		connection = null;
+
     	}
 	}
 
-	public synchronized static DataBaseManager getConnection() {
-		if (connection == null) {
-			connection = new DataBaseManager();
-		}
-		return connection;
-	}
-
-	public synchronized static void closeConnection() {
-    	if (manager != null && manager.isOpen()) {
-    		manager.close();
-    		connection = null;
-		}
-	}
-
-	public EntityManager getEntityManager() {
+	private static EntityManager getEntityManager() {
 		return manager;
+	}
+
+	public static void closeDataBaseConnection() {
+		if (manager != null && manager.isOpen()) {
+			manager.close();
+		}	
 	}
 
 	/* --------------------- */
@@ -68,22 +60,26 @@ public class DataBaseManager {
 	public static List<BioSampleGroup> getAllIterableGroups (int offset, int max) {
 		log.debug("Fetching Groups . . .");
 
-		CriteriaBuilder criteriaBuilder = getConnection().getEntityManager().getCriteriaBuilder();
+		new DataBaseManager();
+		CriteriaBuilder criteriaBuilder = getEntityManager().getCriteriaBuilder();
 		CriteriaQuery<BioSampleGroup> criteriaQuery = criteriaBuilder.createQuery(BioSampleGroup.class);
 		Root<BioSampleGroup> root = criteriaQuery.from(BioSampleGroup.class);
 
 		criteriaQuery.select(root);
-		return getConnection().getEntityManager().createQuery(criteriaQuery).setFirstResult(offset).setMaxResults(max).getResultList();
+		List<BioSampleGroup> result = getEntityManager().createQuery(criteriaQuery).setFirstResult(offset).setMaxResults(max).getResultList();
+
+		//DataBaseManager.closeDataBaseConnection();
+		return result;
 	}
 
 	public static List<BioSample> getAllIterableSamples (int offset, int max) {
 		log.debug("Fetching Samples . . .");
 
-		CriteriaBuilder criteriaBuilder = getConnection().getEntityManager().getCriteriaBuilder();
+		CriteriaBuilder criteriaBuilder = getEntityManager().getCriteriaBuilder();
 		CriteriaQuery<BioSample> criteriaQuery = criteriaBuilder.createQuery(BioSample.class);
 		Root<BioSample> root = criteriaQuery.from(BioSample.class);
 
 		criteriaQuery.select(root);
-		return getConnection().getEntityManager().createQuery(criteriaQuery).setFirstResult(offset).setMaxResults(max).getResultList();
+		return getEntityManager().createQuery(criteriaQuery).setFirstResult(offset).setMaxResults(max).getResultList();
 	}
 }
