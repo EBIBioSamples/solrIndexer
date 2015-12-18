@@ -1,5 +1,6 @@
 package uk.ac.ebi.solrIndexer.main;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -67,9 +68,7 @@ public class DataBaseManager {
 
 		criteriaQuery.select(root);
 		List<BioSampleGroup> result = getEntityManager().createQuery(criteriaQuery).setFirstResult(offset).setMaxResults(max).getResultList();
-
-		//DataBaseManager.closeDataBaseConnection();
-		return result;
+		return new ArrayList<BioSampleGroup>(result);
 	}
 
 	public static List<BioSample> getAllIterableSamples (int offset, int max) {
