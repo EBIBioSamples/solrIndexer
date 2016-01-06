@@ -18,7 +18,7 @@ public class PropertiesManager {
 		properties = new Properties();
 		FileInputStream file;
 
-		String filePath = "./solrIndexer.properties";
+		String filePath = "/Users/fpenim/Desktop/solrIndexer.properties";
 		try {
 			file = new FileInputStream(filePath);
 			properties.load(file);

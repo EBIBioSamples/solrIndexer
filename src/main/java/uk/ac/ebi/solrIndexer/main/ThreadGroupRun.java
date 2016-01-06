@@ -59,7 +59,6 @@ public class ThreadGroupRun implements Runnable {
 				}
 
 				docs.clear();
-				DataBaseManager.closeDataBaseConnection();
 				client.close();
 			} catch (SolrServerException | IOException e) {
 				log.error("Error generating groups documents.", e);
