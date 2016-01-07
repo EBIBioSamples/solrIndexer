@@ -1,6 +1,5 @@
 package uk.ac.ebi.solrIndexer.main;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -27,7 +26,7 @@ public class DataBaseManager {
 		criteriaQuery.select(root);
 		List<BioSampleGroup> result = connection.getEntityManager().createQuery(criteriaQuery).setFirstResult(offset).setMaxResults(max).getResultList();
 		connection.closeDataBaseConnection();
-		return new ArrayList<BioSampleGroup>(result);
+		return result;
 	}
 
 	public static List<BioSample> getAllIterableSamples (int offset, int max) {
@@ -41,6 +40,6 @@ public class DataBaseManager {
 		criteriaQuery.select(root);
 		List<BioSample> result = connection.getEntityManager().createQuery(criteriaQuery).setFirstResult(offset).setMaxResults(max).getResultList();
 		connection.closeDataBaseConnection();
-		return new ArrayList<BioSample>(result);
+		return result;
 	}
 }

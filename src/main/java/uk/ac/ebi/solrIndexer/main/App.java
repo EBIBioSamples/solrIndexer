@@ -11,8 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
-import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
-import uk.ac.ebi.solrIndexer.threads.ThreadGroup;
+import uk.ac.ebi.solrIndexer.common.Formater;
+import uk.ac.ebi.solrIndexer.common.PropertiesManager;
 import uk.ac.ebi.solrIndexer.threads.ThreadSample;
 
 public class App {
@@ -22,13 +22,14 @@ public class App {
 		log.info("Entering application.");
 		long startTime = System.currentTimeMillis();
 
-		ExecutorService threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+		ExecutorService threadPool = Executors.newFixedThreadPool(16);
+
 		Set<Future<Integer>> set = new HashSet<Future<Integer>>();
 
 		try {
-			int offset;
+			int offset, sum;
 
-			/* -- Handle Groups -- */
+			/* -- Handle Groups -- *
 			log.info("Handling Groups");
 			offset = 0;
 
@@ -36,13 +37,13 @@ public class App {
 			while ((groups = DataBaseManager.getAllIterableGroups(offset, 10000)).size() > 0) {
 
 				final List<BioSampleGroup> groupsForThread = groups;
-				Future<Integer> future = threadPool.submit(new ThreadGroup(groupsForThread));
+				Future<Integer> future = threadPool.submit(new ThreadGroup(groupsForThread, client));
 				set.add(future);
 
 				offset += groups.size();
 			}
 
-			int sum = 0;
+			sum = 0;
 			for (Future<Integer> future : set) {
 				sum += future.get();
 			}
@@ -54,14 +55,19 @@ public class App {
 			log.info("Handling Samples");
 			offset = 0;
 
+			int i = 0;
 			List<BioSample> samples;
-			while ( (samples = DataBaseManager.getAllIterableSamples(offset, 10000)).size() > 0) {
+			while ( (samples = DataBaseManager.getAllIterableSamples(offset, PropertiesManager.getSamplesFetchStep())).size() > 0) {
 
 				final List<BioSample> samplesForThread = samples;
 				Future<Integer> future = threadPool.submit(new ThreadSample(samplesForThread));
 				set.add(future);
 
 				offset += samples.size();
+				
+				i++;
+				if (i%8 == 0 && i != 0)
+					future.get();//Wait...
 			}
 
 			sum = 0;
@@ -78,9 +84,8 @@ public class App {
 			log.error("Error creating index", e);
 
 		} finally {
-			long endTime = System.currentTimeMillis();
-			long duration = (endTime - startTime);
-			log.info(String.format("Milli = %s, ( S_Start : %s, S_End : %s ) \n", duration, startTime, endTime ));
+			long duration = (System.currentTimeMillis() - startTime);
+			log.info(Formater.formatTime(duration));
 
 			System.exit(0);
 		}

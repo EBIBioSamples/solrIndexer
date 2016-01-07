@@ -89,7 +89,7 @@ public class SolrManager {
 			if (msi.iterator().hasNext()) {
 				MSI submission = msi.iterator().next();
 				if (submission.getReleaseDate().after(Calendar.getInstance().getTime())) {
-					log.info("Private sample skipped [" + bs.getAcc() + "]");
+					log.trace("Private sample skipped [" + bs.getAcc() + "]");
 					return null;
 				} 
 				document = new SolrInputDocument();

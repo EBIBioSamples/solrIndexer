@@ -15,8 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
+import uk.ac.ebi.solrIndexer.common.PropertiesManager;
 import uk.ac.ebi.solrIndexer.main.SolrManager;
-import uk.ac.ebi.solrIndexer.properties.PropertiesManager;
 
 public class ThreadSample implements Callable<Integer> {
 	private static Logger log = LoggerFactory.getLogger(ThreadSample.class.getName());
@@ -30,7 +30,7 @@ public class ThreadSample implements Callable<Integer> {
 	
 	@Override
 	public Integer call() throws Exception {
-		ConcurrentUpdateSolrClient client = new ConcurrentUpdateSolrClient(PropertiesManager.getSolrCorePath(), 10, Runtime.getRuntime().availableProcessors());
+		ConcurrentUpdateSolrClient client = new ConcurrentUpdateSolrClient(PropertiesManager.getSolrCorePath(), 10, 4);
 		client.setParser(new XMLResponseParser());
 
 		Collection<SolrInputDocument> docs = new ArrayList<SolrInputDocument>();
@@ -61,7 +61,7 @@ public class ThreadSample implements Callable<Integer> {
 	        		client.add(docs);
 	        		client.commit();
 				}
-	
+
 				docs.clear();
 				client.close();
 			} catch (SolrServerException | IOException e) {

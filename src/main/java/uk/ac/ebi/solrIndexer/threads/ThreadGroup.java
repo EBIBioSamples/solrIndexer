@@ -8,7 +8,6 @@ import java.util.concurrent.Callable;
 
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
-import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
@@ -16,23 +15,21 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.solrIndexer.main.SolrManager;
-import uk.ac.ebi.solrIndexer.properties.PropertiesManager;
 
 public class ThreadGroup implements Callable<Integer> {
 	private static Logger log = LoggerFactory.getLogger(ThreadGroup.class.getName());
 
 	private int status = 1;
 	private List<BioSampleGroup> groupsForThread;
+	private ConcurrentUpdateSolrClient client;
 
-	public ThreadGroup (List<BioSampleGroup> groups) {
+	public ThreadGroup (List<BioSampleGroup> groups, ConcurrentUpdateSolrClient client) {
 		this.groupsForThread = groups;
+		this.client = client;
 	}
 
 	@Override
 	public Integer call() throws Exception {
-		ConcurrentUpdateSolrClient client = new ConcurrentUpdateSolrClient(PropertiesManager.getSolrCorePath(), 10, Runtime.getRuntime().availableProcessors());
-		client.setParser(new XMLResponseParser());
-
 		Collection<SolrInputDocument> docs = new ArrayList<SolrInputDocument>();
 		try {
 			for (BioSampleGroup group : groupsForThread) {
@@ -63,7 +60,7 @@ public class ThreadGroup implements Callable<Integer> {
 				}
 
 				docs.clear();
-				client.close();
+				//client.close();
 			} catch (SolrServerException | IOException e) {
 				log.error("Error generating groups documents.", e);
 			}

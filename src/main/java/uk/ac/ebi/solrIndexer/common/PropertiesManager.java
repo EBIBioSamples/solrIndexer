@@ -1,4 +1,4 @@
-package uk.ac.ebi.solrIndexer.properties;
+package uk.ac.ebi.solrIndexer.common;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -34,7 +34,7 @@ public class PropertiesManager {
 	}
 
 	/**
-	 * Returns a pointer to the sigleton properties.
+	 * Returns a pointer to the singleton properties.
 	 * @return properties
 	 */
 	public synchronized static Properties getProperties() {
@@ -50,5 +50,14 @@ public class PropertiesManager {
 	 */
 	public static String getSolrCorePath() {
 		return getProperties().getProperty("solrIndexer.corePath");
+	}
+
+	/**
+	 * Fetches the value of property 'samples.fetchStep'
+	 * @return int
+	 */
+	public static int getSamplesFetchStep() {
+		String step = getProperties().getProperty("samples.fetchStep");
+		return Integer.parseInt(step);
 	}
 }

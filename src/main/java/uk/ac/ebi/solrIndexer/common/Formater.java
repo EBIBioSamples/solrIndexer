@@ -36,4 +36,15 @@ public class Formater {
 		DateFormat df = new SimpleDateFormat("dd-MM-yyyy");
 		return df.format(date);
 	}
+
+	/**
+	 * Returns a String time representation of the milliseconds received.
+	 * @param long
+	 * @return String
+	 */
+	public static String formatTime(long milli) {
+		Date date = new Date(milli);
+		DateFormat df = new SimpleDateFormat("HH:mm:ss.SS");
+		return df.format(date);
+	}
 }
