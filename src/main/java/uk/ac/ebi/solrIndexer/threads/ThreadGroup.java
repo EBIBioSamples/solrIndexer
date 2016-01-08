@@ -31,6 +31,7 @@ public class ThreadGroup implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 		Collection<SolrInputDocument> docs = new ArrayList<SolrInputDocument>();
+
 		try {
 			for (BioSampleGroup group : groupsForThread) {
 				SolrInputDocument document = SolrManager.generateBioSampleGroupSolrDocument(group);
@@ -60,7 +61,6 @@ public class ThreadGroup implements Callable<Integer> {
 				}
 
 				docs.clear();
-				//client.close();
 			} catch (SolrServerException | IOException e) {
 				log.error("Error generating groups documents.", e);
 			}

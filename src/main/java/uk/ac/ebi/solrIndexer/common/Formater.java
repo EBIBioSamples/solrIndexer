@@ -3,6 +3,7 @@ package uk.ac.ebi.solrIndexer.common;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 public class Formater {
 
@@ -42,9 +43,9 @@ public class Formater {
 	 * @param long
 	 * @return String
 	 */
-	public static String formatTime(long milli) {
-		Date date = new Date(milli);
-		DateFormat df = new SimpleDateFormat("HH:mm:ss.SS");
-		return df.format(date);
+	public static String formatTime(long millis) {
+		return String.format("%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(millis),
+			    TimeUnit.MILLISECONDS.toMinutes(millis) % TimeUnit.HOURS.toMinutes(1),
+			    TimeUnit.MILLISECONDS.toSeconds(millis) % TimeUnit.MINUTES.toSeconds(1));
 	}
 }

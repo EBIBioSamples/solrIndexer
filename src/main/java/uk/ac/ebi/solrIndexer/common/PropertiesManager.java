@@ -44,12 +44,23 @@ public class PropertiesManager {
 		return properties;
 	}
 
+	/* -- Properties -- */
+
 	/**
 	 * Fetches the value of property 'solrIndexer.corePath'
 	 * @return String
 	 */
 	public static String getSolrCorePath() {
 		return getProperties().getProperty("solrIndexer.corePath");
+	}
+
+	/**
+	 * Fetches the value of property 'groups.fetchStep'
+	 * @return int
+	 */
+	public static int getGroupsFetchStep() {
+		String step = getProperties().getProperty("groups.fetchStep");
+		return Integer.parseInt(step);
 	}
 
 	/**
