@@ -50,7 +50,6 @@
 		<dependency>
 	  		<groupId>uk.ac.ebi.fg</groupId>
 	  		<artifactId>myequivalents-db</artifactId>
-	  		<version>0.2-SNAPSHOT</version>
 		</dependency>
 
 		<!-- Application Components Dependencies -->
