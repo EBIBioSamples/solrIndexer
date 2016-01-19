@@ -27,6 +27,7 @@ import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.fg.biosd.model.organizational.MSI;
 import uk.ac.ebi.fg.biosd.model.xref.DatabaseRecordRef;
 import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
+import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.solrIndexer.common.Formater;
 
 public class SolrManager {
@@ -51,18 +52,23 @@ public class SolrManager {
 				document.addField(SUBMISSION_DESCRIPTION,submission.getDescription());
 				document.addField(SUBMISSION_TITLE, submission.getTitle());
 				document.addField(SUBMISSION_UPDATE_DATE,Formater.formatDateToSolr(submission.getUpdateDate()));
-			}
 
-			Set<DatabaseRecordRef> db = bsg.getDatabaseRecordRefs();
-			if (db.iterator().hasNext()) {
-				DatabaseRecordRef dbrr = db.iterator().next();
-				document.addField(DB_ACC, dbrr.getAcc());
-				document.addField(DB_NAME, dbrr.getDbName());
-				document.addField(DB_URL, dbrr.getUrl());
+				Set<DatabaseRecordRef> db = submission.getDatabaseRecordRefs();
+				if (db.iterator().hasNext()) {
+					DatabaseRecordRef dbrr = db.iterator().next();
+					document.addField(DB_ACC, dbrr.getAcc());
+					document.addField(DB_NAME, dbrr.getDbName());
+					document.addField(DB_URL, dbrr.getUrl());
+				}
 			}
 
 			for (ExperimentalPropertyValue epv : bsg.getPropertyValues()) {
 				document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());
+				//Adding Ontology Mappings
+				OntologyEntry onto = epv.getSingleOntologyTerm();
+				if (onto != null) {
+					document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), Formater.generateOntologyTermURL(onto));
+				}
 			}
 
 		} catch (Exception e) {
@@ -98,6 +104,14 @@ public class SolrManager {
 				document.addField(SUBMISSION_DESCRIPTION,submission.getDescription());
 				document.addField(SUBMISSION_TITLE, submission.getTitle());
 				document.addField(SUBMISSION_UPDATE_DATE,Formater.formatDateToSolr(submission.getUpdateDate()));
+
+				Set<DatabaseRecordRef> db = submission.getDatabaseRecordRefs();
+				if (db.iterator().hasNext()) {
+					DatabaseRecordRef dbrr = db.iterator().next();
+					document.addField(DB_ACC, dbrr.getAcc());
+					document.addField(DB_NAME, dbrr.getDbName());
+					document.addField(DB_URL, dbrr.getUrl());
+				}
 			}
 
 			document.addField(ID, bs.getId());
@@ -105,14 +119,6 @@ public class SolrManager {
 			document.addField(SAMPLE_UPDATE_DATE, Formater.formatDateToSolr(bs.getUpdateDate()));
 			document.addField(SAMPLE_RELEASE_DATE, Formater.formatDateToSolr(bs.getReleaseDate()));
 			document.addField(CONTENT_TYPE, "sample");
-	
-			Set<DatabaseRecordRef> db = bs.getDatabaseRecordRefs();
-			if (db.iterator().hasNext()) {
-				DatabaseRecordRef dbrr = db.iterator().next();
-				document.addField(DB_ACC, dbrr.getAcc());
-				document.addField(DB_NAME, dbrr.getDbName());
-				document.addField(DB_URL, dbrr.getUrl());
-			}
 
 			for (ExperimentalPropertyValue epv : bs.getPropertyValues()) {
 				document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());

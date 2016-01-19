@@ -14,7 +14,7 @@ public class DataBaseConnection {
 
 	private static EntityManager manager = null;
 
-	DataBaseConnection() {
+	public DataBaseConnection() {
 		log.debug("Creating DataBaseConnection");
 
 		EntityTransaction transaction = null;

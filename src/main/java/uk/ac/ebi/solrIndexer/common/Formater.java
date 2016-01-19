@@ -5,6 +5,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
+
 public class Formater {
 
 	/**
@@ -26,6 +28,24 @@ public class Formater {
 	 */
 	public static String formatCharacteristicFieldNameToSolr(String string) {
 		return string.trim().replace(' ', '_') + "_crt";
+	}
+
+	/**
+	 * Generates the ontology url associated with the ontology term for EFO and NCBI Taxonomy.
+	 * @param onto
+	 * @return
+	 */
+	public static String generateOntologyTermURL (OntologyEntry onto) {
+		String url = "";
+		switch (onto.getSource().getAcc()) {
+			case "EFO":           url = onto.getAcc();
+				                  break;
+			case "NCBI Taxonomy": url = onto.getSource().getUrl() + "?term=" + onto.getAcc();
+				                  break;
+			default:              url = null;
+				                  break;
+		}
+		return url;
 	}
 
 	/**
