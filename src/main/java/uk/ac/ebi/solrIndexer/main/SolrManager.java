@@ -64,10 +64,14 @@ public class SolrManager {
 
 			for (ExperimentalPropertyValue epv : bsg.getPropertyValues()) {
 				document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());
+
 				//Adding Ontology Mappings
 				OntologyEntry onto = epv.getSingleOntologyTerm();
 				if (onto != null) {
-					document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), Formater.generateOntologyTermURL(onto));
+					String url = Formater.generateOntologyTermURL(onto, bsg.getAcc());
+					if (url != null) {
+						document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
+					}
 				}
 			}
 
@@ -122,6 +126,15 @@ public class SolrManager {
 
 			for (ExperimentalPropertyValue epv : bs.getPropertyValues()) {
 				document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());
+
+				//Adding Ontology Mappings
+				OntologyEntry onto = epv.getSingleOntologyTerm();
+				if (onto != null) {
+					String url = Formater.generateOntologyTermURL(onto, bs.getAcc());
+					if (url != null) {
+						document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
+					}
+				}
 			}
 
 		} catch (Exception e) {

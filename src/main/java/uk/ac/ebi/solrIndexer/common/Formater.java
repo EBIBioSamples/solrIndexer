@@ -5,9 +5,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 
 public class Formater {
+	private static Logger log = LoggerFactory.getLogger (Formater.class.getName());
 
 	/**
 	 * Format Date variables to Solr Date format
@@ -33,9 +37,10 @@ public class Formater {
 	/**
 	 * Generates the ontology url associated with the ontology term for EFO and NCBI Taxonomy.
 	 * @param onto
+	 * @param acc 
 	 * @return
 	 */
-	public static String generateOntologyTermURL (OntologyEntry onto) {
+	public static String generateOntologyTermURL (OntologyEntry onto, String acc) {
 		String url = "";
 		switch (onto.getSource().getAcc()) {
 			case "EFO":           url = onto.getAcc();
@@ -43,6 +48,7 @@ public class Formater {
 			case "NCBI Taxonomy": url = onto.getSource().getUrl() + "?term=" + onto.getAcc();
 				                  break;
 			default:              url = null;
+								  log.error(acc + " has invalid Ontology mapping: " + onto.getSource().getAcc());
 				                  break;
 		}
 		return url;
