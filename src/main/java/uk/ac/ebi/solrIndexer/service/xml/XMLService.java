@@ -1,14 +1,31 @@
-package uk.ac.ebi.solrIndexer.service.xml;
+package uk.ac.ebi.service;
 
+import org.jdom2.Content;
 import org.jdom2.Document;
 import org.jdom2.Element;
+import org.jdom2.filter.Filter;
+
+import java.util.Iterator;
 
 public interface XMLService<E> {
 
-	public String getXMLString(E type);
+	String getXMLString(E type);
 
-	public Document getXMLDocument(E type);
+	Document getXMLDocument(E type);
 
-	public Element getXMLElement(E type);
+	Element getXMLElement(E type);
+
+	public default void filterDescendantOf(Element element, Filter filter) {
+
+		Iterator iterator = element.getDescendants().iterator();
+
+		while(iterator.hasNext()) {
+			Content child = (Content)iterator.next();
+			if ( !filter.matches(child) ) {
+				iterator.remove();
+			}
+
+		}
+	}
 
 }
