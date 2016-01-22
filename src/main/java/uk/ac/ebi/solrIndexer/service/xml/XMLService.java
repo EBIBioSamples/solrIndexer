@@ -1,11 +1,11 @@
-package uk.ac.ebi.service;
+package uk.ac.ebi.solrIndexer.service.xml;
+
+import java.util.Iterator;
 
 import org.jdom2.Content;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.filter.Filter;
-
-import java.util.Iterator;
 
 public interface XMLService<E> {
 

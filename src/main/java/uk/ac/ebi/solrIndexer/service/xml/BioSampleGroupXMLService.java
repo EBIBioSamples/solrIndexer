@@ -1,7 +1,15 @@
-package uk.ac.ebi.service;
+package uk.ac.ebi.solrIndexer.service.xml;
 
-import org.jdom2.*;
-import org.jdom2.filter.Filter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
+import org.jdom2.Attribute;
+import org.jdom2.Comment;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.Namespace;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.joda.time.DateTime;
@@ -10,6 +18,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.expgraph.properties.SampleCommentValue;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
@@ -24,9 +33,6 @@ import uk.ac.ebi.fg.core_model.organizational.Organization;
 import uk.ac.ebi.fg.core_model.organizational.Publication;
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.fg.core_model.xref.ReferenceSource;
-import uk.ac.ebi.service.filters.EmptyElementFilter;
-
-import java.util.*;
 
 
 public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
