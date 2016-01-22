@@ -29,6 +29,7 @@ import uk.ac.ebi.fg.biosd.model.xref.DatabaseRecordRef;
 import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.solrIndexer.common.Formater;
+import uk.ac.ebi.solrIndexer.common.PropertiesManager;
 
 public class SolrManager {
 	private static Logger log = LoggerFactory.getLogger (SolrManager.class.getName());
@@ -64,11 +65,12 @@ public class SolrManager {
 
 			for (ExperimentalPropertyValue epv : bsg.getPropertyValues()) {
 				document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());
-
-				//Adding Ontology Mappings
-				OntologyEntry onto = epv.getSingleOntologyTerm();
-				if (onto != null) {
-					String url = Formater.generateOntologyTermURL(onto, bsg.getAcc());
+				
+				//TODO Ontology mapping from Annotator
+				if (PropertiesManager.isAnnotatorActive()) {
+					
+				} else {
+					String url = getOntologyDefaultMapping(epv);
 					if (url != null) {
 						document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
 					}
@@ -127,10 +129,11 @@ public class SolrManager {
 			for (ExperimentalPropertyValue epv : bs.getPropertyValues()) {
 				document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());
 
-				//Adding Ontology Mappings
-				OntologyEntry onto = epv.getSingleOntologyTerm();
-				if (onto != null) {
-					String url = Formater.generateOntologyTermURL(onto, bs.getAcc());
+				//TODO Ontology mapping from Annotator
+				if (PropertiesManager.isAnnotatorActive()) {
+					
+				} else {
+					String url = getOntologyDefaultMapping(epv);
 					if (url != null) {
 						document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
 					}
@@ -145,4 +148,21 @@ public class SolrManager {
 		return document;
 	}
 
+	@SuppressWarnings("rawtypes")
+	private static String getOntologyDefaultMapping (ExperimentalPropertyValue epv) {
+		OntologyEntry onto = epv.getSingleOntologyTerm();
+		if (onto != null) {
+			String url = Formater.formatOntologyTermURL(onto);
+			if (url != null) {
+				return url;
+			}
+		}
+		return null;
+	}
+
+	@SuppressWarnings("rawtypes")
+	private static String getAnnotatorOntologytMapping (ExperimentalPropertyValue epv) {
+		
+		return null;
+	}
 }

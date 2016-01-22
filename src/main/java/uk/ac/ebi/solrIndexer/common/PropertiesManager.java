@@ -71,4 +71,14 @@ public class PropertiesManager {
 		String step = getProperties().getProperty("samples.fetchStep");
 		return Integer.parseInt(step);
 	}
+
+	/**
+	 * Fetches the value of property 'onto.mapping.annotator'
+	 * @return boolean
+	 */
+	public static boolean isAnnotatorActive() {
+		String annotator = getProperties().getProperty("onto.mapping.annotator");
+		return Boolean.parseBoolean(annotator);
+	}
+
 }

@@ -52,6 +52,12 @@
 	  		<artifactId>myequivalents-db</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>uk.ac.ebi.fg.biosd</groupId>
+			<artifactId>biosd_feature_annotator</artifactId>
+			<version>1.0</version>
+		</dependency>
+
 		<!-- Application Components Dependencies -->
 		<dependency>
 			<groupId>junit</groupId>

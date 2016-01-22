@@ -19,9 +19,7 @@ public class FetchOntololyTermsTest {
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void test() {
-		System.out.println("/////////////////////////////");
-		System.out.println("/ Ontology Terms Test START /");
-		System.out.println("/////////////////////////////");
+		System.out.println("////////////////////////////// Ontology Terms Test START //////////////////////////////");
 
 		try {
 			List<BioSample> samples = getRandomSamples(1052, 1);
@@ -49,12 +47,11 @@ public class FetchOntololyTermsTest {
 					}
 				}
 			}
+
 		} catch (Exception e) {
 			fail("Ups, somethin went wrong...");
 		} finally {
-			System.out.println("/////////////////////////////");
-			System.out.println("/  Ontology Terms Test END  /");
-			System.out.println("/////////////////////////////");
+			System.out.println("//////////////////////////////  Ontology Terms Test END  //////////////////////////////");
 		}
 	}
 
