@@ -12,9 +12,11 @@ import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 
 public class Formater {
 	private static Logger log = LoggerFactory.getLogger (Formater.class.getName());
+
 	private static final String EFO = "EFO";
 	private static final String NCBI = "NCBI Taxonomy";
 	private static final String ONTOBEE = "http://purl.obolibrary.org/";
+	private static final String ERROR = "ERROR";
 
 	/**
 	 * Format Date variables to Solr Date format
@@ -56,10 +58,12 @@ public class Formater {
 				url = onto.getSource().getUrl() + "?term=" + onto.getAcc();
 			} else {
 				log.error("Unknown ontology mapping with source: " + onto.getSource());
+				return ERROR;
 			}
 		} else {
 			acc = onto.getAcc();
 			log.error("Unknown ontology mapping with null source. Ontology accession: " + acc);
+			return ERROR;
 		}
 
 		return url;
