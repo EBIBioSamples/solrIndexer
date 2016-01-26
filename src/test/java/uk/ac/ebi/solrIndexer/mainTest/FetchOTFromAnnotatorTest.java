@@ -14,7 +14,6 @@ import org.junit.Test;
 import uk.ac.ebi.fg.biosd.annotator.persistence.AnnotatorAccessor;
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
-import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.solrIndexer.main.DataBaseConnection;
 
 public class FetchOTFromAnnotatorTest {
@@ -30,16 +29,15 @@ public class FetchOTFromAnnotatorTest {
 			EntityManager manager = connection.getEntityManager();
 			AnnotatorAccessor ancestor = new AnnotatorAccessor(manager);
 			
-			List<BioSample> samples = getRandomSamples(manager, 1052, 5);
+			List<BioSample> samples = getRandomSamples(manager, 2000052, 5);
 			for (BioSample sample : samples) {
 				System.out.println("---- Sample ACC: " + sample.getAcc());
 
 				for (ExperimentalPropertyValue epv : sample.getPropertyValues()) {
+					System.out.println("Term: " + epv.getTermText());
 
-					List<OntologyEntry> ontos = ancestor.getAllOntologyEntries(epv);
-					for (OntologyEntry oe : ontos) {
-						System.out.println(oe);
-					}
+					ancestor.getAllOntologyEntries(epv).forEach(oe -> System.out.println("       ACC: " + oe.getAcc() 
+					+ " Source: " + oe.getSource()));
 				}
 			}
 

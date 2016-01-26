@@ -14,6 +14,7 @@ public class Formater {
 	private static Logger log = LoggerFactory.getLogger (Formater.class.getName());
 	private static final String EFO = "EFO";
 	private static final String NCBI = "NCBI Taxonomy";
+	private static final String ONTOBEE = "http://purl.obolibrary.org/";
 
 	/**
 	 * Format Date variables to Solr Date format
@@ -49,7 +50,7 @@ public class Formater {
 		if (onto.getSource() != null) {
 			acc = onto.getSource().getAcc();
 			
-			if (EFO.equals(acc)) {
+			if (EFO.equals(acc) || acc.startsWith(ONTOBEE)) {
 				url = onto.getAcc();
 			} else if (NCBI.equals(acc)) {
 				url = onto.getSource().getUrl() + "?term=" + onto.getAcc();
