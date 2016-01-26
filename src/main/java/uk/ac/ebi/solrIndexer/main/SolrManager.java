@@ -65,7 +65,7 @@ public class SolrManager {
 
 			for (ExperimentalPropertyValue epv : bsg.getPropertyValues()) {
 				document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());
-				
+
 				//TODO Ontology mapping from Annotator
 				if (PropertiesManager.isAnnotatorActive()) {
 					
@@ -73,6 +73,8 @@ public class SolrManager {
 					String url = getOntologyDefaultMapping(epv);
 					if (url != null) {
 						document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
+					} else {
+						log.error("Error fetching ontology mapping for group [" + bsg.getAcc() + "] with property type: [" + epv.getType() + "]");
 					}
 				}
 			}
@@ -136,6 +138,8 @@ public class SolrManager {
 					String url = getOntologyDefaultMapping(epv);
 					if (url != null) {
 						document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
+					} else {
+						log.error("Error fetching ontology mapping for sample [" + bs.getAcc() + "] with property type: [" + epv.getType() + "]");
 					}
 				}
 			}
@@ -160,9 +164,4 @@ public class SolrManager {
 		return null;
 	}
 
-	@SuppressWarnings("rawtypes")
-	private static String getAnnotatorOntologytMapping (ExperimentalPropertyValue epv) {
-		
-		return null;
-	}
 }
