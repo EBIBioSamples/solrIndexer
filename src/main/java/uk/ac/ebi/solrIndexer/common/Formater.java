@@ -16,6 +16,7 @@ public class Formater {
 	private static final String EFO = "EFO";
 	private static final String NCBI = "NCBI Taxonomy";
 	private static final String ONTOBEE = "http://purl.obolibrary.org/";
+	private static final String BIOONTO = "http://purl.bioontology.org/";
 	private static final String ICD10 = "ICD10";
 	private static final String MESH = "MeSH";
 	private static final String ERROR = "ERROR";
@@ -63,7 +64,7 @@ public class Formater {
 				log.error("Unknown ontology mapping with source: " + onto.getSource());
 				return ERROR;
 			}
-		} else if (onto.getSource() == null && onto.getAcc().startsWith(ONTOBEE)) {
+		} else if (onto.getSource() == null && (onto.getAcc().startsWith(ONTOBEE) || onto.getAcc().startsWith(BIOONTO))) {
 			return onto.getAcc();
 		} else {
 			acc = onto.getAcc();
