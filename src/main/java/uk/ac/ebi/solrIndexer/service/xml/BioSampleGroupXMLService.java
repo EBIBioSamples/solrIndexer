@@ -1,15 +1,6 @@
-package uk.ac.ebi.solrIndexer.service.xml;
+package uk.ac.ebi.service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
-import org.jdom2.Attribute;
-import org.jdom2.Comment;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.Namespace;
+import org.jdom2.*;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.joda.time.DateTime;
@@ -18,7 +9,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import uk.ac.ebi.database.MyEquivalenceManager;
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.expgraph.properties.SampleCommentValue;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
@@ -33,9 +24,22 @@ import uk.ac.ebi.fg.core_model.organizational.Organization;
 import uk.ac.ebi.fg.core_model.organizational.Publication;
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.fg.core_model.xref.ReferenceSource;
+import uk.ac.ebi.fg.myequivalents.dao.EntityMappingDAO;
+import uk.ac.ebi.fg.myequivalents.managers.impl.db.DbMyEquivalentsManager;
+import uk.ac.ebi.fg.myequivalents.managers.interfaces.*;
+import uk.ac.ebi.fg.myequivalents.model.Entity;
+import uk.ac.ebi.fg.myequivalents.resources.Resources;
+
+
+import javax.persistence.EntityManager;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static jdk.nashorn.internal.objects.NativeArray.forEach;
 
 
 public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
+
 
 	private static Logger log = LoggerFactory.getLogger(BioSampleGroupXMLService.class.getName());
 	private final Namespace XMLNS =
@@ -160,15 +164,15 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 		Element property = new Element("Property",XMLNS);
 
 		Attribute classAttr          = new Attribute("class", "Submission Release Date");
-		Attribute typeAttr           = new Attribute("type", "DATETIME");
 		Attribute characteristicAttr = new Attribute("characteristic", "false");
-		Attribute commentAttr        = new Attribute("comment", "false");
+        Attribute typeAttr           = new Attribute("type", "DATETIME");
+        Attribute commentAttr        = new Attribute("comment", "false");
 
 		List<Attribute> attributes = new ArrayList<>();
 		attributes.add(classAttr);
-		attributes.add(typeAttr);
 		attributes.add(characteristicAttr);
-		attributes.add(commentAttr);
+        attributes.add(typeAttr);
+        attributes.add(commentAttr);
 
 		Element qualifiedValue = new Element("QualifiedValue",XMLNS);
 
@@ -188,15 +192,15 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 		Element property = new Element("Property",XMLNS);
 
 		Attribute classAttr          = new Attribute("class", "Submission Update Date");
-		Attribute typeAttr           = new Attribute("type", "DATETIME");
 		Attribute characteristicAttr = new Attribute("characteristic", "false");
-		Attribute commentAttr        = new Attribute("comment", "false");
+        Attribute typeAttr           = new Attribute("type", "DATETIME");
+        Attribute commentAttr        = new Attribute("comment", "false");
 
 		List<Attribute> attributes = new ArrayList<>();
 		attributes.add(classAttr);
-		attributes.add(typeAttr);
 		attributes.add(characteristicAttr);
-		attributes.add(commentAttr);
+        attributes.add(typeAttr);
+        attributes.add(commentAttr);
 
 		Element qualifiedValue = new Element("QualifiedValue",XMLNS);
         DateTime gmtUpdateDate = getGMTDateTime(msi.getUpdateDate());
@@ -214,15 +218,15 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 		Element property = new Element("Property",XMLNS);
 
 		Attribute classAttr          = new Attribute("class", "Submission Identifier");
-		Attribute typeAttr           = new Attribute("type", "STRING");
 		Attribute characteristicAttr = new Attribute("characteristic", "false");
-		Attribute commentAttr        = new Attribute("comment", "false");
+        Attribute typeAttr           = new Attribute("type", "STRING");
+        Attribute commentAttr        = new Attribute("comment", "false");
 
 		List<Attribute> attributes = new ArrayList<>();
 		attributes.add(classAttr);
-		attributes.add(typeAttr);
 		attributes.add(characteristicAttr);
-		attributes.add(commentAttr);
+        attributes.add(typeAttr);
+        attributes.add(commentAttr);
 
 		Element qualifiedValue = new Element("QualifiedValue",XMLNS);
 		Element value = new Element("Value",XMLNS).setText(msi.getAcc());
@@ -238,15 +242,15 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 		Element property = new Element("Property",XMLNS);
 
 		Attribute classAttr          = new Attribute("class", "Submission Title");
-		Attribute typeAttr           = new Attribute("type", "STRING");
 		Attribute characteristicAttr = new Attribute("characteristic", "false");
-		Attribute commentAttr        = new Attribute("comment", "false");
+        Attribute typeAttr           = new Attribute("type", "STRING");
+        Attribute commentAttr        = new Attribute("comment", "false");
 
 		List<Attribute> attributes = new ArrayList<>();
 		attributes.add(classAttr);
-		attributes.add(typeAttr);
 		attributes.add(characteristicAttr);
-		attributes.add(commentAttr);
+        attributes.add(typeAttr);
+        attributes.add(commentAttr);
 
 		Element qualifiedValue = new Element("QualifiedValue",XMLNS);
 		Element value = new Element("Value",XMLNS).setText(msi.getTitle());
@@ -262,15 +266,15 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 		Element property = new Element("Property",XMLNS);
 
 		Attribute classAttr          = new Attribute("class", "Submission Description");
-		Attribute typeAttr           = new Attribute("type", "STRING");
 		Attribute characteristicAttr = new Attribute("characteristic", "false");
-		Attribute commentAttr        = new Attribute("comment", "false");
+        Attribute typeAttr           = new Attribute("type", "STRING");
+        Attribute commentAttr        = new Attribute("comment", "false");
 
 		List<Attribute> attributes = new ArrayList<>();
 		attributes.add(classAttr);
-		attributes.add(typeAttr);
 		attributes.add(characteristicAttr);
-		attributes.add(commentAttr);
+        attributes.add(typeAttr);
+        attributes.add(commentAttr);
 
 		Element qualifiedValue = new Element("QualifiedValue",XMLNS);
 		Element value = new Element("Value",XMLNS).setText(msi.getDescription());
@@ -286,15 +290,15 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 		Element property = new Element("Property",XMLNS);
 
 		Attribute classAttr          = new Attribute("class", "Submission Reference Layer");
-		Attribute typeAttr           = new Attribute("type", "STRING");
 		Attribute characteristicAttr = new Attribute("characteristic", "false");
-		Attribute commentAttr        = new Attribute("comment", "false");
+        Attribute typeAttr           = new Attribute("type", "STRING");
+        Attribute commentAttr        = new Attribute("comment", "false");
 
 		List<Attribute> attributes = new ArrayList<>();
 		attributes.add(classAttr);
-		attributes.add(typeAttr);
 		attributes.add(characteristicAttr);
-		attributes.add(commentAttr);
+        attributes.add(typeAttr);
+        attributes.add(commentAttr);
 
 		Element qualifiedValue = new Element("QualifiedValue",XMLNS);
 		Element value = new Element("Value",XMLNS).setText(Boolean.toString(group.isInReferenceLayer()));
@@ -340,15 +344,15 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 		ExperimentalPropertyType propertyType = propertyValue.getType();
 
 		Attribute classAttr          = new Attribute("class", propertyType.getTermText());
-		Attribute typeAttr           = new Attribute("type", "STRING");
 		Attribute characteristicAttr = new Attribute("characteristic", Boolean.toString(isCharacterstic(propertyValue)));
-		Attribute commentAttr        = new Attribute("comment", Boolean.toString(isComment(propertyValue)));
+        Attribute typeAttr           = new Attribute("type", "STRING");
+        Attribute commentAttr        = new Attribute("comment", Boolean.toString(isComment(propertyValue)));
 
 		List<Attribute> propertyAttributes = new ArrayList<>();
 		propertyAttributes.add(classAttr);
-		propertyAttributes.add(typeAttr);
 		propertyAttributes.add(characteristicAttr);
-		propertyAttributes.add(commentAttr);
+        propertyAttributes.add(typeAttr);
+        propertyAttributes.add(commentAttr);
 
 		property.setAttributes(propertyAttributes);
 
@@ -516,24 +520,36 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 
 		List<Element> databaseElements = new ArrayList<>();
 
-		MSI msi = null;
-		if(existsAndUniqueMSI(group)) {
-			msi = group.getMSIs().iterator().next();
-		}
+        if (existsAndUniqueMSI(group)) {
 
-		if (msi != null) {
+            MSI msi = group.getMSIs().iterator().next();
 
-			Set<DatabaseRecordRef> databases = msi.getDatabaseRecordRefs();
-			databases.forEach(databaseRecordRef -> {
-				Element dbRecord = new Element("Database",XMLNS);
-				dbRecord.addContent(new Element("Name",XMLNS).setText(databaseRecordRef.getDbName()));
-				dbRecord.addContent(new Element("ID",XMLNS).setText(databaseRecordRef.getAcc()));
-				dbRecord.addContent(new Element("URI",XMLNS).setText(databaseRecordRef.getUrl()));
+            Set<DatabaseRecordRef> databases = msi.getDatabaseRecordRefs();
+            databases.forEach(databaseRecordRef -> {
+                Element dbRecord = new Element("Database",XMLNS);
+                dbRecord.addContent(new Element("Name",XMLNS).setText(databaseRecordRef.getDbName()));
+                dbRecord.addContent(new Element("ID",XMLNS).setText(databaseRecordRef.getAcc()));
+                dbRecord.addContent(new Element("URI",XMLNS).setText(databaseRecordRef.getUrl()));
 
-				databaseElements.add(dbRecord);
-			});
+                databaseElements.add(dbRecord);
+            });
 
-		}
+        }
+
+
+
+        // Add MyEquivalence references
+        Set<Entity> externalEquivalences = MyEquivalenceManager.getGroupExternalEquivalences(group.getAcc());
+        externalEquivalences.forEach(entity -> {
+
+            Element dbRecord = new Element("Database",XMLNS);
+            dbRecord.addContent(new Element("Name",XMLNS).setText(entity.getService().getTitle()));
+            dbRecord.addContent(new Element("ID",XMLNS).setText(entity.getAccession()));
+            dbRecord.addContent(new Element("URI",XMLNS).setText(entity.getURI()));
+            databaseElements.add(dbRecord);
+
+        });
+
 
 		return databaseElements;
 	}

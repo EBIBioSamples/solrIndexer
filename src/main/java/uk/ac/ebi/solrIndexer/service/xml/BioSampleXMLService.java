@@ -1,17 +1,6 @@
-package uk.ac.ebi.solrIndexer.service.xml;
+package uk.ac.ebi.service;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
-import org.jdom2.Attribute;
-import org.jdom2.Comment;
-import org.jdom2.Content;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.Namespace;
+import org.jdom2.*;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.joda.time.DateTime;
@@ -20,7 +9,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import uk.ac.ebi.database.MyEquivalenceManager;
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.expgraph.properties.SampleCommentValue;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
@@ -33,7 +22,12 @@ import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.fg.core_model.toplevel.Annotation;
 import uk.ac.ebi.fg.core_model.xref.ReferenceSource;
-import uk.ac.ebi.solrIndexer.service.xml.filters.EmptyElementFilter;
+import uk.ac.ebi.fg.myequivalents.managers.interfaces.ExposedService;
+import uk.ac.ebi.fg.myequivalents.model.Entity;
+import uk.ac.ebi.service.utilities.ExternalDBReferenceChecker;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class BioSampleXMLService implements XMLService<BioSample> {
@@ -97,7 +91,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 			.addContent(databases);
 //			.addContent(groupIds);
 
-		filterDescendantOf(root, new EmptyElementFilter().negate());
+//		filterDescendantOf(root, new EmptyElementFilter().negate());
 
 		return root;
 	}
@@ -119,7 +113,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 		root.addNamespaceDeclaration(xsi);
 
 		List<Attribute> rootAttributes = getRootAttributes(sample);
-		rootAttributes.add(new Attribute("schemaLocation", "http://www.ebi.ac.uk/biosamples/SampleGroupExport/1.0 http://www.ebi.ac.uk/biosamples/assets/xsd/v1.0/BioSDSchema.xsd",
+		rootAttributes.add(rootAttributes.size()-1,new Attribute("schemaLocation", "http://www.ebi.ac.uk/biosamples/SampleGroupExport/1.0 http://www.ebi.ac.uk/biosamples/assets/xsd/v1.0/BioSDSchema.xsd",
 				xsi));
 
 		root.setAttributes(rootAttributes);
@@ -146,9 +140,10 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 		}
 
 
-		rootAttributes.add(id);
+
 		rootAttributes.add(releaseDate);
 		rootAttributes.add(updateDate);
+		rootAttributes.add(id);
 
 		return rootAttributes;
 
@@ -158,19 +153,30 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 
 		List<Element> properties = new ArrayList<>();
 
-
 		Collection<ExperimentalPropertyValue> allProperties = sample.getPropertyValues();
+
+		allProperties = allProperties.stream()
+				.filter(expProperty -> !isDerivedFromPropertyType(expProperty))
+				.collect(Collectors.toList());
 
 
 		allProperties.forEach(
 				propertyValue -> {
 					Element property = getProperty(propertyValue);
 
-					properties.add(property);
+					Optional<Element> possibleMultiValueProperty = searchPropertyWithSameAttributes(properties,property);
+					if (!possibleMultiValueProperty.isPresent()) {
+						properties.add(property);
+					} else {
+						Element multiValueProperty = possibleMultiValueProperty.get();
+						properties.remove(multiValueProperty);
+						Element detachedInnerValue = property.getChild("QualifiedValue",property.getNamespace()).detach();
+						multiValueProperty.addContent(detachedInnerValue);
+						properties.add(multiValueProperty);
+					}
+
 				}
 		);
-
-
 		return properties;
 
 	}
@@ -287,24 +293,60 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 	}
 
 	private List<Element> getBiosampleDatabase(BioSample sample) {
-		List<Element> databases = new ArrayList<>();
 
-		Set<DatabaseRecordRef> dbSet = sample.getDatabaseRecordRefs();
-		dbSet.forEach(db -> {
+		List<Element> databaseElements = new ArrayList<>();
 
-			Element dbElement = new Element("Database",XMLNS);
+//		if (existsAndUniqueMSI(sample)) {
+//
+//			MSI msi = sample.getMSIs().iterator().next();
+//
+//			Set<DatabaseRecordRef> databases = msi.getDatabaseRecordRefs();
+//			databases.forEach(databaseRecordRef -> {
+//
+//				if (!ExternalDBReferenceChecker.isReferenceValid(databaseRecordRef.getUrl())) {
+//					return;
+//				}
+//
+//				Element dbRecord = new Element("Database", XMLNS);
+//				dbRecord.addContent(new Element("Name", XMLNS).setText(databaseRecordRef.getDbName()));
+//				dbRecord.addContent(new Element("ID", XMLNS).setText(databaseRecordRef.getAcc()));
+//				dbRecord.addContent(new Element("URI", XMLNS).setText(databaseRecordRef.getUrl()));
+//
+//				databaseElements.add(dbRecord);
+//			});
+//
+//		}
+		Set<DatabaseRecordRef> databases = sample.getDatabaseRecordRefs();
+		databases.forEach(databaseRecordRef -> {
 
-			Element nameElement = new Element("Name",XMLNS).setText(db.getDbName());
-			Element idElement = new Element("ID",XMLNS).setText(db.getAcc());
-			Element uriElement = new Element("URI",XMLNS).setText(db.getUrl());
+				//if (!ExternalDBReferenceChecker.isReferenceValid(databaseRecordRef.getUrl())) {
+				//	return;
+				//}
 
-			dbElement.addContent(nameElement).addContent(idElement).addContent(uriElement);
+				Element dbRecord = new Element("Database", XMLNS);
+				dbRecord.addContent(new Element("Name", XMLNS).setText(databaseRecordRef.getDbName()));
+				dbRecord.addContent(new Element("ID", XMLNS).setText(databaseRecordRef.getAcc()));
+				dbRecord.addContent(new Element("URI", XMLNS).setText(databaseRecordRef.getUrl()));
 
-			databases.add(dbElement);
+				databaseElements.add(dbRecord);
+		});
+
+
+		// Add MyEquivalence references
+		Set<Entity> externalEquivalences = MyEquivalenceManager.getSampleExternalEquivalences(sample.getAcc());
+		externalEquivalences.forEach(entity -> {
+
+			Element dbRecord = new Element("Database",XMLNS);
+			dbRecord.addContent(new Element("Name",XMLNS).setText(entity.getService().getTitle()));
+			dbRecord.addContent(new Element("ID",XMLNS).setText(entity.getAccession()));
+			dbRecord.addContent(new Element("URI",XMLNS).setText(entity.getURI()));
+			databaseElements.add(dbRecord);
 
 		});
 
-		return databases;
+
+		return databaseElements;
+
 	}
 
 	private Element getBiosampleGroupIds(BioSample sample) {
@@ -327,13 +369,56 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 	private List<Element> getBiosampleDerivedFrom(BioSample sample) {
 		List<Element> derivations = new ArrayList<>();
 
-		Set<Product> derivedFromSet = sample.getDerivedFrom();
-		derivedFromSet.forEach(product -> {
-			Element derivation = new Element("derivedFrom",XMLNS).setText(product.getAcc());
-			derivations.add(derivation);
-		});
+		Optional<ExperimentalPropertyValue> propertyDerivedFrom = sample.getPropertyValues().stream()
+				.filter(exp->isDerivedFromPropertyType(exp)).findFirst();
+
+		if (propertyDerivedFrom.isPresent()) {
+			Element derivedFrom = new Element("derivedFrom",XMLNS).setText(propertyDerivedFrom.get().getTermText());
+			derivations.add(derivedFrom);
+		}
+
 
 		return derivations;
+	}
+
+	private Optional<Element> searchPropertyWithSameAttributes(List<Element> elements, Element testElement) {
+		return elements.stream().filter(element -> {
+
+			/*
+			List<Attribute> testAttributeList = testElement.getAttributes();
+
+			boolean allAttributesAreEqual = true;
+
+			for(Attribute testAttribute: testAttributeList) {
+
+				Attribute comparableAttribute = element.getAttribute(testAttribute.getName(),testAttribute.getNamespace());
+				if ( comparableAttribute != null ) {
+					allAttributesAreEqual = comparableAttribute.getValue().equals(testAttribute.getValue());
+					if(!allAttributesAreEqual) {
+						return false;
+					}
+				}
+			}
+			return allAttributesAreEqual;
+			*/
+
+			Attribute testClassAttribute = testElement.getAttribute("class");
+			Attribute controlClassAttribute = element.getAttribute("class");
+
+
+			return testClassAttribute.getValue().equals(controlClassAttribute.getValue());
+
+
+
+		}).findFirst();
+	}
+
+	private boolean isDerivedFromPropertyType(ExperimentalPropertyValue pv) {
+		return pv.getType().getTermText().equals("Derived From");
+	}
+
+	private boolean existsAndUniqueMSI(BioSample sample) {
+		return !sample.getMSIs().isEmpty() && sample.getMSIs().size() == 1;
 	}
 
 	private DateTime getGMTDateTime(Date date){
