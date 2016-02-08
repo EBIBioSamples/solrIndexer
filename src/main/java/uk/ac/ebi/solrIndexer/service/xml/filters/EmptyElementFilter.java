@@ -1,4 +1,4 @@
-package uk.ac.ebi.service.filters;
+package uk.ac.ebi.solrIndexer.service.xml.filters;
 
 import org.jdom2.Element;
 import org.jdom2.filter.AbstractFilter;
@@ -7,7 +7,8 @@ import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.ac.ebi.service.BioSampleGroupXMLService;
+
+import uk.ac.ebi.solrIndexer.service.xml.BioSampleGroupXMLService;
 
 public class EmptyElementFilter extends AbstractFilter<Element> {
 

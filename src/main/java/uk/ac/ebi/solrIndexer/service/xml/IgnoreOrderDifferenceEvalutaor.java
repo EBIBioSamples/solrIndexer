@@ -1,11 +1,6 @@
-package uk.ac.ebi.service;
+package uk.ac.ebi.solrIndexer.service.xml;
 
-import org.w3c.dom.Attr;
-import org.w3c.dom.Node;
-import org.xmlunit.diff.Comparison;
-import org.xmlunit.diff.ComparisonResult;
-import org.xmlunit.diff.ComparisonType;
-import org.xmlunit.diff.DifferenceEvaluator;
+import org.h2.expression.Comparison;
 
 /**
  * Created by lucacherubin on 25/01/2016.

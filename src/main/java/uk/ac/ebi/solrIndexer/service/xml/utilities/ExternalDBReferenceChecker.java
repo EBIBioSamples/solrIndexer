@@ -1,4 +1,4 @@
-package uk.ac.ebi.service.utilities;
+package uk.ac.ebi.solrIndexer.service.xml.utilities;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
