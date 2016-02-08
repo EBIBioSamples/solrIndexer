@@ -15,4 +15,8 @@ public class FormaterTest {
 		assertEquals("00:00:05",Formater.formatTime(5000));
 	}
 
+	@Test
+	public void testFormatOntologyTermURL() {
+		//TODO
+	}
 }

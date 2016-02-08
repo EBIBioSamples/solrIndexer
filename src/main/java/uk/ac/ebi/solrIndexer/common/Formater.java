@@ -5,10 +5,21 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 
 public class Formater {
-	//private static Logger log = LoggerFactory.getLogger (Formater.class.getName());
+	private static Logger log = LoggerFactory.getLogger (Formater.class.getName());
+
+	private static final String EFO = "EFO";
+	private static final String NCBI = "NCBI Taxonomy";
+	private static final String ONTOBEE = "http://purl.obolibrary.org/";
+	private static final String BIOONTO = "http://purl.bioontology.org/";
+	private static final String ICD10 = "ICD10";
+	private static final String MESH = "MeSH";
+	private static final String ERROR = "ERROR";
 
 	/**
 	 * Format Date variables to Solr Date format
@@ -38,19 +49,29 @@ public class Formater {
 	 * @return
 	 */
 	public static String formatOntologyTermURL (OntologyEntry onto) {
-		String url = "";
-		
-		
-		
-		switch (onto.getSource().getAcc()) {
-			case "EFO":           url = onto.getAcc();
-				                  break;
-			case "NCBI Taxonomy": url = onto.getSource().getUrl() + "?term=" + onto.getAcc();
-				                  break;
-			default:              url = null;
-				                  break;
+		String acc = null;
+
+		if (onto.getSource() != null) {
+			acc = onto.getSource().getAcc();
+			
+			if (EFO.equals(acc) || acc.startsWith(ONTOBEE) || MESH.equals(acc)) {
+				return onto.getAcc();
+			} else if (NCBI.equals(acc)) {
+				return onto.getSource().getUrl() + "?term=" + onto.getAcc();
+			} else if (ICD10.equals(acc)) {
+				return onto.getSource().getUrl();
+			} else {
+				log.error("Unknown ontology mapping with source: " + onto.getSource());
+				return ERROR;
+			}
+		} else if (onto.getSource() == null && (onto.getAcc().startsWith(ONTOBEE) || onto.getAcc().startsWith(BIOONTO))) {
+			return onto.getAcc();
+		} else {
+			acc = onto.getAcc();
+			log.error("Unknown ontology mapping with null source. Ontology accession: " + acc);
+			return ERROR;
 		}
-		return url;
+
 	}
 
 	/**
