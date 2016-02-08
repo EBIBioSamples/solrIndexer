@@ -22,6 +22,7 @@ import java.util.Set;
 
 import javax.persistence.EntityManager;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,22 +75,29 @@ public class SolrManager {
 			for (ExperimentalPropertyValue epv : bsg.getPropertyValues()) {
 				document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());
 
-				//Ontologies from Annotator
+				// Ontologies from Annotator
 				if (PropertiesManager.isAnnotatorActive()) {
-					List<String> urls = getOntologyFromAnnotator(epv, connection);
-					for (String url : urls) {
-						if (url != null && !url.equals(ERROR)) {
-							document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
-						} else if (url.equals(ERROR)) {
-							log.error("Error fetching ontology mapping for group [" + bsg.getAcc() + "] with property type: [" + epv.getType() + "]");
+					List<String> urls = null;
+
+					try {
+						urls = getOntologyFromAnnotator(epv, connection);
+
+						for (String url : urls) {
+							if (url != null) {
+								document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
+							}
 						}
+
+					} catch (IllegalArgumentException e) {
+						log.error("Group: [" + bsg.getAcc() + "] for ExperimentalPropertyValue [" + epv.getTermText() + "]", e);
 					}
-				//Ontologies from Submission
+
+				// Ontologies from Submission
 				} else {
 					String url = getOntologyFromSubmission(epv);
 					if (url != null && !url.equals(ERROR)) {
 						document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
-					} else if (url.equals(ERROR)) {
+					} else if (url != null && url.equals(ERROR)) {
 						log.error("Error fetching ontology mapping for group [" + bsg.getAcc() + "] with property type: [" + epv.getType() + "]");
 					}
 				}
@@ -148,22 +156,29 @@ public class SolrManager {
 			for (ExperimentalPropertyValue epv : bs.getPropertyValues()) {
 				document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());
 
-				//Ontologies from Annotator
+				// Ontologies from Annotator
 				if (PropertiesManager.isAnnotatorActive()) {
-					List<String> urls = getOntologyFromAnnotator(epv, connection);
-					for (String url : urls) {
-						if (url != null && !url.equals(ERROR)) {
-							document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
-						} else if (url.equals(ERROR)) {
-							log.error("Error fetching ontology mapping for sample [" + bs.getAcc() + "] with property type: [" + epv.getType() + "]");
+					List<String> urls = null;
+
+					try {
+						urls = getOntologyFromAnnotator(epv, connection);
+
+						for (String url : urls) {
+							if (url != null) {
+								document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
+							}
 						}
+
+					} catch (IllegalArgumentException e) {
+						log.error("Sample: [" + bs.getAcc() + "] for ExperimentalPropertyValue [" + epv.getTermText() + "]", e);
 					}
-				//Ontologies from Submission
+
+				// Ontologies from Submission
 				} else {
 					String url = getOntologyFromSubmission(epv);
 					if (url != null && !url.equals(ERROR)) {
 						document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
-					} else if (url.equals(ERROR)) {
+					} else if (StringUtils.equals(url, ERROR)) {
 						log.error("Error fetching ontology mapping for sample [" + bs.getAcc() + "] with property type: [" + epv.getType() + "]");
 					}
 				}
@@ -178,6 +193,21 @@ public class SolrManager {
 	}
 
 	@SuppressWarnings("rawtypes")
+	private static List<String> getOntologyFromAnnotator(ExperimentalPropertyValue epv, DataBaseConnection connection) {
+		EntityManager manager = connection.getEntityManager();
+		AnnotatorAccessor ancestor = new AnnotatorAccessor(manager);
+
+		List<String> urls = new ArrayList<String>();		
+		List<OntologyEntry> ontologies = ancestor.getAllOntologyEntries(epv);
+
+		for (OntologyEntry oe : ontologies) {
+			urls.add(oe.getAcc());
+		}
+
+		return urls;
+	}
+
+	@SuppressWarnings("rawtypes")
 	private static String getOntologyFromSubmission(ExperimentalPropertyValue epv) {
 		OntologyEntry onto = epv.getSingleOntologyTerm();
 		String url = null;
@@ -186,18 +216,5 @@ public class SolrManager {
 			url = Formater.formatOntologyTermURL(onto);
 		}
 		return url;
-	}
-
-	@SuppressWarnings("rawtypes")
-	private static List<String> getOntologyFromAnnotator(ExperimentalPropertyValue epv, DataBaseConnection connection) {
-		EntityManager manager = connection.getEntityManager();
-		AnnotatorAccessor ancestor = new AnnotatorAccessor(manager);
-
-		List<String> urls = new ArrayList<String>();
-		for (OntologyEntry oe : ancestor.getAllOntologyEntries(epv)) {
-			urls.add(Formater.formatOntologyTermURL(oe));
-		}
-
-		return urls;
 	}
 }

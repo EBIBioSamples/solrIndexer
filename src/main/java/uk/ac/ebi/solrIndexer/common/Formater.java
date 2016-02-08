@@ -16,6 +16,8 @@ public class Formater {
 	private static final String EFO = "EFO";
 	private static final String NCBI = "NCBI Taxonomy";
 	private static final String ONTOBEE = "http://purl.obolibrary.org/";
+	private static final String ICD10 = "ICD10";
+	private static final String MESH = "MeSH";
 	private static final String ERROR = "ERROR";
 
 	/**
@@ -46,27 +48,29 @@ public class Formater {
 	 * @return
 	 */
 	public static String formatOntologyTermURL (OntologyEntry onto) {
-		String url = null;
 		String acc = null;
 
 		if (onto.getSource() != null) {
 			acc = onto.getSource().getAcc();
 			
-			if (EFO.equals(acc) || acc.startsWith(ONTOBEE)) {
-				url = onto.getAcc();
+			if (EFO.equals(acc) || acc.startsWith(ONTOBEE) || MESH.equals(acc)) {
+				return onto.getAcc();
 			} else if (NCBI.equals(acc)) {
-				url = onto.getSource().getUrl() + "?term=" + onto.getAcc();
+				return onto.getSource().getUrl() + "?term=" + onto.getAcc();
+			} else if (ICD10.equals(acc)) {
+				return onto.getSource().getUrl();
 			} else {
 				log.error("Unknown ontology mapping with source: " + onto.getSource());
 				return ERROR;
 			}
+		} else if (onto.getSource() == null && onto.getAcc().startsWith(ONTOBEE)) {
+			return onto.getAcc();
 		} else {
 			acc = onto.getAcc();
 			log.error("Unknown ontology mapping with null source. Ontology accession: " + acc);
 			return ERROR;
 		}
 
-		return url;
 	}
 
 	/**

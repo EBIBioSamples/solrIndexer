@@ -11,14 +11,17 @@ import javax.persistence.criteria.Root;
 import org.junit.Test;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
+import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
+import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
+import uk.ac.ebi.solrIndexer.common.Formater;
 import uk.ac.ebi.solrIndexer.main.DataBaseConnection;
 
-public class FetchOntololyTermsTest {
+public class FetchOTFromSubmissionTest {
 
 	@SuppressWarnings("rawtypes")
-	@Test
-	public void test() {
+	//@Test
+	public void getOntologiesFromRandomSamplesTest() {
 		System.out.println("////////////////////////////// Ontology Terms Test START //////////////////////////////");
 
 		try {
@@ -32,23 +35,43 @@ public class FetchOntololyTermsTest {
 							+ " : " + epv.getTermText()
 							+ " [" + epv.getSingleOntologyTerm() + "]");
 
-					if (epv.getSingleOntologyTerm() != null) {
-
-						switch (epv.getSingleOntologyTerm().getSource().getAcc()) {
-							case "EFO":           System.out.println("   EFO");
-												  System.out.println("   " + epv.getSingleOntologyTerm().getAcc());
-								                  break;
-							case "NCBI Taxonomy": System.out.println("   NCBI Taxonomy");
-												  System.out.println("   " + epv.getSingleOntologyTerm().getSource().getUrl() + "?term=" + epv.getSingleOntologyTerm().getAcc());
-								                  break;
-							default:              System.out.println("   None of the above.");
-								                  break;
-						}
+					OntologyEntry onto = epv.getSingleOntologyTerm();
+					if (onto != null) {
+						System.out.println("  + Formater: " + Formater.formatOntologyTermURL(epv.getSingleOntologyTerm()));
 					}
+					
 				}
 			}
 
 		} catch (Exception e) {
+			fail("Ups, somethin went wrong...");
+		} finally {
+			System.out.println("//////////////////////////////  Ontology Terms Test END  //////////////////////////////");
+		}
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Test
+	public void getOntologiesFromGroupTest() {
+		System.out.println("////////////////////////////// Ontology Terms Test START //////////////////////////////");
+		try {
+			BioSampleGroup group = getGroupByAccession("SAMEG298568");
+			System.out.println("Group: " + group.getAcc());
+
+			for (ExperimentalPropertyValue epv : group.getPropertyValues()) {
+				System.out.println(" - " + epv.getType().getTermText()
+						+ " : " + epv.getTermText()
+						+ " [" + epv.getSingleOntologyTerm() + "]");
+
+				OntologyEntry onto = epv.getSingleOntologyTerm();
+				if (onto != null) {
+					System.out.println("  + Source: " + onto.getSource());
+					System.out.println("  + Formater: " + Formater.formatOntologyTermURL(epv.getSingleOntologyTerm()));
+				}
+
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 			fail("Ups, somethin went wrong...");
 		} finally {
 			System.out.println("//////////////////////////////  Ontology Terms Test END  //////////////////////////////");
@@ -65,5 +88,16 @@ public class FetchOntololyTermsTest {
 		List<BioSample> result = connection.getEntityManager().createQuery(criteriaQuery).setFirstResult(offset).setMaxResults(max).getResultList();
 		connection.closeDataBaseConnection();
 		return result;
+	}
+
+	private BioSampleGroup getGroupByAccession(String acc) {
+		DataBaseConnection connection = new DataBaseConnection();
+		CriteriaBuilder criteriaBuilder = connection.getEntityManager().getCriteriaBuilder();
+		CriteriaQuery<BioSampleGroup> criteriaQuery = criteriaBuilder.createQuery(BioSampleGroup.class);
+		Root<BioSampleGroup> root = criteriaQuery.from(BioSampleGroup.class);
+
+		criteriaQuery.select(root).where(criteriaBuilder.equal(root.get("acc"), acc));
+		BioSampleGroup group = connection.getEntityManager().createQuery(criteriaQuery).getSingleResult();
+		return group;
 	}
 }
