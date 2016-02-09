@@ -104,7 +104,7 @@ public class SolrManager {
 				}
 			}
 			//TODO getXMLString 
-			//document.addField("", getXMLString(bsg));
+			document.addField("", XMLManager.getXMLString(bsg));
 
 		} catch (Exception e) {
 			log.error("Error creating group [" + bsg.getAcc() + "] solr document: ", e);
@@ -188,7 +188,7 @@ public class SolrManager {
 			}
 
 			//TODO getXMLString 
-			//document.addField("", getXMLString(bs));
+			document.addField("", XMLManager.getXMLString(bs));
 
 		} catch (Exception e) {
 			log.error("Error creating sample [" + bs.getAcc() + "] solr document: ", e);
