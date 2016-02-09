@@ -35,6 +35,7 @@ import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.fg.core_model.toplevel.Annotation;
 import uk.ac.ebi.fg.core_model.xref.ReferenceSource;
 import uk.ac.ebi.fg.myequivalents.model.Entity;
+import uk.ac.ebi.solrIndexer.main.MyEquivalenceManager;
 
 
 public class BioSampleXMLService implements XMLService<BioSample> {

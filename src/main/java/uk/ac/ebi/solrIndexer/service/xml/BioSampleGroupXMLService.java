@@ -34,6 +34,7 @@ import uk.ac.ebi.fg.core_model.organizational.Publication;
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.fg.core_model.xref.ReferenceSource;
 import uk.ac.ebi.fg.myequivalents.model.Entity;
+import uk.ac.ebi.solrIndexer.main.MyEquivalenceManager;
 
 
 public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
