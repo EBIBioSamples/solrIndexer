@@ -62,7 +62,7 @@ public class DataBaseManager {
         criteriaQuery.where(criteriaBuilder.equal(root.get("acc"), acc));
         TypedQuery<BioSampleGroup> query = connection.getEntityManager().createQuery(criteriaQuery);
         BioSampleGroup group = query.getSingleResult();
-
+        connection.closeDataBaseConnection();
         return group;
     }
 
@@ -84,8 +84,10 @@ public class DataBaseManager {
         TypedQuery<BioSample> query = connection.getEntityManager().createQuery(criteriaQuery);
         List<BioSample> samples =  query.getResultList();
         if ( !samples.isEmpty() ) {
+        	connection.closeDataBaseConnection();
             return samples.get(0);
         } else {
+        	connection.closeDataBaseConnection();
             throw new NoResultException("No Biosamples with Accession: " + acc + " was found in the database");
         }
     }
