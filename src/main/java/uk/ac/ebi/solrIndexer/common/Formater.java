@@ -14,11 +14,16 @@ public class Formater {
 	private static Logger log = LoggerFactory.getLogger (Formater.class.getName());
 
 	private static final String EFO = "EFO";
+	private static final String EFO_LINK = "http://www.ebi.ac.uk/efo/";
 	private static final String NCBI = "NCBI Taxonomy";
 	private static final String ONTOBEE = "http://purl.obolibrary.org/";
 	private static final String BIOONTO = "http://purl.bioontology.org/";
 	private static final String ICD10 = "ICD10";
 	private static final String MESH = "MeSH";
+	private static final String GO = "GO";
+	private static final String GRO = "GRO";
+	private static final String PRIDE = "PRIDE";
+	
 	private static final String ERROR = "ERROR";
 
 	/**
@@ -58,13 +63,13 @@ public class Formater {
 				return onto.getAcc();
 			} else if (NCBI.equals(acc)) {
 				return onto.getSource().getUrl() + "?term=" + onto.getAcc();
-			} else if (ICD10.equals(acc)) {
+			} else if (ICD10.equals(acc) || GO.equals(acc) || GRO.equals(acc) || PRIDE.equals(acc)) {
 				return onto.getSource().getUrl();
 			} else {
 				log.error("Unknown ontology mapping with source: " + onto.getSource());
 				return ERROR;
 			}
-		} else if (onto.getSource() == null && (onto.getAcc().startsWith(ONTOBEE) || onto.getAcc().startsWith(BIOONTO))) {
+		} else if (onto.getSource() == null && (onto.getAcc().startsWith(ONTOBEE) || onto.getAcc().startsWith(BIOONTO) || onto.getAcc().startsWith(EFO_LINK))) {
 			return onto.getAcc();
 		} else {
 			acc = onto.getAcc();

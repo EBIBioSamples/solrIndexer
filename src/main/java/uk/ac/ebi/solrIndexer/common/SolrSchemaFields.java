@@ -39,4 +39,7 @@ public class SolrSchemaFields {
 	public static final String CONTENT_TYPE = "content_type";
 	public static final String NUMBER_OF_SAMPLES = "number_of_samples";
 	public static final String GROUP_SAMPLES = "group_samples";
+	
+	/* --- Other --- */
+	public static final String XML = "xmlAPI";
 }
