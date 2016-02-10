@@ -14,7 +14,7 @@ import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_ACC;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_DESCRIPTION;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_TITLE;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_UPDATE_DATE;
-//import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.XML;
+import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.XML;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -103,8 +103,8 @@ public class SolrManager {
 					}
 				}
 			}
-			//TODO getXMLString 
-			document.addField("", XMLManager.getXMLString(bsg));
+
+			document.addField(XML, XMLManager.getXMLString(bsg));
 
 		} catch (Exception e) {
 			log.error("Error creating group [" + bsg.getAcc() + "] solr document: ", e);
@@ -187,8 +187,7 @@ public class SolrManager {
 				}
 			}
 
-			//TODO getXMLString 
-			document.addField("", XMLManager.getXMLString(bs));
+			document.addField(XML, XMLManager.getXMLString(bs));
 
 		} catch (Exception e) {
 			log.error("Error creating sample [" + bs.getAcc() + "] solr document: ", e);

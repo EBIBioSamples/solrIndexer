@@ -34,8 +34,6 @@ import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.fg.core_model.toplevel.Annotation;
 import uk.ac.ebi.fg.core_model.xref.ReferenceSource;
-import uk.ac.ebi.fg.myequivalents.model.Entity;
-import uk.ac.ebi.solrIndexer.main.MyEquivalenceManager;
 
 
 public class BioSampleXMLService implements XMLService<BioSample> {
@@ -340,7 +338,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 		});
 
 
-		// Add MyEquivalence references
+		/* Add MyEquivalence references
 		Set<Entity> externalEquivalences = MyEquivalenceManager.getSampleExternalEquivalences(sample.getAcc());
 		externalEquivalences.forEach(entity -> {
 
@@ -350,7 +348,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 			dbRecord.addContent(new Element("URI",XMLNS).setText(entity.getURI()));
 			databaseElements.add(dbRecord);
 
-		});
+		});*/
 
 
 		return databaseElements;

@@ -33,8 +33,6 @@ import uk.ac.ebi.fg.core_model.organizational.Organization;
 import uk.ac.ebi.fg.core_model.organizational.Publication;
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.fg.core_model.xref.ReferenceSource;
-import uk.ac.ebi.fg.myequivalents.model.Entity;
-import uk.ac.ebi.solrIndexer.main.MyEquivalenceManager;
 
 
 public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
@@ -537,7 +535,7 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 
 
 
-        // Add MyEquivalence references
+        /*/ Add MyEquivalence references
         Set<Entity> externalEquivalences = MyEquivalenceManager.getGroupExternalEquivalences(group.getAcc());
         externalEquivalences.forEach(entity -> {
 
@@ -547,7 +545,7 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
             dbRecord.addContent(new Element("URI",XMLNS).setText(entity.getURI()));
             databaseElements.add(dbRecord);
 
-        });
+        });*/
 
 
 		return databaseElements;

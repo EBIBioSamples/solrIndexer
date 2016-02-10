@@ -23,6 +23,7 @@ public class Formater {
 	private static final String GO = "GO";
 	private static final String GRO = "GRO";
 	private static final String PRIDE = "PRIDE";
+	private static final String WORDNET = "http://wordnet.rkbexplorer.com/";
 	
 	private static final String ERROR = "ERROR";
 
@@ -63,7 +64,7 @@ public class Formater {
 				return onto.getAcc();
 			} else if (NCBI.equals(acc)) {
 				return onto.getSource().getUrl() + "?term=" + onto.getAcc();
-			} else if (ICD10.equals(acc) || GO.equals(acc) || GRO.equals(acc) || PRIDE.equals(acc)) {
+			} else if (ICD10.equals(acc) || GO.equals(acc) || GRO.equals(acc) || PRIDE.equals(acc) || onto.getSource().getUrl().startsWith(WORDNET)) {
 				return onto.getSource().getUrl();
 			} else {
 				log.error("Unknown ontology mapping with source: " + onto.getSource());
