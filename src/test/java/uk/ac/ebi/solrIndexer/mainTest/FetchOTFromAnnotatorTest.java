@@ -20,7 +20,7 @@ public class FetchOTFromAnnotatorTest {
 
 	@Test
 	@SuppressWarnings("rawtypes")
-	public void AnnotatorTest() {
+	public void annotatorTest() {
 		System.out.println("////////////////////////////// Annotator Test START //////////////////////////////");
 
 		DataBaseConnection connection = null;
@@ -29,7 +29,7 @@ public class FetchOTFromAnnotatorTest {
 			EntityManager manager = connection.getEntityManager();
 			AnnotatorAccessor ancestor = new AnnotatorAccessor(manager);
 
-			List<BioSample> samples = getRandomSamples(manager, 2000052, 2);
+			List<BioSample> samples = getRandomSamples(manager, 2000052, 100);
 			for (BioSample sample : samples) {
 				System.out.println("---- Sample ACC: " + sample.getAcc());
 
