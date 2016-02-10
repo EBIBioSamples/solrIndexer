@@ -413,20 +413,25 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 		if (pv.getSingleOntologyTerm() != null) {
 			OntologyEntry ontology = pv.getSingleOntologyTerm();
 			ReferenceSource ontologyRefSource = ontology.getSource();
-			Element tsrName 		= new Element("Name",XMLNS).setText(ontologyRefSource.getName());
-			Element tsrDescription 	= new Element("Description",XMLNS).setText(ontologyRefSource.getDescription());
-			Element tsrURI 			= new Element("URI",XMLNS).setText(ontologyRefSource.getUrl());
-			Element tsrVersion 		= new Element("Version",XMLNS).setText(ontologyRefSource.getVersion());
-			Element tsrTermSourceID = new Element("TermSourceID",XMLNS).setText(ontology.getAcc());
 
-			List<Element> allContents = new ArrayList<>();
-			allContents.add(tsrName);
-			allContents.add(tsrDescription);
-			allContents.add(tsrURI);
-			allContents.add(tsrVersion);
-			allContents.add(tsrTermSourceID);
+			if (ontologyRefSource != null) {
 
-			termSourceRef.addContent(allContents);
+				Element tsrName = new Element("Name", XMLNS).setText(ontologyRefSource.getName());
+				Element tsrDescription = new Element("Description", XMLNS).setText(ontologyRefSource.getDescription());
+				Element tsrURI = new Element("URI", XMLNS).setText(ontologyRefSource.getUrl());
+				Element tsrVersion = new Element("Version", XMLNS).setText(ontologyRefSource.getVersion());
+				Element tsrTermSourceID = new Element("TermSourceID", XMLNS).setText(ontology.getAcc());
+
+				List<Element> allContents = new ArrayList<>();
+				allContents.add(tsrName);
+				allContents.add(tsrDescription);
+				allContents.add(tsrURI);
+				allContents.add(tsrVersion);
+				allContents.add(tsrTermSourceID);
+
+				termSourceRef.addContent(allContents);
+			}
+			
 		}
 
 		return termSourceRef;
