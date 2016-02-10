@@ -102,6 +102,38 @@
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
+					<archiverConfig>
+						<fileMode>0755</fileMode>
+						<directoryMode>0755</directoryMode>
+						<defaultDirectoryMode>0755</defaultDirectoryMode>
+					</archiverConfig>
+				</configuration>
+				<executions>
+					<execution>
+						<id>pkg</id>
+						<configuration>
+							<finalName>${project.artifactId}_${project.version}</finalName>
+							<appendAssemblyId>false</appendAssemblyId>
+							<attach>true</attach>
+							<descriptors>
+								<descriptor>src/main/assembly/pkg.xml</descriptor>
+							</descriptors>
+							<archive>
+								<manifest><mainClass>uk.ac.ebi.solrIndexer.main.App</mainClass></manifest>
+							</archive>
+						</configuration>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!--  
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
 					<archive>
 						<manifest><mainClass>uk.ac.ebi.solrIndexer.main.App</mainClass></manifest>
 					</archive>
@@ -110,6 +142,7 @@
 					</descriptorRefs>
 				</configuration>
 			</plugin>
+			-->
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
