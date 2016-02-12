@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
-import uk.ac.ebi.solrIndexer.main.DataBaseConnection;
 import uk.ac.ebi.solrIndexer.main.SolrManager;
 
 public class ThreadGroup implements Callable<Integer> {
@@ -32,11 +31,11 @@ public class ThreadGroup implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 		Collection<SolrInputDocument> docs = new ArrayList<SolrInputDocument>();
-		DataBaseConnection connection = new DataBaseConnection();
+		//DataBaseConnection connection = new DataBaseConnection();
 
 		try {
 			for (BioSampleGroup group : groupsForThread) {
-				SolrInputDocument document = SolrManager.generateBioSampleGroupSolrDocument(group, connection);
+				SolrInputDocument document = SolrManager.generateBioSampleGroupSolrDocument(group);
 
 				if (document != null) {
     				docs.add(document);
@@ -63,7 +62,7 @@ public class ThreadGroup implements Callable<Integer> {
 				}
 
 				docs.clear();
-				connection.closeDataBaseConnection();
+				//connection.closeDataBaseConnection();
 
 			} catch (SolrServerException | IOException e) {
 				log.error("Error generating groups documents.", e);

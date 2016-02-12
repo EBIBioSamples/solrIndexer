@@ -9,9 +9,6 @@
 #  OPTS="$OPTS -DproxySet=true -DproxyHost=wwwcache.ebi.ac.uk -DproxyPort=3128 -DnonProxyHosts='*.ebi.ac.uk|localhost'"
 #fi
 
-# These are passed to the JVM. they're appended, so that you can predefine it from the shell
-OPTS="$OPTS -Xms2G -Xmx4G -XX:PermSize=128m -XX:MaxPermSize=256m"
-
 # We always work with universal text encoding.
 OPTS="$OPTS -Dfile.encoding=UTF-8"
 
@@ -41,7 +38,7 @@ export CLASSPATH="$CLASSPATH:$MYDIR:$MYDIR/lib/*"
 # http://stackoverflow.com/questions/743454/space-in-java-command-line-arguments
 
 java \
-$OPTS uk.ac.ebi.example.App ${1+"$@"}
+$OPTS uk.ac.ebi.solrIndexer.main.App ${1+"$@"}
 
 EXCODE=$?
 

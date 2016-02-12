@@ -39,7 +39,7 @@ public class ThreadSample implements Callable<Integer> {
 
 		try {
 			for (BioSample sample : samplesForThread) {
-				SolrInputDocument document = SolrManager.generateBioSampleSolrDocument(sample, connection);
+				SolrInputDocument document = SolrManager.generateBioSampleSolrDocument(sample);
 	
 				if (document != null) {
 					docs.add(document);
