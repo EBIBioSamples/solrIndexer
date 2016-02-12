@@ -103,7 +103,7 @@ public class DataBaseManager {
         DataBaseConnection connection = new DataBaseConnection();
         CriteriaBuilder criteriaBuilder = connection.getEntityManager().getCriteriaBuilder();
         CriteriaQuery<BioSample> criteriaQuery = criteriaBuilder.createQuery(BioSample.class);
-        Root<BioSample> root = criteriaQuery.from(BioSample_);
+        Root<BioSample> root = criteriaQuery.from(BioSample.class);
 
         criteriaQuery.select(root);
         List<BioSample> result = connection.getEntityManager().createQuery(criteriaQuery).getResultList();
@@ -124,7 +124,7 @@ public class DataBaseManager {
         Root<BioSampleGroup> root = criteriaQuery.from(BioSampleGroup.class);
 
         criteriaQuery.select(root);
-        List<BioSampleGroup> result = connection.getEntityManager().createQuery(criteriaQuery).setFirstResult(offset).setMaxResults(max).getResultList();
+        List<BioSampleGroup> result = connection.getEntityManager().createQuery(criteriaQuery).getResultList();
         connection.closeDataBaseConnection();
 
         Set<String> publicAccession = result.stream().filter(group -> group.isPublic()).map(group -> group.getAcc()).collect(Collectors.toSet());
