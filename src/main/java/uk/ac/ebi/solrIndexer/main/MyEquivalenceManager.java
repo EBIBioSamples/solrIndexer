@@ -67,18 +67,14 @@ public class MyEquivalenceManager {
 //                        }
 
                     if (entity.getServiceName().equals("ebi.biosamples.groups")) {
-                        if (entity.getAccession().equals(groupAccession)) {
+
+                        String entityAccession = entity.getAccession();
+
+                        if (entityAccession.equals(groupAccession)) {
                             continue;
-                        } else {
-                            try {
-                                BioSampleGroup eqGroup = DataBaseManager.fetchGroup(entity.getAccession());
-                                if (!eqGroup.isPublic()) {
-                                    continue;
-                                }
-                            } catch (NoResultException e) {
-                                log.error("Equivalence with not existent group not inserted");
-                                continue;
-                            }
+                        } else if (! DataBaseStorage.isGroupPublic(entityAccession)) {
+                            log.debug("Equivalence with private or non existent group not inserted");
+                            continue;
                         }
                     }
 
@@ -110,18 +106,16 @@ public class MyEquivalenceManager {
 //                            return false;
 //                        }
                         if (entity.getServiceName().equals("ebi.biosamples.samples")) {
-                            if (entity.getAccession().equals(sampleAccession)) {
+
+                            String entityAccession = entity.getAccession();
+
+                            if (entityAccession.equals(sampleAccession)) {
                                 return false;
-                            } else {
-                                try {
-                                    BioSample eqSample = DataBaseManager.fetchSample(entity.getAccession());
-                                    if (!eqSample.isPublic()) {
-                                        return false;
-                                    }
-                                } catch (NoResultException e) {
-                                    log.error("Equivalence with not existent group not inserted");
-                                    return false;
-                                }
+                            } else if (!DataBaseStorage.isSamplePublic(entityAccession)){
+
+                                log.debug("Equivalence with private or not existent sample not inserted");
+                                return false;
+
                             }
                         }
 

@@ -1,12 +1,17 @@
 package uk.ac.ebi.solrIndexer.main;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
+import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.Metamodel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,6 +95,40 @@ public class DataBaseManager {
         	connection.closeDataBaseConnection();
             throw new NoResultException("No Biosamples with Accession: " + acc + " was found in the database");
         }
+    }
+
+    public static Set<String> getSetPublicSamplesAccession() {
+        log.debug("Fetching Public Samples Accessions . . .");
+
+        DataBaseConnection connection = new DataBaseConnection();
+        CriteriaBuilder criteriaBuilder = connection.getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<BioSample> criteriaQuery = criteriaBuilder.createQuery(BioSample.class);
+        Root<BioSample> root = criteriaQuery.from(BioSample_);
+
+        criteriaQuery.select(root);
+        List<BioSample> result = connection.getEntityManager().createQuery(criteriaQuery).getResultList();
+        connection.closeDataBaseConnection();
+
+        Set<String> publicAccessions = result.stream().filter(bioSample -> bioSample.isPublic()).map(biosample -> biosample.getAcc()).collect(Collectors.toSet());
+
+        return publicAccessions;
+    }
+
+    public static Set<String> getSetPublicGroupsAccession() {
+
+        log.debug("Fetching Public Groups Accessions . . .");
+
+        DataBaseConnection connection = new DataBaseConnection();
+        CriteriaBuilder criteriaBuilder = connection.getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<BioSampleGroup> criteriaQuery = criteriaBuilder.createQuery(BioSampleGroup.class);
+        Root<BioSampleGroup> root = criteriaQuery.from(BioSampleGroup.class);
+
+        criteriaQuery.select(root);
+        List<BioSampleGroup> result = connection.getEntityManager().createQuery(criteriaQuery).setFirstResult(offset).setMaxResults(max).getResultList();
+        connection.closeDataBaseConnection();
+
+        Set<String> publicAccession = result.stream().filter(group -> group.isPublic()).map(group -> group.getAcc()).collect(Collectors.toSet());
+        return publicAccession;
     }
 
 }
