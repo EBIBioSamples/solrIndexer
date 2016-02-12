@@ -6,16 +6,19 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.solrIndexer.common.Formater;
 import uk.ac.ebi.solrIndexer.common.PropertiesManager;
 import uk.ac.ebi.solrIndexer.threads.ThreadGroup;
+import uk.ac.ebi.solrIndexer.threads.ThreadSample;
 
 public class App {
 	private static Logger log = LoggerFactory.getLogger(App.class.getName());
@@ -55,7 +58,7 @@ public class App {
 			log.info("Group documents generated. " + sum + " threads finished successfully.");
 			/* -------------------- */
 
-			/* -- Handle Samples -- /
+			/* -- Handle Samples -- */
 			log.info("Handling Samples");
 			AtomicInteger atom = new AtomicInteger(8);
 			offset = 0;
