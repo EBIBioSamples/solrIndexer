@@ -1,8 +1,8 @@
 package uk.ac.ebi.solrIndexer.main;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import javax.persistence.NoResultException;
@@ -10,14 +10,13 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.Metamodel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
+import uk.ac.ebi.solrIndexer.common.PropertiesManager;
 
 public class DataBaseManager {
 	private static Logger log = LoggerFactory.getLogger (DataBaseManager.class.getName());
@@ -97,38 +96,49 @@ public class DataBaseManager {
         }
     }
 
-    public static Set<String> getSetPublicSamplesAccession() {
+    public static Set<String> getPublicSamplesAccessionSet() {
         log.debug("Fetching Public Samples Accessions . . .");
 
-        DataBaseConnection connection = new DataBaseConnection();
-        CriteriaBuilder criteriaBuilder = connection.getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<BioSample> criteriaQuery = criteriaBuilder.createQuery(BioSample.class);
-        Root<BioSample> root = criteriaQuery.from(BioSample.class);
+        int offset = 0;
+        List<BioSample> samples;
+        Set<String> publicAccessions = new HashSet<>();
+        while ((samples = getAllIterableSamples(offset, PropertiesManager.getGroupsFetchStep())).size() > 0) {
+            List<String> accessions = samples.stream()
+                    .filter(bioSample -> {
+                        try {
+                            return bioSample.isPublic();
+                        } catch( IllegalStateException e) {
+                            e.printStackTrace();
+                            log.error("Sample %s with multiple MSI found, skipped from public accession collection",bioSample.getAcc());
+                        }
+                        return false;
+                    }).map(bioSample -> {
+                        return bioSample.getAcc();
+                    }).collect(Collectors.toList());
 
-        criteriaQuery.select(root);
-        List<BioSample> result = connection.getEntityManager().createQuery(criteriaQuery).getResultList();
-        connection.closeDataBaseConnection();
+            publicAccessions.addAll(accessions);
 
-        Set<String> publicAccessions = result.stream().filter(bioSample -> bioSample.isPublic()).map(biosample -> biosample.getAcc()).collect(Collectors.toSet());
+            offset += samples.size();
+        }
 
         return publicAccessions;
     }
 
-    public static Set<String> getSetPublicGroupsAccession() {
+    public static Set<String> getPublicGroupsAccessionSet() {
 
         log.debug("Fetching Public Groups Accessions . . .");
 
-        DataBaseConnection connection = new DataBaseConnection();
-        CriteriaBuilder criteriaBuilder = connection.getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<BioSampleGroup> criteriaQuery = criteriaBuilder.createQuery(BioSampleGroup.class);
-        Root<BioSampleGroup> root = criteriaQuery.from(BioSampleGroup.class);
+        int offset = 0;
+        List<BioSampleGroup> groups;
+        Set<String> publicAccessions = new HashSet<>();
+        while ((groups = getAllIterableGroups(offset, PropertiesManager.getGroupsFetchStep())).size() > 0) {
+            publicAccessions.addAll(groups.stream().filter(BioSampleGroup::isPublic).map(BioSampleGroup::getAcc).collect(Collectors.toList()));
 
-        criteriaQuery.select(root);
-        List<BioSampleGroup> result = connection.getEntityManager().createQuery(criteriaQuery).getResultList();
-        connection.closeDataBaseConnection();
+            offset += groups.size();
+        }
 
-        Set<String> publicAccession = result.stream().filter(group -> group.isPublic()).map(group -> group.getAcc()).collect(Collectors.toSet());
-        return publicAccession;
+        return publicAccessions;
     }
+
 
 }

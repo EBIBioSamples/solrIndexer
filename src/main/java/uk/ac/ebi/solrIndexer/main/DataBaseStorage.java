@@ -12,7 +12,7 @@ public class DataBaseStorage {
 
     public static Set<String> getPublicSamplesAccessions() {
         if (publicSamplesAccessions == null) {
-            publicSamplesAccessions = DataBaseManager.getSetPublicSamplesAccession();
+            publicSamplesAccessions = DataBaseManager.getPublicSamplesAccessionSet();
         }
         return publicSamplesAccessions;
 
@@ -24,7 +24,7 @@ public class DataBaseStorage {
 
     public static Set<String> getPublicGroupsAccessions() {
         if (publicGroupsAccession == null) {
-            publicGroupsAccession = DataBaseManager.getSetPublicGroupsAccession();
+            publicGroupsAccession = DataBaseManager.getPublicGroupsAccessionSet();
         }
         return publicGroupsAccession;
 

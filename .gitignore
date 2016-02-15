@@ -36,3 +36,4 @@ fabric.properties
 
 # Personal files
 biosample-test.xml
+*.properties
