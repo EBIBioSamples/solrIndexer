@@ -19,6 +19,9 @@
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<pattern>%d{dd MMM yyyy - HH:mm:ss.SSS} %-5level [%thread] %logger{36}: %msg%n</pattern>
 		</encoder>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+	    	<level>ALL</level>
+	    </filter>
 	</appender>
 
 	<logger name = "org.hibernate" level = "INFO" />
