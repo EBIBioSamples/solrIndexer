@@ -115,42 +115,6 @@
 				</configuration>
 			</plugin>
 
-			<!--&lt;!&ndash; Generate 'Uber' jar &ndash;&gt;-->
-			<!--<plugin>-->
-				<!--<groupId>org.apache.maven.plugins</groupId>-->
-  				<!--<artifactId>maven-assembly-plugin</artifactId>-->
-
-				<!--<configuration>-->
-					<!--<archiverConfig>-->
-						<!--<fileMode>0755</fileMode>-->
-						<!--<directoryMode>0755</directoryMode>-->
-						<!--<defaultDirectoryMode>0755</defaultDirectoryMode>-->
-					<!--</archiverConfig>-->
-
-					<!--<archive>-->
-						<!--<manifest>-->
-							<!--<mainClass>${project.artifactId}_${project.version}/uk/ac/ebi/solrIndexer/main/App</mainClass>-->
-						<!--</manifest>-->
-					<!--</archive>-->
-				<!--</configuration>-->
-
-				<!--<executions>-->
-					<!--<execution>-->
-						<!--<id>uberjar</id>-->
-						<!--<configuration>-->
-							<!--<finalName>${project.artifactId}_${project.version}</finalName>-->
-							<!--<appendAssemblyId>false</appendAssemblyId>-->
-							<!--<attach>true</attach>-->
-							<!--<descriptors>-->
-								<!--<descriptor>src/main/assembly/uberjar.xml</descriptor>-->
-							<!--</descriptors>-->
-						<!--</configuration>-->
-						<!--<phase>package</phase>-->
-						<!--<goals><goal>single</goal></goals>-->
-					<!--</execution>-->
-				<!--</executions>-->
-			<!--</plugin>-->
-
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
