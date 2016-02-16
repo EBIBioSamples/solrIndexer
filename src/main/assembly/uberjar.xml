@@ -1,17 +1,17 @@
 <assembly>
-	<id>uber_jar</id>
+	<id>uberjar</id>
 
 	<formats>
 		<format>jar</format>
 	</formats>
 
-	<includeBaseDirectory>false</includeBaseDirectory>
 	<dependencySets>
 		<dependencySet>
 			<outputDirectory>/lib</outputDirectory>
+			<useProjectArtifact>false</useProjectArtifact>
+			<useTransitiveDependencies>true</useTransitiveDependencies>
 			<unpack>false</unpack>
 			<scope>runtime</scope>
-			<useProjectArtifact>false</useProjectArtifact>
 			<excludes>
 				<exclude>commons-logging:commons-logging</exclude> 
 			</excludes>
@@ -21,7 +21,7 @@
 	<fileSets>
 		<fileSet>
 			<directory>${project.build.outputDirectory}</directory>
-			<outputDirectory>/</outputDirectory>
+			<outputDirectory></outputDirectory>
 		</fileSet>
 	</fileSets>
 </assembly>
