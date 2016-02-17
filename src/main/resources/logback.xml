@@ -6,26 +6,62 @@
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %logger{36}: %msg%n</pattern>
 		</encoder>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>INFO</level>
+		</filter>
 	</appender>
 
-	<appender name="File" class="ch.qos.logback.core.FileAppender">
-		<Append>true</Append>
-		<File>logs/App.log</File>
+	<appender name="File-Main" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- Rolls up every day -->
+			<fileNamePattern>/logs/Main_%d{yyyyMMdd}.log</fileNamePattern>
+			<!-- Keeps last 3 months -->
+			<maxHistory>90</maxHistory>
+		</rollingPolicy>
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<pattern>%d{dd MMM yyyy - HH:mm:ss.SSS} %-5level [%thread] %logger{36}: %msg%n</pattern>
 		</encoder>
+
+		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+			<!-- defaults to type ch.qos.logback.classic.boolex.JaninoEventEvaluator -->
+			<evaluator> 
+				<expression>return (logger.startsWith("org.hibernate") || logger.startsWith("com.mchange"));</expression>
+			</evaluator>
+			<OnMismatch>NEUTRAL</OnMismatch>
+			<OnMatch>DENY</OnMatch>
+		</filter>
 	</appender>
 
-	<logger name = "org.hibernate" level="INFO" />
-	<logger name = "org.hibernate.type" level = "INFO" />
-	<logger name = "uk.ac.ebi.fg.biosd.model" level = "INFO" />
-	<logger name = "org.apache.http.wire" level = "WARN" />
-	<logger name = "o.s.c.i.s.PathMatchingResourcePatternResolver" level = "OFF" />
-	<logger name = "org.apache.http.headers" level = "WARN" />
+	<appender name="File-Hibernate" class="ch.qos.logback.core.FileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!-- Rolls up every day -->
+			<fileNamePattern>/logs/Hibernate_%d{yyyyMMdd}.log</fileNamePattern>
+			<!-- Keeps last 3 months -->
+			<maxHistory>90</maxHistory>
+		</rollingPolicy>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>%d{dd MMM yyyy - HH:mm:ss.SSS} %-5level [%thread] %logger{36}: %msg%n</pattern>
+		</encoder>
+
+		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+			<!-- defaults to type ch.qos.logback.classic.boolex.JaninoEventEvaluator -->
+			<evaluator> 
+				<expression>return (logger.startsWith("org.hibernate") || logger.startsWith("com.mchange"));</expression>
+			</evaluator>
+			<OnMismatch>DENY</OnMismatch>
+			<OnMatch>NEUTRAL</OnMatch>
+		</filter>
+	</appender>
+
+	<logger name = "uk.ac.ebi.fg.biosd.model" level = "INFO"/>
+	<logger name = "org.apache.http.wire" level = "WARN"/>
+	<logger name = "o.s.c.i.s.PathMatchingResourcePatternResolver" level = "OFF"/>
+	<logger name = "org.apache.http.headers" level = "WARN"/>
 
 	<root level="DEBUG">
 		<appender-ref ref="Console" />
-		<appender-ref ref="File" />
+		<appender-ref ref="File-Main" />
+		<appender-ref ref="File-Hibernate" />
 	</root>
 
 </configuration>
