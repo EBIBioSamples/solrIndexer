@@ -108,8 +108,8 @@ public class DataBaseManager {
                         try {
                             return bioSample.isPublic();
                         } catch( IllegalStateException e) {
-                            e.printStackTrace();
-                            log.error("Sample %s with multiple MSI found, skipped from public accession collection",bioSample.getAcc());
+//                            e.printStackTrace();
+//                            log.debug(String.format("Sample %s with multiple MSI found, skipped from public accession collection",bioSample.getAcc()));
                         }
                         return false;
                     }).map(bioSample -> {
@@ -132,7 +132,13 @@ public class DataBaseManager {
         List<BioSampleGroup> groups;
         Set<String> publicAccessions = new HashSet<>();
         while ((groups = getAllIterableGroups(offset, PropertiesManager.getGroupsFetchStep())).size() > 0) {
-            publicAccessions.addAll(groups.stream().filter(BioSampleGroup::isPublic).map(BioSampleGroup::getAcc).collect(Collectors.toList()));
+            publicAccessions.addAll(groups.stream().filter(group-> {
+                try {
+                    return group.isPublic();
+                } catch (IllegalStateException e) {
+                    return false;
+                }
+            }).map(BioSampleGroup::getAcc).collect(Collectors.toList()));
 
             offset += groups.size();
         }

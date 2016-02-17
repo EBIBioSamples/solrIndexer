@@ -601,15 +601,18 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 	private List<Element> getBiosampleElements(BioSampleGroup group) {
 		List<Element> biosampleElements = new ArrayList<>();
 
-		if ( existsAndUniqueMSI(group) ) {
-
-			BioSampleXMLService xmlService = new BioSampleXMLService();
-
-			Set<BioSample> biosamples = group.getMSIs().stream().findFirst().get().getSamples();
-			biosamples.forEach(biosample -> {
-				biosampleElements.add(xmlService.getXMLElement(biosample));
-			});
-		}
+		/*TODO: When creating a group and checking for samples related to the group, due to my equivalences can create
+		 quite gigantic loop
+		*/
+//		if ( existsAndUniqueMSI(group) ) {
+//
+//			BioSampleXMLService xmlService = new BioSampleXMLService();
+//
+//			Set<BioSample> biosamples = group.getMSIs().stream().findFirst().get().getSamples();
+//			biosamples.forEach(biosample -> {
+//				biosampleElements.add(xmlService.getXMLElement(biosample));
+//			});
+//		}
 
 
 		return biosampleElements;
