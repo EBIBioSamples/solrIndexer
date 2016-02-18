@@ -33,6 +33,9 @@ public class App {
 
 		Set<Future<Integer>> set = new HashSet<Future<Integer>>();
 
+		DataBaseStorage.getPublicGroupsAccessions();
+		DataBaseStorage.getPublicSamplesAccessions();
+
 		try {
 			int offset, sum;
 

@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
+import uk.ac.ebi.fg.core_model.expgraph.Node;
 import uk.ac.ebi.solrIndexer.common.PropertiesManager;
 
 public class DataBaseManager {
@@ -48,6 +49,30 @@ public class DataBaseManager {
 		connection.closeDataBaseConnection();
 		return result;
 	}
+
+    public static List<BioSampleGroup> getAllIterableGroups (DataBaseConnection connection, int offset, int max) {
+        log.debug("Fetching Groups . . .");
+
+        CriteriaBuilder criteriaBuilder = connection.getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<BioSampleGroup> criteriaQuery = criteriaBuilder.createQuery(BioSampleGroup.class);
+        Root<BioSampleGroup> root = criteriaQuery.from(BioSampleGroup.class);
+
+        criteriaQuery.select(root);
+        List<BioSampleGroup> result = connection.getEntityManager().createQuery(criteriaQuery).setFirstResult(offset).setMaxResults(max).getResultList();
+        return result;
+    }
+
+    public static List<BioSample> getAllIterableSamples (DataBaseConnection connection, int offset, int max) {
+        log.debug("Fetching Samples . . .");
+
+        CriteriaBuilder criteriaBuilder = connection.getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<BioSample> criteriaQuery = criteriaBuilder.createQuery(BioSample.class);
+        Root<BioSample> root = criteriaQuery.from(BioSample.class);
+
+        criteriaQuery.select(root);
+        List<BioSample> result = connection.getEntityManager().createQuery(criteriaQuery).setFirstResult(offset).setMaxResults(max).getResultList();
+        return result;
+    }
 
     /**
      * Queries the Biosamples DB retrieving the sample with the accession acc.
@@ -102,19 +127,15 @@ public class DataBaseManager {
         int offset = 0;
         List<BioSample> samples;
         Set<String> publicAccessions = new HashSet<>();
-        while ((samples = getAllIterableSamples(offset, PropertiesManager.getGroupsFetchStep())).size() > 0) {
+        DataBaseConnection connection = new DataBaseConnection();
+        while ((samples = getAllIterableSamples(connection, offset, PropertiesManager.getGroupsFetchStep())).size() > 0) {
             List<String> accessions = samples.stream()
                     .filter(bioSample -> {
                         try {
                             return bioSample.isPublic();
-                        } catch( IllegalStateException e) {
-//                            e.printStackTrace();
-//                            log.debug(String.format("Sample %s with multiple MSI found, skipped from public accession collection",bioSample.getAcc()));
-                        }
+                        } catch( IllegalStateException e) {}
                         return false;
-                    }).map(bioSample -> {
-                        return bioSample.getAcc();
-                    }).collect(Collectors.toList());
+                    }).map(BioSample::getAcc).collect(Collectors.toList());
 
             publicAccessions.addAll(accessions);
 
@@ -131,13 +152,13 @@ public class DataBaseManager {
         int offset = 0;
         List<BioSampleGroup> groups;
         Set<String> publicAccessions = new HashSet<>();
-        while ((groups = getAllIterableGroups(offset, PropertiesManager.getGroupsFetchStep())).size() > 0) {
+        DataBaseConnection connection = new DataBaseConnection();
+        while ((groups = getAllIterableGroups(connection, offset, PropertiesManager.getGroupsFetchStep())).size() > 0) {
             publicAccessions.addAll(groups.stream().filter(group-> {
                 try {
                     return group.isPublic();
-                } catch (IllegalStateException e) {
-                    return false;
-                }
+                } catch (IllegalStateException e) {}
+                return false;
             }).map(BioSampleGroup::getAcc).collect(Collectors.toList()));
 
             offset += groups.size();
