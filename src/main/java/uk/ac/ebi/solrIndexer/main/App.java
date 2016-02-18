@@ -36,6 +36,8 @@ public class App {
 		DataBaseStorage.getPublicGroupsAccessions();
 		DataBaseStorage.getPublicSamplesAccessions();
 
+		long tempTime = System.currentTimeMillis();
+		log.info(String.format("Time passed for accession retrieving: %.2f min", ((double) (tempTime - startTime)/1000/60)) );
 		try {
 			int offset, sum;
 

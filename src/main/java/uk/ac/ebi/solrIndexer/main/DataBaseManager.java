@@ -1,5 +1,6 @@
 package uk.ac.ebi.solrIndexer.main;
 
+import java.sql.*;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -124,22 +125,40 @@ public class DataBaseManager {
     public static Set<String> getPublicSamplesAccessionSet() {
         log.debug("Fetching Public Samples Accessions . . .");
 
-        int offset = 0;
-        List<BioSample> samples;
         Set<String> publicAccessions = new HashSet<>();
-        DataBaseConnection connection = new DataBaseConnection();
-        while ((samples = getAllIterableSamples(connection, offset, PropertiesManager.getGroupsFetchStep())).size() > 0) {
-            List<String> accessions = samples.stream()
-                    .filter(bioSample -> {
-                        try {
-                            return bioSample.isPublic();
-                        } catch( IllegalStateException e) {}
-                        return false;
-                    }).map(BioSample::getAcc).collect(Collectors.toList());
+        try {
+            JDBCConnection connection = new JDBCConnection();
+            Statement stmt = connection.getConnection().createStatement();
+            stmt.setFetchSize(1000);
+            String query = "SELECT SA,COUNT(SA) AS NS\n" +
+                    "  FROM (\n" +
+                    "    SELECT b.ACC AS SA, b.PUBLIC_FLAG AS PF, b.RELEASE_DATE AS SRD, m.RELEASE_DATE AS MRD \n" +
+                    "    FROM BIO_PRODUCT b LEFT JOIN MSI_SAMPLE ms ON b.ID = ms.SAMPLE_ID LEFT JOIN MSI m ON m.ID = ms.MSI_ID \n" +
+                    "    WHERE (\n" +
+                    "      (b.PUBLIC_FLAG IS NULL OR b.PUBLIC_FLAG = 1) AND \n" +
+                    "      (b.RELEASE_DATE IS NULL OR b.RELEASE_DATE < CURRENT_DATE)\n" +
+                    "    )\n" +
+                    "  ) \n" +
+                    "  WHERE\n" +
+                    "    (SRD < CURRENT_DATE) OR\n" +
+                    "    (SRD IS NULL AND MRD < CURRENT_DATE)\n" +
+                    "  GROUP BY SA";
+            ResultSet rs = stmt.executeQuery(query);
 
-            publicAccessions.addAll(accessions);
 
-            offset += samples.size();
+            while(rs.next()) {
+                String acc = rs.getString(1);
+                if (rs.getInt(2) > 1) {
+                    log.warn(String.format("Multiple MSIs for %s - Sample not public",acc));
+                    continue;
+                }
+                publicAccessions.add(acc);
+            }
+
+
+            return publicAccessions;
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         return publicAccessions;
@@ -149,22 +168,49 @@ public class DataBaseManager {
 
         log.debug("Fetching Public Groups Accessions . . .");
 
-        int offset = 0;
-        List<BioSampleGroup> groups;
         Set<String> publicAccessions = new HashSet<>();
-        DataBaseConnection connection = new DataBaseConnection();
-        while ((groups = getAllIterableGroups(connection, offset, PropertiesManager.getGroupsFetchStep())).size() > 0) {
-            publicAccessions.addAll(groups.stream().filter(group-> {
-                try {
-                    return group.isPublic();
-                } catch (IllegalStateException e) {}
-                return false;
-            }).map(BioSampleGroup::getAcc).collect(Collectors.toList()));
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
 
-            offset += groups.size();
+        try {
+            conn = new JDBCConnection().getConnection();
+            stmt = conn.createStatement();
+            stmt.setFetchSize(1000);
+            String query = "  SELECT GA,COUNT(GA) AS NS\n" +
+                    "  FROM (\n" +
+                    "    SELECT bsg.ACC AS GA, bsg.PUBLIC_FLAG AS PF, bsg.RELEASE_DATE AS GRD, m.RELEASE_DATE AS MRD \n" +
+                    "    FROM BIO_SMP_GRP bsg LEFT JOIN MSI_SAMPLE_GROUP msg ON bsg.ID = msg.GROUP_ID LEFT JOIN MSI m ON msg.MSI_ID = m.ID \n" +
+                    "    WHERE (\n" +
+                    "      (bsg.PUBLIC_FLAG IS NULL OR bsg.PUBLIC_FLAG = 1) AND \n" +
+                    "      (bsg.RELEASE_DATE IS NULL OR bsg.RELEASE_DATE < CURRENT_DATE)\n" +
+                    "    )\n" +
+                    "  ) \n" +
+                    "  WHERE\n" +
+                    "    (GRD < CURRENT_DATE) OR\n" +
+                    "    (GRD IS NULL AND MRD < CURRENT_DATE)\n" +
+                    "  GROUP BY GA";
+            rs = stmt.executeQuery(query);
+
+            while(rs.next()) {
+                String acc = rs.getString(1);
+                if (rs.getInt(2) > 1) {
+                    log.warn(String.format("Multiple MSIs for %s - Group not public",acc));
+                    continue;
+                }
+                publicAccessions.add(acc);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception e) {};
+            try { if (stmt != null) stmt.close(); } catch (Exception e) {};
+            try { if (conn != null) conn.close(); } catch (Exception e) {};
         }
 
         return publicAccessions;
+
     }
 
 

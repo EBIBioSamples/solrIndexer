@@ -81,4 +81,28 @@ public class PropertiesManager {
 		return Boolean.parseBoolean(annotator);
 	}
 
+	/**
+	 * Fetches the value of property 'db.url'
+	 * @return String
+	 */
+	public static String getDatabaseUrl() {
+		return getProperties().getProperty("db.url");
+	}
+
+	/**
+	 * Fetches the value of property 'db.user'
+	 * @return String
+	 */
+	public static String getDatabaseUser() {
+		return getProperties().getProperty("db.user");
+	}
+
+	/**
+	 * Fetches the value of property 'db.password'
+	 * @return String
+	 */
+	public static String getDatabasePassword() {
+		return getProperties().getProperty("db.password");
+	}
+
 }
