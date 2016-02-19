@@ -117,7 +117,7 @@ public class SolrManager {
 			if (msi.size() > 1) {
 				StringBuffer msiAccs = new StringBuffer();
 				msi.forEach(m -> msiAccs.append(m.getAcc() + "|"));
-				log.error("Sample with accession [" + bs.getAcc() + "] has multiple MSI [" + msiAccs.substring(0, msiAccs.length() - 1) + "] - sample skipped.");
+				log.warn("Sample with accession [" + bs.getAcc() + "] has multiple MSI [" + msiAccs.substring(0, msiAccs.length() - 1) + "] - sample skipped.");
 				return null;
 			}
 

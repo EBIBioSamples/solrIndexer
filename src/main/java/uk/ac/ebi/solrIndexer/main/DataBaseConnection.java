@@ -12,11 +12,11 @@ import uk.ac.ebi.fg.core_model.resources.Resources;
 public class DataBaseConnection {
 	private static Logger log = LoggerFactory.getLogger (DataBaseConnection.class.getName());
 
-	private static EntityManager manager = null;
-	private static Session session = null;
+	private EntityManager manager = null;
+	private Session session = null;
 
 	public DataBaseConnection() {
-		log.debug("Creating DataBaseConnection");
+		log.trace("Creating DataBaseConnection");
 
 		//EntityTransaction transaction = null;
 		try {

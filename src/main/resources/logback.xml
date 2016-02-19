@@ -11,19 +11,15 @@
 		</filter>
 	</appender>
 
-	<appender name="File-Main" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<!-- Rolls up every day -->
-			<fileNamePattern>/logs/Main_%d{yyyyMMdd}.log</fileNamePattern>
-			<!-- Keeps last 3 months -->
-			<maxHistory>90</maxHistory>
-		</rollingPolicy>
+	<appender name="File-Main" class="ch.qos.logback.core.FileAppender">
+		<Append>true</Append>
+		<File>logs/Main.log</File>
+
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<pattern>%d{dd MMM yyyy - HH:mm:ss.SSS} %-5level [%thread] %logger{36}: %msg%n</pattern>
 		</encoder>
 
 		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
-			<!-- defaults to type ch.qos.logback.classic.boolex.JaninoEventEvaluator -->
 			<evaluator> 
 				<expression>return (logger.startsWith("org.hibernate") || logger.startsWith("com.mchange"));</expression>
 			</evaluator>
@@ -33,23 +29,22 @@
 	</appender>
 
 	<appender name="File-Hibernate" class="ch.qos.logback.core.FileAppender">
-		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<!-- Rolls up every day -->
-			<fileNamePattern>/logs/Hibernate_%d{yyyyMMdd}.log</fileNamePattern>
-			<!-- Keeps last 3 months -->
-			<maxHistory>90</maxHistory>
-		</rollingPolicy>
+		<Append>true</Append>
+		<File>logs/Hibernate.log</File>
+
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<pattern>%d{dd MMM yyyy - HH:mm:ss.SSS} %-5level [%thread] %logger{36}: %msg%n</pattern>
 		</encoder>
 
 		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
-			<!-- defaults to type ch.qos.logback.classic.boolex.JaninoEventEvaluator -->
 			<evaluator> 
 				<expression>return (logger.startsWith("org.hibernate") || logger.startsWith("com.mchange"));</expression>
 			</evaluator>
 			<OnMismatch>DENY</OnMismatch>
 			<OnMatch>NEUTRAL</OnMatch>
+		</filter>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>DEBUG</level>
 		</filter>
 	</appender>
 

@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
-import uk.ac.ebi.solrIndexer.main.DataBaseConnection;
 import uk.ac.ebi.solrIndexer.main.SolrManager;
 
 public class ThreadSample implements Callable<Integer> {
@@ -35,7 +34,6 @@ public class ThreadSample implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 		Collection<SolrInputDocument> docs = new ArrayList<SolrInputDocument>();
-		DataBaseConnection connection = new DataBaseConnection();
 
 		try {
 			for (BioSample sample : samplesForThread) {
@@ -67,7 +65,7 @@ public class ThreadSample implements Callable<Integer> {
 
 				docs.clear();
 				atom.incrementAndGet();
-				connection.closeDataBaseConnection();
+				//connection.closeDataBaseConnection();
 
 			} catch (SolrServerException | IOException e) {
 				log.error("Error generating samples documents.", e);
