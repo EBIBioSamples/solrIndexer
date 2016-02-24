@@ -15,8 +15,12 @@ import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_DESCRIPTI
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_TITLE;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_UPDATE_DATE;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -150,21 +154,34 @@ public class SolrManager {
 			document.addField(CONTENT_TYPE, "sample");
 
 			for (ExperimentalPropertyValue epv : bs.getPropertyValues()) {
-				document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());
+				String fieldName = Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText());
+				String jsonFieldName = fieldName + "_json";
+
+				document.addField(fieldName, epv.getTermText());
 
 				// Ontologies from Annotator
 				if (PropertiesManager.isAnnotatorActive()) {
-					List<String> urls = null;
-
 					try {
-						urls = DataBaseManager.getOntologyFromAnnotator(epv);
+						List<String> urls = DataBaseManager.getOntologyFromAnnotator(epv);
 
-						for (String url : urls) {
-							if (url != null) {
-								document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
+						// format json
+						StringBuilder sb = new StringBuilder();
+						sb.append("{\"text\":\"").append(epv.getTermText()).append("\"");
+						if (urls.size() > 0) {
+							sb.append(",");
+							sb.append("\"ontology_terms\":[");
+						}
+						Iterator<String> urlIt = urls.iterator();
+						while (urlIt.hasNext()) {
+							sb.append("\"").append(urlIt.next()).append("\"");
+							if (urlIt.hasNext()) {
+								sb.append(",");
 							}
 						}
-
+						if (urls.size() > 0) {
+							sb.append("]");
+						}
+						document.addField(jsonFieldName, sb.toString());
 					} catch (IllegalArgumentException e) {
 						log.error("Sample: [" + bs.getAcc() + "] for ExperimentalPropertyValue [" + epv.getTermText() + "]", e);
 					}

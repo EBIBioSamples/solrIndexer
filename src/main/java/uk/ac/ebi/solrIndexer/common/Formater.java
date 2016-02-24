@@ -39,7 +39,7 @@ public class Formater {
 	 * @return String trimmed and with spaces replaced by '_' in the middle
 	 */
 	public static String formatCharacteristicFieldNameToSolr(String string) {
-		return string.trim().replace(' ', '_') + "_crt";
+		return string.trim().toLowerCase().replace(' ', '_') + "_crt";
 	}
 
 	/**
