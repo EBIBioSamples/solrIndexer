@@ -43,8 +43,8 @@ public class ThreadSample implements Callable<Integer> {
 					docs.add(document);
 
 					if (docs.size() > 9999) {
-						UpdateResponse response = client.add(docs);
-						client.commit();
+						UpdateResponse response = client.add("samples", docs);
+						client.commit("samples");
 						if (response.getStatus() != 0) {
 							log.error("Indexing samples error: " + response.getStatus());
 						}
@@ -59,8 +59,8 @@ public class ThreadSample implements Callable<Integer> {
 		} finally {
 			try {
 				if (docs.size() > 0) {
-	        		client.add(docs);
-	        		client.commit();
+					client.add("samples", docs);
+					client.commit("samples");
 				}
 
 				docs.clear();
