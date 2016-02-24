@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 import org.apache.solr.client.solrj.response.UpdateResponse;
@@ -21,9 +22,9 @@ public class ThreadGroup implements Callable<Integer> {
 
 	private int status = 1;
 	private List<BioSampleGroup> groupsForThread;
-	private ConcurrentUpdateSolrClient client;
+	private SolrClient client;
 
-	public ThreadGroup (List<BioSampleGroup> groups, ConcurrentUpdateSolrClient client) {
+	public ThreadGroup (List<BioSampleGroup> groups, SolrClient client) {
 		this.groupsForThread = groups;
 		this.client = client;
 	}
@@ -41,8 +42,8 @@ public class ThreadGroup implements Callable<Integer> {
     				docs.add(document);
 
     				if (docs.size() > 9999) {
-    					UpdateResponse response = client.add("groups", docs);
-    					client.commit("groups");
+    					UpdateResponse response = client.add(docs);
+    					client.commit();
     					if (response.getStatus() != 0) {
     						log.error("Indexing groups error: " + response.getStatus());
     					}
@@ -57,8 +58,8 @@ public class ThreadGroup implements Callable<Integer> {
 		} finally {
 			try {
 				if (docs.size() > 0) {
-					client.add("groups", docs);
-					client.commit("groups");
+					client.add(docs);
+					client.commit();
 				}
 
 				docs.clear();

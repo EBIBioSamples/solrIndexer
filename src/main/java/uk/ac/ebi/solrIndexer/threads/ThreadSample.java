@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 import org.apache.solr.client.solrj.response.UpdateResponse;
@@ -22,10 +23,10 @@ public class ThreadSample implements Callable<Integer> {
 
 	private int status = 1;
 	private List<BioSample> samplesForThread;
-	private ConcurrentUpdateSolrClient client;
+	private SolrClient client;
 	AtomicInteger atom;
 
-	public ThreadSample (List<BioSample> samples, ConcurrentUpdateSolrClient client, AtomicInteger atom) {
+	public ThreadSample (List<BioSample> samples, SolrClient client, AtomicInteger atom) {
 		this.samplesForThread = samples;
 		this.client = client;
 		this.atom = atom;
@@ -43,8 +44,8 @@ public class ThreadSample implements Callable<Integer> {
 					docs.add(document);
 
 					if (docs.size() > 9999) {
-						UpdateResponse response = client.add("samples", docs);
-						client.commit("samples");
+						UpdateResponse response = client.add(docs);
+						client.commit();
 						if (response.getStatus() != 0) {
 							log.error("Indexing samples error: " + response.getStatus());
 						}
@@ -59,8 +60,8 @@ public class ThreadSample implements Callable<Integer> {
 		} finally {
 			try {
 				if (docs.size() > 0) {
-					client.add("samples", docs);
-					client.commit("samples");
+					client.add(docs);
+					client.commit();
 				}
 
 				docs.clear();
