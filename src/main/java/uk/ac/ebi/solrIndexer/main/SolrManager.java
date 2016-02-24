@@ -181,6 +181,7 @@ public class SolrManager {
 						if (urls.size() > 0) {
 							sb.append("]");
 						}
+						sb.append("}");
 						document.addField(jsonFieldName, sb.toString());
 					} catch (IllegalArgumentException e) {
 						log.error("Sample: [" + bs.getAcc() + "] for ExperimentalPropertyValue [" + epv.getTermText() + "]", e);
