@@ -23,18 +23,21 @@ public class ThreadGroup implements Callable<Integer> {
 	private int status = 1;
 	private List<BioSampleGroup> groupsForThread;
 	private SolrClient client;
+	private int offset;
 
-	public ThreadGroup (List<BioSampleGroup> groups, SolrClient client) {
+	public ThreadGroup (List<BioSampleGroup> groups, SolrClient client, int offset) {
 		this.groupsForThread = groups;
 		this.client = client;
+		this.offset = offset;
 	}
 
 	@Override
 	public Integer call() throws Exception {
-		Collection<SolrInputDocument> docs = new ArrayList<SolrInputDocument>();
+		Collection<SolrInputDocument> docs = new ArrayList<>();
 		//DataBaseConnection connection = new DataBaseConnection();
 
 		try {
+			log.info("Generating group documents for " + groupsForThread.size() + " groups, from position " + offset + "...");
 			for (BioSampleGroup group : groupsForThread) {
 				SolrInputDocument document = SolrManager.generateBioSampleGroupSolrDocument(group);
 
@@ -42,12 +45,14 @@ public class ThreadGroup implements Callable<Integer> {
     				docs.add(document);
 
     				if (docs.size() > 9999) {
+						log.info("Obtained " + docs.size() + " group documents, writing to index...");
     					UpdateResponse response = client.add(docs);
     					client.commit();
     					if (response.getStatus() != 0) {
     						log.error("Indexing groups error: " + response.getStatus());
     					}
     					docs.clear();
+						log.info("Documents written OK");
     				}
 				}
 			}

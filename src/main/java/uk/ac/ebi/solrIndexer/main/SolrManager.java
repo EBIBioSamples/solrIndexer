@@ -154,6 +154,9 @@ public class SolrManager {
 			document.addField(CONTENT_TYPE, "sample");
 
 			for (ExperimentalPropertyValue epv : bs.getPropertyValues()) {
+				// controlled fields
+
+
 				String fieldName = Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText());
 				String jsonFieldName = fieldName + "_json";
 

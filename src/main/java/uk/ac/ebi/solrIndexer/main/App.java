@@ -1,5 +1,16 @@
 package uk.ac.ebi.solrIndexer.main;
 
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
+import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
+import uk.ac.ebi.solrIndexer.common.Formater;
+import uk.ac.ebi.solrIndexer.common.PropertiesManager;
+import uk.ac.ebi.solrIndexer.threads.ThreadGroup;
+import uk.ac.ebi.solrIndexer.threads.ThreadSample;
+
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
@@ -9,130 +20,131 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
-import org.apache.solr.client.solrj.impl.XMLResponseParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
-import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
-import uk.ac.ebi.solrIndexer.common.Formater;
-import uk.ac.ebi.solrIndexer.common.PropertiesManager;
-import uk.ac.ebi.solrIndexer.threads.ThreadGroup;
-import uk.ac.ebi.solrIndexer.threads.ThreadSample;
-
 public class App {
-	private static Logger log = LoggerFactory.getLogger(App.class.getName());
-	
-	public static void main( String[] args ) {
-		if (args.length != 1) {
-			System.err.println("Please specify a single command, 'samples' or 'groups', to specify whether samples or groups should be indexed");
-			System.exit(2);
-		}
-		else {
-			if (!args[0].equals("samples") && !args[0].equals("groups")) {
-				System.err.println("Unrecognised command '" + args[0] + "' - please specify 'samples' or 'groups'");
-				System.exit(2);
-			}
-		}
+    private static Logger log = LoggerFactory.getLogger(App.class.getName());
 
-		log.info("Entering application - indexing " + args[0]);
-		long startTime = System.currentTimeMillis();
+    public static void main(String[] args) {
+        if (args.length != 1) {
+            System.err.println(
+                    "Please specify a single command, 'samples' or 'groups', to specify whether samples or groups should be indexed");
+            System.exit(2);
+        }
+        else {
+            if (!args[0].equals("samples") && !args[0].equals("groups")) {
+                System.err.println("Unrecognised command '" + args[0] + "' - please specify 'samples' or 'groups'");
+                System.exit(2);
+            }
+        }
 
-		ExecutorService threadPool = Executors.newFixedThreadPool(16);
-		SolrClient client = null;
-//		client.setParser(new XMLResponseParser());
+        log.info("Entering application - indexing " + args[0]);
+        long startTime = System.currentTimeMillis();
 
-		Set<Future<Integer>> set = new HashSet<Future<Integer>>();
+        Set<Future<Integer>> set = new HashSet<>();
+        ExecutorService scheduler = Executors.newFixedThreadPool(1);
+        ExecutorService threadPool = Executors.newFixedThreadPool(1);
 
-		try {
-			int offset, sum;
+        int sum;
+        if (args[0].equals("groups")) {
+            final SolrClient client =
+                    new ConcurrentUpdateSolrClient(PropertiesManager.getSolrCorePath() + "/groups", 10, 8);
+            try {
+                /* -- Handle Groups -- */
+                log.info("Handling Groups");
+                int max = 50000; // todo - replace this with group count query
+                int start = 0;
+                Set<Future<?>> tasks = new HashSet<>();
+                while (start < max) {
+                    final int from = start;
+                    tasks.add(scheduler.submit(() -> {
+                        int to = from + PropertiesManager.getSamplesFetchStep();
+                        log.info("Scheduling groups from " + from + " to " + to + "...");
+                        List<BioSampleGroup> groups = DataBaseManager.getAllIterableGroups(from, to);
+                        final List<BioSampleGroup> groupsForThread = groups;
+                        Future<Integer> future =
+                                threadPool.submit(new ThreadGroup(groupsForThread, client, from));
+                        set.add(future);
+                    }));
+                    start += PropertiesManager.getGroupsFetchStep();
+                }
 
-			if (args[0].equals("groups")) {
-			/* -- Handle Groups -- */
-				client = new ConcurrentUpdateSolrClient(PropertiesManager.getSolrCorePath() + "/groups", 10, 8);
-//				client.setParser(new XMLResponseParser());
+                for (Future<?> f : tasks) {
+                    f.get();
+                }
+                log.info("Scheduling of group indexing tasks complete!");
 
-				log.info("Handling Groups");
-				offset = 0;
+                sum = 0;
+                for (Future<Integer> future : set) {
+                    sum += future.get();
+                }
 
-				List<BioSampleGroup> groups;
-				while ((groups =
-						DataBaseManager.getAllIterableGroups(offset, PropertiesManager.getGroupsFetchStep())).size() >
-						0) {
+                log.info("Group documents generated. " + sum + " threads finished successfully.");
+                /* -------------------- */
+            }
+            catch (Exception e) {
+                log.error("Error creating index", e);
+            }
+            finally {
+                try {
+                    client.close();
+                }
+                catch (IOException e) {
+                    // tried our best
+                }
+                long duration = (System.currentTimeMillis() - startTime);
+                log.info("Running time: " + Formater.formatTime(duration));
+            }
+        }
+        else {
+            final SolrClient client =
+                    new ConcurrentUpdateSolrClient(PropertiesManager.getSolrCorePath() + "/samples", 10, 8);
+            try {
+                /* -- Handle Samples -- */
+                log.info("Handling Samples");
+                int max = 4_000_000; // todo - replace this with sample count query
+                int start = 0;
+                Set<Future<?>> tasks = new HashSet<>();
+                while (start < max) {
+                    final int from = start;
+                    tasks.add(scheduler.submit(() -> {
+                        int to = from + PropertiesManager.getSamplesFetchStep();
+                        log.info("Scheduling samples from " + from + " to " + to + "...");
+                        List<BioSample> samples = DataBaseManager.getAllIterableSamples(from, to);
+                        final List<BioSample> samplesForThread = samples;
+                        Future<Integer> future =
+                                threadPool.submit(new ThreadSample(samplesForThread, client, from));
+                        set.add(future);
+                    }));
+                    start += PropertiesManager.getSamplesFetchStep();
+                }
 
-					final List<BioSampleGroup> groupsForThread = groups;
-					Future<Integer> future = threadPool.submit(new ThreadGroup(groupsForThread, client));
-					set.add(future);
+                for (Future<?> f : tasks) {
+                    f.get();
+                }
+                log.info("Scheduling of sample indexing tasks complete!");
 
-					offset += groups.size();
-				}
+                sum = 0;
+                for (Future<Integer> future : set) {
+                    sum += future.get();
+                }
 
-				sum = 0;
-				for (Future<Integer> future : set) {
-					sum += future.get();
-				}
+                log.info("Sample documents generated. " + sum + " threads finished successfully.");
+                /* -------------------- */
+            }
+            catch (Exception e) {
+                log.error("Error creating index", e);
 
-				log.info("Group documents generated. " + sum + " threads finished successfully.");
-			/* -------------------- */
-			}
-			else {
-			/* -- Handle Samples -- */
-				client = new ConcurrentUpdateSolrClient(PropertiesManager.getSolrCorePath() + "/samples", 10, 8);
-//				client.setParser(new XMLResponseParser());
-
-				log.info("Handling Samples");
-				AtomicInteger atom = new AtomicInteger(8);
-				offset = 0;
-
-				List<BioSample> samples;
-				while ((samples =
-						DataBaseManager.getAllIterableSamples(offset, PropertiesManager.getSamplesFetchStep())).size() >
-						0) {
-
-					final List<BioSample> samplesForThread = samples;
-					Future<Integer> future = threadPool.submit(new ThreadSample(samplesForThread, client, atom));
-					atom.decrementAndGet();
-					set.add(future);
-
-					offset += samples.size();
-
-					while (atom.get() <= 0) {
-						//Wait
-					}
-				}
-
-				sum = 0;
-				for (Future<Integer> future : set) {
-					sum += future.get();
-				}
-
-				log.info("Sample documents generated. " + sum + " threads finished successfully.");
-			/* -------------------- */
-			}
-
-			log.info("Indexing finished!");
-
-		} catch (Exception e) {
-			log.error("Error creating index", e);
-
-		} finally {
-			if (client != null) {
-				try {
-					client.close();
-				}
-				catch (IOException e) {
-					// tried our best
-
-				}
-			}
-			long duration = (System.currentTimeMillis() - startTime);
-			log.info("Running time: " + Formater.formatTime(duration));
-
-			System.exit(0);
-		}
-
-	}
-
+            }
+            finally {
+                try {
+                    client.close();
+                }
+                catch (IOException e) {
+                    // tried our best
+                }
+                long duration = (System.currentTimeMillis() - startTime);
+                log.info("Running time: " + Formater.formatTime(duration));
+            }
+        }
+        log.info("Indexing finished!");
+    }
 }
