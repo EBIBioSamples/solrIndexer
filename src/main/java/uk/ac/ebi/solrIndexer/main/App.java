@@ -18,7 +18,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class App {
     private static Logger log = LoggerFactory.getLogger(App.class.getName());
@@ -40,8 +39,8 @@ public class App {
         long startTime = System.currentTimeMillis();
 
         Set<Future<Integer>> set = new HashSet<>();
-        ExecutorService scheduler = Executors.newFixedThreadPool(1);
-        ExecutorService threadPool = Executors.newFixedThreadPool(1);
+        ExecutorService scheduler = Executors.newFixedThreadPool(16);
+        ExecutorService indexer = Executors.newFixedThreadPool(8);
 
         int sum;
         if (args[0].equals("groups")) {
@@ -61,7 +60,7 @@ public class App {
                         List<BioSampleGroup> groups = DataBaseManager.getAllIterableGroups(from, to);
                         final List<BioSampleGroup> groupsForThread = groups;
                         Future<Integer> future =
-                                threadPool.submit(new ThreadGroup(groupsForThread, client, from));
+                                indexer.submit(new ThreadGroup(groupsForThread, client, from));
                         set.add(future);
                     }));
                     start += PropertiesManager.getGroupsFetchStep();
@@ -111,7 +110,7 @@ public class App {
                         List<BioSample> samples = DataBaseManager.getAllIterableSamples(from, to);
                         final List<BioSample> samplesForThread = samples;
                         Future<Integer> future =
-                                threadPool.submit(new ThreadSample(samplesForThread, client, from));
+                                indexer.submit(new ThreadSample(samplesForThread, client, from));
                         set.add(future);
                     }));
                     start += PropertiesManager.getSamplesFetchStep();
