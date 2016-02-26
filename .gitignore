@@ -40,5 +40,5 @@ biosample-test.xml
 # Properties files
 solrIndexer.properties
 
-# conf files - ignore for now
-solr-conf
+# data files in conf directory - ignore
+solr-conf/*/data
