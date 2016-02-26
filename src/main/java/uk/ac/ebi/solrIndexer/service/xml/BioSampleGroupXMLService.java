@@ -323,6 +323,7 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup> {
 		return annotations;
 	}
 
+	// TODO: implements getTermSourceElements
 	private List<Element> getTermSourceElements(BioSampleGroup group) {
 		List<Element> termSources = new ArrayList<>();
 
