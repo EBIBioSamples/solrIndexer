@@ -36,3 +36,9 @@ fabric.properties
 
 # Personal files
 biosample-test.xml
+
+# Properties files
+solrIndexer.properties
+
+# data files in conf directory - ignore
+solr-conf/*/data
