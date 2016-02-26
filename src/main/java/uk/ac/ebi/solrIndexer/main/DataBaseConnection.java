@@ -12,7 +12,7 @@ import uk.ac.ebi.fg.core_model.resources.Resources;
 public class DataBaseConnection {
 	private static Logger log = LoggerFactory.getLogger (DataBaseConnection.class.getName());
 
-	private static EntityManager manager = null;
+	private EntityManager manager = null;
 
 	public DataBaseConnection() {
 		log.debug("Creating DataBaseConnection");
