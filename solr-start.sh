@@ -1,7 +1,7 @@
 #!/bin/bash
 
-base=${0%/*}/..;
-SOLR_HOME=$base/solr-conf
+base=${0%/*}/;
+SOLR_HOME=$base/solr-conf/biosamples
 
 DEBUG_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044"
 
@@ -35,16 +35,18 @@ if [ -z $SOLR_DIR ]
     echo '$SOLR_DIR not set - please set this to the location of your Solr installation' >&2
     exit 1;
   else
-    echo "Starting Solr using $SOLR_HOME"
-    if [ -z $mem ]
+    if [ ${mem} ]
       then
-        if [ -z $port ]
+        if [ ${port} ]
           then
+            echo "Starting Solr using $SOLR_HOME, mem: $mem and port: $port"
             $SOLR_DIR/bin/solr start -s $SOLR_HOME -m $mem -p $port
           else
+            echo "Starting Solr using $SOLR_HOME, mem: $mem"
             $SOLR_DIR/bin/solr start -s $SOLR_HOME -m $mem
         fi
       else
+        echo "Starting Solr using $SOLR_HOME"
         $SOLR_DIR/bin/solr start -s $SOLR_HOME
     fi
 fi
