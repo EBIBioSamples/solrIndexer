@@ -22,7 +22,7 @@ public class DataBaseManager {
 	private static Logger log = LoggerFactory.getLogger (DataBaseManager.class.getName());
 
 	public static List<BioSampleGroup> getAllIterableGroups (int offset, int max) {
-		log.debug("Fetching Groups (offset = " + offset + ", max = " + max + ". . .");
+		log.debug("Fetching Groups (offset = " + offset + ", max = " + max + "). . .");
 
 		DataBaseConnection connection = new DataBaseConnection();
 		CriteriaBuilder criteriaBuilder = connection.getEntityManager().getCriteriaBuilder();
@@ -43,7 +43,7 @@ public class DataBaseManager {
 	}
 
 	public static List<BioSample> getAllIterableSamples (int offset, int max) {
-		log.debug("Fetching Samples (offset = " + offset + ", max = " + max + ". . .");
+		log.debug("Fetching Samples (offset = " + offset + ", max = " + max + "). . .");
 
 		DataBaseConnection connection = new DataBaseConnection();
 		CriteriaBuilder criteriaBuilder = connection.getEntityManager().getCriteriaBuilder();

@@ -18,6 +18,10 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class App {
     private static Logger log = LoggerFactory.getLogger(App.class.getName());
@@ -39,8 +43,18 @@ public class App {
         long startTime = System.currentTimeMillis();
 
         Set<Future<Integer>> set = new HashSet<>();
-        ExecutorService scheduler = Executors.newFixedThreadPool(16);
-        ExecutorService indexer = Executors.newFixedThreadPool(8);
+        ExecutorService scheduler = Executors.newFixedThreadPool(8);
+        final AtomicInteger atomicInteger = new AtomicInteger(1);
+        ExecutorService indexer = new ThreadPoolExecutor(
+                16,
+                16,
+                0L,
+                TimeUnit.MILLISECONDS,
+                new LinkedBlockingDeque<>(),
+                r -> new Thread(r, "document-indexing-thread-" + atomicInteger.getAndIncrement()),
+                (r, executor) -> log.warn("Request rejected - " +
+                                                  "queued requests: " + executor.getQueue().size() + "; " +
+                                                  "completed requests: " + executor.getCompletedTaskCount()));
 
         int sum;
         if (args[0].equals("groups")) {
@@ -56,10 +70,10 @@ public class App {
                 while (start < max) {
                     final int from = start;
                     final int to = from + step;
-                    log.debug("Scheduling groups from " + from + " to " + to + "...");
+                    log.trace("Scheduling groups from " + from + " to " + to + "...");
                     tasks.add(scheduler.submit(() -> {
                         log.debug("Querying for groups from " + from + " to " + to + " from database...");
-                        List<BioSampleGroup> groups = DataBaseManager.getAllIterableGroups(from, to);
+                        List<BioSampleGroup> groups = DataBaseManager.getAllIterableGroups(from, step);
                         log.debug("Acquired groups from " + from + " to " + to + ", submitting for indexing");
                         Future<Integer> future = indexer.submit(new ThreadGroup(groups, client, from));
                         set.add(future);
@@ -100,17 +114,17 @@ public class App {
             try {
                 /* -- Handle Samples -- */
                 log.info("Handling Samples");
-                int max = 100000; // todo - replace this with sample count query
+                int max = 1_000_000; // todo - replace this with sample count query
                 int start = 0;
                 Set<Future<?>> tasks = new HashSet<>();
                 int step = PropertiesManager.getSamplesFetchStep();
                 while (start < max) {
                     final int from = start;
                     final int to = from + step;
-                    log.debug("Scheduling samples from " + from + " to " + to + "...");
+                    log.trace("Scheduling samples from " + from + " to " + to + "...");
                     tasks.add(scheduler.submit(() -> {
                         log.debug("Querying for samples from " + from + " to " + to + " from database...");
-                        List<BioSample> samples = DataBaseManager.getAllIterableSamples(from, to);
+                        List<BioSample> samples = DataBaseManager.getAllIterableSamples(from, step);
                         log.debug("Acquired samples from " + from + " to " + to + ", submitting for indexing");
                         Future<Integer> future = indexer.submit(new ThreadSample(samples, client, from));
                         set.add(future);
@@ -146,6 +160,10 @@ public class App {
                 log.info("Running time: " + Formater.formatTime(duration));
             }
         }
+
+        log.debug("Shutting down services...");
+        scheduler.shutdown();
+        indexer.shutdown();
         log.info("Indexing finished!");
     }
 }
