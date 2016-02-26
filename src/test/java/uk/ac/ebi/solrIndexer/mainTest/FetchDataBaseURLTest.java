@@ -12,6 +12,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
+import org.hibernate.Hibernate;
 import org.junit.Test;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
@@ -28,7 +29,7 @@ public class FetchDataBaseURLTest {
 		System.out.println("////////////////////////////");
 
 		try {
-			List<BioSample> samples = getRandomSamples(1052, 1);
+			List<BioSample> samples = getRandomSamples(10052, 1);
 			for (BioSample sample : samples) {
 				System.out.println("--------------------------");
 				System.out.println("Sample ACC: " + sample.getAcc());
@@ -59,7 +60,8 @@ public class FetchDataBaseURLTest {
 			}
 
 		} catch (Exception e) {
-			fail("Ups, somethin went wrong...");
+			
+			fail("Ups, somethin went wrong..." + e.toString());
 		} finally {
 			System.out.println("////////////////////////////");
 			System.out.println("/  Data Base URL Test END  /");
@@ -75,6 +77,9 @@ public class FetchDataBaseURLTest {
 
 		criteriaQuery.select(root);
 		List<BioSample> result = connection.getEntityManager().createQuery(criteriaQuery).setFirstResult(offset).setMaxResults(max).getResultList();
+		
+		result.forEach(bs -> bs.getMSIs().forEach(m -> Hibernate.initialize(m.getDatabaseRecordRefs())));
+		result.forEach(bs -> Hibernate.initialize(bs.getDatabaseRecordRefs()));
 		connection.closeDataBaseConnection();
 		return result;
 	}

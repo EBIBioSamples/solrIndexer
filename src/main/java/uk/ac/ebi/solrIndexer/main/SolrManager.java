@@ -16,19 +16,15 @@ import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_TITLE;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_UPDATE_DATE;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.XML;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
-
-import javax.persistence.EntityManager;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.ebi.fg.biosd.annotator.persistence.AnnotatorAccessor;
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.fg.biosd.model.organizational.MSI;
@@ -45,7 +41,7 @@ public class SolrManager {
 
 	//Generate Group Solr Document
 	@SuppressWarnings({ "rawtypes" })
-	public static SolrInputDocument generateBioSampleGroupSolrDocument(BioSampleGroup bsg, DataBaseConnection connection) {
+	public static SolrInputDocument generateBioSampleGroupSolrDocument(BioSampleGroup bsg) {
 		SolrInputDocument document;
 
 		try{
@@ -81,7 +77,7 @@ public class SolrManager {
 					List<String> urls = null;
 
 					try {
-						urls = getOntologyFromAnnotator(epv, connection);
+						urls = DataBaseManager.getOntologyFromAnnotator(epv);
 
 						for (String url : urls) {
 							if (url != null) {
@@ -116,7 +112,7 @@ public class SolrManager {
 
 	//Generate Sample Solr Document
 	@SuppressWarnings({ "rawtypes" })
-	public static SolrInputDocument generateBioSampleSolrDocument(BioSample bs, DataBaseConnection connection) {
+	public static SolrInputDocument generateBioSampleSolrDocument(BioSample bs) {
 		SolrInputDocument document = null;
 
 		try {
@@ -124,7 +120,7 @@ public class SolrManager {
 			if (msi.size() > 1) {
 				StringBuffer msiAccs = new StringBuffer();
 				msi.forEach(m -> msiAccs.append(m.getAcc() + "|"));
-				log.error("Sample with accession [" + bs.getAcc() + "] has multiple MSI [" + msiAccs.substring(0, msiAccs.length() - 1) + "] - sample skipped.");
+				log.warn("Sample with accession [" + bs.getAcc() + "] has multiple MSI [" + msiAccs.substring(0, msiAccs.length() - 1) + "] - sample skipped.");
 				return null;
 			}
 
@@ -164,7 +160,7 @@ public class SolrManager {
 					List<String> urls = null;
 
 					try {
-						urls = getOntologyFromAnnotator(epv, connection);
+						urls = DataBaseManager.getOntologyFromAnnotator(epv);
 
 						for (String url : urls) {
 							if (url != null) {
@@ -195,21 +191,6 @@ public class SolrManager {
 		}
 
 		return document;
-	}
-
-	@SuppressWarnings("rawtypes")
-	private static List<String> getOntologyFromAnnotator(ExperimentalPropertyValue epv, DataBaseConnection connection) {
-		EntityManager manager = connection.getEntityManager();
-		AnnotatorAccessor ancestor = new AnnotatorAccessor(manager);
-
-		List<String> urls = new ArrayList<String>();		
-		List<OntologyEntry> ontologies = ancestor.getAllOntologyEntries(epv);
-
-		for (OntologyEntry oe : ontologies) {
-			urls.add(oe.getAcc());
-		}
-
-		return urls;
 	}
 
 	@SuppressWarnings("rawtypes")
