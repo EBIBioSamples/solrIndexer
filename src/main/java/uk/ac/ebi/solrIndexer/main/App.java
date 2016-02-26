@@ -42,7 +42,7 @@ public class App {
 		log.info("Entering application.");
 		long startTime = System.currentTimeMillis();
 
-		ExecutorService threadPool = Executors.newFixedThreadPool(16);
+		ExecutorService threadPool = Executors.newFixedThreadPool(PropertiesManager.getThreadCount());
 		ConcurrentUpdateSolrClient client = new ConcurrentUpdateSolrClient(PropertiesManager.getSolrCorePath(), 1000, 4);
 		client.setParser(new XMLResponseParser());
 

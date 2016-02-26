@@ -81,4 +81,10 @@ public class PropertiesManager {
 		return Boolean.parseBoolean(annotator);
 	}
 
+	public static int getThreadCount() {
+		String threadCount = getProperties().getProperty("threadcount");
+		if (threadCount == null) return 16; //default to 16 threads				
+		return Integer.parseInt(threadCount);
+	}
+
 }
