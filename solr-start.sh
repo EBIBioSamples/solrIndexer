@@ -1,7 +1,7 @@
 #!/bin/bash
 
 base=${0%/*};
-SOLR_HOME=$base/solr-conf/biosamples
+SOLR_HOME=$base/solr-conf/
 
 DEBUG_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044"
 
