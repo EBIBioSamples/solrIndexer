@@ -3,6 +3,7 @@ package uk.ac.ebi.solrIndexer.threads;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -24,7 +25,7 @@ public class ThreadGroup implements Callable<Integer> {
 	private ConcurrentUpdateSolrClient client;
 
 	public ThreadGroup (List<BioSampleGroup> groups, ConcurrentUpdateSolrClient client) {
-		this.groupsForThread = groups;
+		this.groupsForThread = Collections.unmodifiableList(groups);
 		this.client = client;
 	}
 
@@ -40,7 +41,7 @@ public class ThreadGroup implements Callable<Integer> {
 				if (document != null) {
     				docs.add(document);
 
-    				if (docs.size() > 9999) {
+    				if (docs.size() > 10000) {
     					UpdateResponse response = client.add(docs);
     					client.commit();
     					if (response.getStatus() != 0) {

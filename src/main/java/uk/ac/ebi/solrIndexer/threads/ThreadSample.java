@@ -3,6 +3,7 @@ package uk.ac.ebi.solrIndexer.threads;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -21,12 +22,12 @@ public class ThreadSample implements Callable<Integer> {
 	private static Logger log = LoggerFactory.getLogger(ThreadSample.class.getName());
 
 	private int status = 1;
-	private List<BioSample> samplesForThread;
-	private ConcurrentUpdateSolrClient client;
-	AtomicInteger atom;
+	private final List<BioSample> samplesForThread;
+	private final ConcurrentUpdateSolrClient client;
+	private final AtomicInteger atom;
 
 	public ThreadSample (List<BioSample> samples, ConcurrentUpdateSolrClient client, AtomicInteger atom) {
-		this.samplesForThread = samples;
+		this.samplesForThread = Collections.unmodifiableList(samples);
 		this.client = client;
 		this.atom = atom;
 	}
@@ -42,7 +43,7 @@ public class ThreadSample implements Callable<Integer> {
 				if (document != null) {
 					docs.add(document);
 
-					if (docs.size() > 9999) {
+					if (docs.size() > 10000) {
 						UpdateResponse response = client.add(docs);
 						client.commit();
 						if (response.getStatus() != 0) {
@@ -64,8 +65,9 @@ public class ThreadSample implements Callable<Integer> {
 				}
 
 				docs.clear();
-				atom.incrementAndGet();
-				//connection.closeDataBaseConnection();
+				if (atom != null) {
+					atom.incrementAndGet();
+				}
 
 			} catch (SolrServerException | IOException e) {
 				log.error("Error generating samples documents.", e);
