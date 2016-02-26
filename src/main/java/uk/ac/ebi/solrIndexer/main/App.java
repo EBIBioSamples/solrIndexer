@@ -52,18 +52,19 @@ public class App {
                 int max = 50000; // todo - replace this with group count query
                 int start = 0;
                 Set<Future<?>> tasks = new HashSet<>();
+                int step = PropertiesManager.getGroupsFetchStep();
                 while (start < max) {
                     final int from = start;
+                    final int to = from + step;
+                    log.debug("Scheduling groups from " + from + " to " + to + "...");
                     tasks.add(scheduler.submit(() -> {
-                        int to = from + PropertiesManager.getSamplesFetchStep();
-                        log.info("Scheduling groups from " + from + " to " + to + "...");
+                        log.debug("Querying for groups from " + from + " to " + to + " from database...");
                         List<BioSampleGroup> groups = DataBaseManager.getAllIterableGroups(from, to);
-                        final List<BioSampleGroup> groupsForThread = groups;
-                        Future<Integer> future =
-                                indexer.submit(new ThreadGroup(groupsForThread, client, from));
+                        log.debug("Acquired groups from " + from + " to " + to + ", submitting for indexing");
+                        Future<Integer> future = indexer.submit(new ThreadGroup(groups, client, from));
                         set.add(future);
                     }));
-                    start += PropertiesManager.getGroupsFetchStep();
+                    start += step;
                 }
 
                 for (Future<?> f : tasks) {
@@ -99,21 +100,22 @@ public class App {
             try {
                 /* -- Handle Samples -- */
                 log.info("Handling Samples");
-                int max = 4_000_000; // todo - replace this with sample count query
+                int max = 100000; // todo - replace this with sample count query
                 int start = 0;
                 Set<Future<?>> tasks = new HashSet<>();
+                int step = PropertiesManager.getSamplesFetchStep();
                 while (start < max) {
                     final int from = start;
+                    final int to = from + step;
+                    log.debug("Scheduling samples from " + from + " to " + to + "...");
                     tasks.add(scheduler.submit(() -> {
-                        int to = from + PropertiesManager.getSamplesFetchStep();
-                        log.info("Scheduling samples from " + from + " to " + to + "...");
+                        log.debug("Querying for samples from " + from + " to " + to + " from database...");
                         List<BioSample> samples = DataBaseManager.getAllIterableSamples(from, to);
-                        final List<BioSample> samplesForThread = samples;
-                        Future<Integer> future =
-                                indexer.submit(new ThreadSample(samplesForThread, client, from));
+                        log.debug("Acquired samples from " + from + " to " + to + ", submitting for indexing");
+                        Future<Integer> future = indexer.submit(new ThreadSample(samples, client, from));
                         set.add(future);
                     }));
-                    start += PropertiesManager.getSamplesFetchStep();
+                    start += step;
                 }
 
                 for (Future<?> f : tasks) {
