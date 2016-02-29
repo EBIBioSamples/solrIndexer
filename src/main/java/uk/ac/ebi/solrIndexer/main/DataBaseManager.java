@@ -12,6 +12,7 @@ import javax.persistence.criteria.Root;
 import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import uk.ac.ebi.fg.biosd.annotator.persistence.AnnotatorAccessor;
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
@@ -24,8 +25,7 @@ import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 public class DataBaseManager {
 	private static Logger log = LoggerFactory.getLogger (DataBaseManager.class.getName());
 
-
-	public static int getGroupCount() {
+	public int getGroupCount() {
 	    EntityManagerFactory emf = Resources.getInstance().getEntityManagerFactory();
 	    EntityManager em = emf.createEntityManager();
 	    AccessibleDAO<BioSampleGroup> dao = new AccessibleDAO<>(BioSampleGroup.class, em);
@@ -35,7 +35,7 @@ public class DataBaseManager {
 	    return count;
 	}
 
-	public static int getSampleCount() {
+	public int getSampleCount() {
 	    EntityManagerFactory emf = Resources.getInstance().getEntityManagerFactory();
 	    EntityManager em = emf.createEntityManager();
 	    AccessibleDAO<BioSample> dao = new AccessibleDAO<>(BioSample.class, em);
@@ -45,7 +45,7 @@ public class DataBaseManager {
 	    return count;
 	}
 
-	public static List<String> getOntologyFromAnnotator(ExperimentalPropertyValue<?> epv) {
+	public List<String> getOntologyFromAnnotator(ExperimentalPropertyValue<?> epv) {
 		DataBaseConnection connection = new DataBaseConnection();
 		EntityManager manager = connection.getEntityManager();
 		AnnotatorAccessor annotator = new AnnotatorAccessor(manager);

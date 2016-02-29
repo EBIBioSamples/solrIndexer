@@ -75,7 +75,8 @@ public class SolrManager {
 					List<String> urls = null;
 
 					try {
-						urls = DataBaseManager.getOntologyFromAnnotator(epv);
+						DataBaseManager dbm = new DataBaseManager();
+						urls = dbm.getOntologyFromAnnotator(epv);
 
 						for (String url : urls) {
 							if (url != null) {
@@ -153,7 +154,8 @@ public class SolrManager {
 					List<String> urls = null;
 
 					try {
-						urls = DataBaseManager.getOntologyFromAnnotator(epv);
+						DataBaseManager dbm = new DataBaseManager();
+						urls = dbm.getOntologyFromAnnotator(epv);
 
 						for (String url : urls) {
 							if (url != null) {

@@ -22,6 +22,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
@@ -39,20 +44,20 @@ public class App implements ApplicationRunner {
 	
 	private Logger log = LoggerFactory.getLogger(this.getClass());
 
-	@Value("${threadcount}")
+	@Value("${threadcount:4}")
 	private int poolThreadCount;
 	
-	@Value("${samples.fetchStep}")
+	@Value("${samples.fetchStep:1000}")
 	private int samplesFetchStep;
 	
-	@Value("${groups.fetchStep}")
+	@Value("${groups.fetchStep:1000}")
 	private int groupsFetchStep;
 	
 	@Value("${solrIndexer.corePath}")
 	private String solrIndexCorePath;
-	@Value("${solrIndexer.queueSize}")
+	@Value("${solrIndexer.queueSize:1000}")
 	private int solrIndexQueueSize;
-	@Value("${solrIndexer.threadCount}")
+	@Value("${solrIndexer.threadCount:4}")
 	private int solrIndexThreadCount;
 	
 	@Override
@@ -67,12 +72,31 @@ public class App implements ApplicationRunner {
 		List<Future<Integer>> futures = new ArrayList<Future<Integer>>();
 		int callableCount = 0;
 
+		//DataBaseManager dbm = new DataBaseManager();
+        //int groupCount = dbm.getGroupCount();
+		return;
+	}
+		
+	public void foo() {
+		log.info("Entering application.");
+		long startTime = System.currentTimeMillis();
+
+		ExecutorService threadPool = Executors.newFixedThreadPool(poolThreadCount);
+		ConcurrentUpdateSolrClient client = new ConcurrentUpdateSolrClient(solrIndexCorePath, solrIndexQueueSize, solrIndexThreadCount);
+		client.setParser(new XMLResponseParser());
+
+		List<Future<Integer>> futures = new ArrayList<Future<Integer>>();
+		int callableCount = 0;
+		
 		try {
 
+			DataBaseManager dbm = new DataBaseManager();
+	        int groupCount = dbm.getGroupCount();
+	        int sampleCount = dbm.getSampleCount();
+	        
 			//Handle Groups
 			log.info("Handling Groups");
-			
-	        int groupCount = DataBaseManager.getGroupCount();
+
 	        
 	        log.info("Counted "+groupCount+" groups");
 	        
@@ -98,7 +122,6 @@ public class App implements ApplicationRunner {
 			//reset counters
 			callableCount = 0;			
 
-	        int sampleCount = DataBaseManager.getSampleCount();
 	        
 	        log.info("Counted "+sampleCount+" samples");
 	        
