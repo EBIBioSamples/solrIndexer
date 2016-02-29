@@ -19,7 +19,6 @@ import uk.ac.ebi.solrIndexer.main.DataBaseConnection;
 public class FetchOTFromAnnotatorTest {
 
 	@Test
-	@SuppressWarnings("rawtypes")
 	public void annotatorTest() {
 		System.out.println("////////////////////////////// Annotator Test START //////////////////////////////");
 

@@ -3,6 +3,7 @@ package uk.ac.ebi.solrIndexer.common;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -19,7 +20,6 @@ public class Formater {
 	private static final String BIOONTO = "http://purl.bioontology.org/";
 	private static final String ICD10 = "ICD10";
 	private static final String MESH = "MeSH";
-	private static final String ERROR = "ERROR";
 
 	/**
 	 * Format Date variables to Solr Date format
@@ -44,32 +44,35 @@ public class Formater {
 
 	/**
 	 * Generates the ontology url associated with the ontology term for EFO and NCBI Taxonomy.
+	 * 
+	 * If no url can be found, returns an empty optional object to caller.
+	 * 
 	 * @param onto
 	 * @param acc 
 	 * @return
 	 */
-	public static String formatOntologyTermURL (OntologyEntry onto) {
+	public static Optional<String> formatOntologyTermURL (OntologyEntry onto) {
 		String acc = null;
 
 		if (onto.getSource() != null) {
 			acc = onto.getSource().getAcc();
 			
 			if (EFO.equals(acc) || acc.startsWith(ONTOBEE) || MESH.equals(acc)) {
-				return onto.getAcc();
+				return Optional.of(onto.getAcc());
 			} else if (NCBI.equals(acc)) {
-				return onto.getSource().getUrl() + "?term=" + onto.getAcc();
+				return Optional.of(onto.getSource().getUrl() + "?term=" + onto.getAcc());
 			} else if (ICD10.equals(acc)) {
-				return onto.getSource().getUrl();
+				return Optional.of(onto.getSource().getUrl());
 			} else {
 				log.error("Unknown ontology mapping with source: " + onto.getSource());
-				return ERROR;
+				return Optional.empty();
 			}
 		} else if (onto.getSource() == null && (onto.getAcc().startsWith(ONTOBEE) || onto.getAcc().startsWith(BIOONTO))) {
-			return onto.getAcc();
+			return Optional.of(onto.getAcc());
 		} else {
 			acc = onto.getAcc();
 			log.error("Unknown ontology mapping with null source. Ontology accession: " + acc);
-			return ERROR;
+			return Optional.empty();
 		}
 
 	}

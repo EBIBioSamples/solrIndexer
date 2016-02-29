@@ -19,7 +19,6 @@ import uk.ac.ebi.solrIndexer.main.DataBaseConnection;
 
 public class FetchOTFromSubmissionTest {
 
-	@SuppressWarnings("rawtypes")
 	//@Test
 	public void getOntologiesFromRandomSamplesTest() {
 		System.out.println("////////////////////////////// Ontology Terms Test START //////////////////////////////");
@@ -29,7 +28,7 @@ public class FetchOTFromSubmissionTest {
 			for (BioSample sample : samples) {
 				System.out.println("--------------------------");
 				System.out.println("Sample ACC: " + sample.getAcc());
-				for (ExperimentalPropertyValue epv : sample.getPropertyValues()) {
+				for (ExperimentalPropertyValue<?> epv : sample.getPropertyValues()) {
 					System.out.println("-" + epv.getType().getTermText()
 							+ " [" + epv.getType().getSingleOntologyTerm() + "]"
 							+ " : " + epv.getTermText()
@@ -50,7 +49,6 @@ public class FetchOTFromSubmissionTest {
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Test
 	public void getOntologiesFromGroupTest() {
 		System.out.println("////////////////////////////// Ontology Terms Test START //////////////////////////////");
@@ -58,7 +56,7 @@ public class FetchOTFromSubmissionTest {
 			BioSampleGroup group = getGroupByAccession("SAMEG298568");
 			System.out.println("Group: " + group.getAcc());
 
-			for (ExperimentalPropertyValue epv : group.getPropertyValues()) {
+			for (ExperimentalPropertyValue<?> epv : group.getPropertyValues()) {
 				System.out.println(" - " + epv.getType().getTermText()
 						+ " : " + epv.getTermText()
 						+ " [" + epv.getSingleOntologyTerm() + "]");

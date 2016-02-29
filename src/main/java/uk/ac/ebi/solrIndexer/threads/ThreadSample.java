@@ -19,7 +19,7 @@ import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.solrIndexer.main.SolrManager;
 
 public class ThreadSample implements Callable<Integer> {
-	private static Logger log = LoggerFactory.getLogger(ThreadSample.class.getName());
+	private Logger log = LoggerFactory.getLogger(this.getClass());
 
 	private int status = 1;
 	private final List<BioSample> samplesForThread;
@@ -35,10 +35,11 @@ public class ThreadSample implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 		Collection<SolrInputDocument> docs = new ArrayList<SolrInputDocument>();
+		SolrManager solrManager = new SolrManager();
 
 		try {
 			for (BioSample sample : samplesForThread) {
-				SolrInputDocument document = SolrManager.generateBioSampleSolrDocument(sample);
+				SolrInputDocument document = solrManager.generateBioSampleSolrDocument(sample);
 	
 				if (document != null) {
 					docs.add(document);

@@ -18,7 +18,7 @@ import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.solrIndexer.main.SolrManager;
 
 public class ThreadGroup implements Callable<Integer> {
-	private static Logger log = LoggerFactory.getLogger(ThreadGroup.class.getName());
+	private Logger log = LoggerFactory.getLogger(this.getClass());
 
 	private int status = 1;
 	private List<BioSampleGroup> groupsForThread;
@@ -32,11 +32,11 @@ public class ThreadGroup implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 		Collection<SolrInputDocument> docs = new ArrayList<SolrInputDocument>();
-		//DataBaseConnection connection = new DataBaseConnection();
+		SolrManager solrManager = new SolrManager();
 
 		try {
 			for (BioSampleGroup group : groupsForThread) {
-				SolrInputDocument document = SolrManager.generateBioSampleGroupSolrDocument(group);
+				SolrInputDocument document = solrManager.generateBioSampleGroupSolrDocument(group);
 
 				if (document != null) {
     				docs.add(document);

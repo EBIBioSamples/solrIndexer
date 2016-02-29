@@ -19,35 +19,52 @@ import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.stereotype.Component;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.fg.core_model.persistence.dao.hibernate.toplevel.AccessibleDAO;
 import uk.ac.ebi.fg.core_model.resources.Resources;
 import uk.ac.ebi.solrIndexer.common.Formater;
-import uk.ac.ebi.solrIndexer.common.PropertiesManager;
 import uk.ac.ebi.solrIndexer.threads.ThreadGroup;
 import uk.ac.ebi.solrIndexer.threads.ThreadGroupByOffset;
 import uk.ac.ebi.solrIndexer.threads.ThreadSample;
 import uk.ac.ebi.solrIndexer.threads.ThreadSampleByOffset;
 
-public class App {
+@Component
+public class App implements ApplicationRunner {
+	
 	private Logger log = LoggerFactory.getLogger(this.getClass());
+
+	@Value("${threadcount}")
+	private int poolThreadCount;
 	
-	public static void main( String[] args ) {
-		new App().run(args);
-	}
+	@Value("${samples.fetchStep}")
+	private int samplesFetchStep;
 	
-	public void run(String[] args) {
+	@Value("${groups.fetchStep}")
+	private int groupsFetchStep;
+	
+	@Value("${solrIndexer.corePath}")
+	private String solrIndexCorePath;
+	@Value("${solrIndexer.queueSize}")
+	private int solrIndexQueueSize;
+	@Value("${solrIndexer.threadCount}")
+	private int solrIndexThreadCount;
+	
+	@Override
+	public void run(ApplicationArguments args) throws Exception {
 		log.info("Entering application.");
 		long startTime = System.currentTimeMillis();
 
-		ExecutorService threadPool = Executors.newFixedThreadPool(PropertiesManager.getThreadCount());
-		ConcurrentUpdateSolrClient client = new ConcurrentUpdateSolrClient(PropertiesManager.getSolrCorePath(), 1000, 4);
+		ExecutorService threadPool = Executors.newFixedThreadPool(poolThreadCount);
+		ConcurrentUpdateSolrClient client = new ConcurrentUpdateSolrClient(solrIndexCorePath, solrIndexQueueSize, solrIndexThreadCount);
 		client.setParser(new XMLResponseParser());
 
 		List<Future<Integer>> futures = new ArrayList<Future<Integer>>();
-        int stepSize = PropertiesManager.getGroupsFetchStep();
 		int callableCount = 0;
 
 		try {
@@ -59,8 +76,8 @@ public class App {
 	        
 	        log.info("Counted "+groupCount+" groups");
 	        
-	        for (int i = 0; i < groupCount; i+=stepSize) {
-				futures.add(threadPool.submit(new ThreadGroupByOffset(client, i, stepSize)));
+	        for (int i = 0; i < groupCount; i+=groupsFetchStep) {
+				futures.add(threadPool.submit(new ThreadGroupByOffset(client, i, groupsFetchStep)));
 				/*
 				//check and remove any previous futures that have finished
 				Iterator<Future<Integer>> iter = futures.iterator();
@@ -85,8 +102,8 @@ public class App {
 	        
 	        log.info("Counted "+sampleCount+" samples");
 	        
-	        for (int i = 0; i < sampleCount; i+=stepSize) {
-				futures.add(threadPool.submit(new ThreadSampleByOffset(client, i, stepSize)));
+	        for (int i = 0; i < sampleCount; i+=samplesFetchStep) {
+				futures.add(threadPool.submit(new ThreadSampleByOffset(client, i, samplesFetchStep)));
 				/*
 				//check and remove any previous futures that have finished
 				Iterator<Future<Integer>> iter = futures.iterator();
@@ -123,4 +140,5 @@ public class App {
 			System.exit(0);
 		}
 	}
+
 }

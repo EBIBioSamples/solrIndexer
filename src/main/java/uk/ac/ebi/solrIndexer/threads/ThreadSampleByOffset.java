@@ -11,12 +11,9 @@ import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 import org.hibernate.Hibernate;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
-import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.solrIndexer.main.DataBaseConnection;
 
 public class ThreadSampleByOffset implements Callable<Integer> {
-
-	
 
 	private final ConcurrentUpdateSolrClient client;
 	private final int offset;

@@ -17,9 +17,9 @@ import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_UPDATE_DA
 
 import java.util.Calendar;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,16 +31,15 @@ import uk.ac.ebi.fg.biosd.model.xref.DatabaseRecordRef;
 import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.solrIndexer.common.Formater;
-import uk.ac.ebi.solrIndexer.common.PropertiesManager;
 
 public class SolrManager {
-	private static Logger log = LoggerFactory.getLogger (SolrManager.class.getName());
-
-	private static final String ERROR = "ERROR";
+	
+	private Logger log = LoggerFactory.getLogger (this.getClass());
+	
+	private boolean useAnnotator = true;
 
 	//Generate Group Solr Document
-	@SuppressWarnings({ "rawtypes" })
-	public static SolrInputDocument generateBioSampleGroupSolrDocument(BioSampleGroup bsg) {
+	public SolrInputDocument generateBioSampleGroupSolrDocument(BioSampleGroup bsg) {
 		SolrInputDocument document;
 
 		try{
@@ -68,11 +67,11 @@ public class SolrManager {
 				}
 			}
 
-			for (ExperimentalPropertyValue epv : bsg.getPropertyValues()) {
+			for (ExperimentalPropertyValue<?> epv : bsg.getPropertyValues()) {
 				document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());
 
 				// Ontologies from Annotator
-				if (PropertiesManager.isAnnotatorActive()) {
+				if (useAnnotator) {
 					List<String> urls = null;
 
 					try {
@@ -90,11 +89,9 @@ public class SolrManager {
 
 				// Ontologies from Submission
 				} else {
-					String url = getOntologyFromSubmission(epv);
-					if (url != null && !url.equals(ERROR)) {
-						document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
-					} else if (url != null && url.equals(ERROR)) {
-						log.error("Error fetching ontology mapping for group [" + bsg.getAcc() + "] with property type: [" + epv.getType() + "]");
+					Optional<String> url = getOntologyFromSubmission(epv);
+					if (url.isPresent()) {
+						document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url.get());
 					}
 				}
 			}
@@ -108,8 +105,7 @@ public class SolrManager {
 	}
 
 	//Generate Sample Solr Document
-	@SuppressWarnings({ "rawtypes" })
-	public static SolrInputDocument generateBioSampleSolrDocument(BioSample bs) {
+	public SolrInputDocument generateBioSampleSolrDocument(BioSample bs) {
 		SolrInputDocument document = null;
 
 		try {
@@ -149,11 +145,11 @@ public class SolrManager {
 			document.addField(SAMPLE_RELEASE_DATE, Formater.formatDateToSolr(bs.getReleaseDate()));
 			document.addField(CONTENT_TYPE, "sample");
 
-			for (ExperimentalPropertyValue epv : bs.getPropertyValues()) {
+			for (ExperimentalPropertyValue<?> epv : bs.getPropertyValues()) {
 				document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());
 
 				// Ontologies from Annotator
-				if (PropertiesManager.isAnnotatorActive()) {
+				if (useAnnotator) {
 					List<String> urls = null;
 
 					try {
@@ -171,11 +167,9 @@ public class SolrManager {
 
 				// Ontologies from Submission
 				} else {
-					String url = getOntologyFromSubmission(epv);
-					if (url != null && !url.equals(ERROR)) {
-						document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
-					} else if (StringUtils.equals(url, ERROR)) {
-						log.error("Error fetching ontology mapping for sample [" + bs.getAcc() + "] with property type: [" + epv.getType() + "]");
+					Optional<String> url = getOntologyFromSubmission(epv);
+					if (url.isPresent()) {
+						document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url.get());
 					}
 				}
 			}
@@ -188,10 +182,9 @@ public class SolrManager {
 		return document;
 	}
 
-	@SuppressWarnings("rawtypes")
-	private static String getOntologyFromSubmission(ExperimentalPropertyValue epv) {
+	private Optional<String> getOntologyFromSubmission(ExperimentalPropertyValue<?> epv) {
 		OntologyEntry onto = epv.getSingleOntologyTerm();
-		String url = null;
+		Optional<String> url = Optional.empty();
 
 		if (onto != null) {
 			url = Formater.formatOntologyTermURL(onto);
