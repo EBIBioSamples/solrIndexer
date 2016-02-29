@@ -1,11 +1,14 @@
 package uk.ac.ebi.solrIndexer.main;
 
+import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+
+import uk.ac.ebi.solrIndexer.threads.GroupRepoCallable;
 
 
 @SpringBootApplication
@@ -19,7 +22,16 @@ public class Config {
 	public static PropertySourcesPlaceholderConfigurer propertyConfigIn() {
 		return new PropertySourcesPlaceholderConfigurer();
 	}
-	
+
+	@Bean
+	public static GroupRepoCallable getGroupRepoCallable() {
+		return new GroupRepoCallable();		
+	}
+
+	@Bean
+	public static GroupRepoCallable getGroupRepoCallable(int pageStart, int pageSize, ConcurrentUpdateSolrClient client) {
+		return new GroupRepoCallable(pageStart, pageSize, client);		
+	}
 	
 
 	public static void main(String[] args) {

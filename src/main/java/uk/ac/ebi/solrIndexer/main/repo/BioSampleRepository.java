@@ -1,6 +1,5 @@
 package uk.ac.ebi.solrIndexer.main.repo;
 
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;

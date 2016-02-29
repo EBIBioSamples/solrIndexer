@@ -115,7 +115,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 		Collection<ExperimentalPropertyValue> allProperties = sample.getPropertyValues();
 
 
-		for (ExperimentalPropertyValue val : allProperties) {
+		for (ExperimentalPropertyValue<?> val : allProperties) {
 
 			Element property = getProperty(val);
 			properties.add(property);
@@ -126,7 +126,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 	}
 
 	//TODO Handle the situation where each property has multiple qualified values
-	private Element getProperty(ExperimentalPropertyValue pv) {
+	private Element getProperty(ExperimentalPropertyValue<?> pv) {
 
 		Element propertyElement = new Element("Property");
 
@@ -153,7 +153,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 	}
 
 	//TODO a property can have multiple qualified values
-	private Element getPropertyQualifiedValue(ExperimentalPropertyValue pv) {
+	private Element getPropertyQualifiedValue(ExperimentalPropertyValue<?> pv) {
 
 		Element qualityValueElement = new Element("QualifiedValue");
 
@@ -178,7 +178,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 
 	}
 
-	private Element getQualityValue_TermSourceRef(ExperimentalPropertyValue pv) {
+	private Element getQualityValue_TermSourceRef(ExperimentalPropertyValue<?> pv) {
 
 
 		Element termSourceRef = new Element("TermSourceRef");
@@ -262,7 +262,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 	private List<Element> getBiosampleDerivedFrom(BioSample sample) {
 		List<Element> derivations = new ArrayList<>();
 
-		Set<Product> derivedFromSet = sample.getDerivedFrom();
+		Set<Product<?>> derivedFromSet = sample.getDerivedFrom();
 		derivedFromSet.forEach(product -> {
 			Element derivation = new Element("derivedFrom").setText(product.getAcc());
 			derivations.add(derivation);

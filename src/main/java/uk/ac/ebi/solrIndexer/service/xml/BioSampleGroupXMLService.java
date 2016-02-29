@@ -148,7 +148,7 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 		return properties;
 	}
 
-	public Element getPropertyElement(ExperimentalPropertyValue propertyValue) {
+	public Element getPropertyElement(ExperimentalPropertyValue<?> propertyValue) {
 
 		Element property = new Element("Property");
 
@@ -174,7 +174,7 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 
 	}
 
-	public List<Element> getQualifiedValues(ExperimentalPropertyValue propertyValue) {
+	public List<Element> getQualifiedValues(ExperimentalPropertyValue<?> propertyValue) {
 		List<Element> qualifiedValues = new ArrayList<>();
 
 
@@ -185,7 +185,7 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 		return qualifiedValues;
 	}
 
-	public Element getQualifiedValue(ExperimentalPropertyValue propertyValue) {
+	public Element getQualifiedValue(ExperimentalPropertyValue<?> propertyValue) {
 
 		Element qualifiedValue = new Element("QualifiedValue");
 
@@ -209,7 +209,7 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 
 	}
 
-	private Element getQualityValue_TermSourceRef(ExperimentalPropertyValue pv) {
+	private Element getQualityValue_TermSourceRef(ExperimentalPropertyValue<?> pv) {
 
 
 		Element termSourceRef = new Element("TermSourceRef");
