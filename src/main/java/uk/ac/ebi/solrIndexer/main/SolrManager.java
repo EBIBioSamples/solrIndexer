@@ -21,9 +21,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.persistence.EntityManager;
+
 import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
@@ -33,11 +38,16 @@ import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.solrIndexer.common.Formater;
 
+@Component
 public class SolrManager {
 	
 	private Logger log = LoggerFactory.getLogger (this.getClass());
+
+	@Value("${onto.mapping.annotator:false}")
+	private boolean useAnnotator;
 	
-	private boolean useAnnotator = true;
+	@Autowired
+	private EntityManager entityManager;
 
 	//Generate Group Solr Document
 	public SolrInputDocument generateBioSampleGroupSolrDocument(BioSampleGroup bsg) {
@@ -87,7 +97,7 @@ public class SolrManager {
 				}
 			// Ontologies from Submission
 			} else {
-				Optional<String> url = getOntologyFromSubmission(epv);
+				Optional<String> url = getProvidedOntologyTerms(epv);
 				if (url.isPresent()) {
 					document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url.get());
 				}
@@ -156,7 +166,7 @@ public class SolrManager {
 
 			// Ontologies from Submission
 			} else {
-				Optional<String> url = getOntologyFromSubmission(epv);
+				Optional<String> url = getProvidedOntologyTerms(epv);
 				if (url.isPresent()) {
 					document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url.get());
 				}
@@ -165,7 +175,8 @@ public class SolrManager {
 		return document;
 	}
 
-	private Optional<String> getOntologyFromSubmission(ExperimentalPropertyValue<?> epv) {
+	private Optional<String> getProvidedOntologyTerms(ExperimentalPropertyValue<?> epv) {
+		//NB this will currently cause a hibernate mapping error...
 		OntologyEntry onto = epv.getSingleOntologyTerm();
 		Optional<String> url = Optional.empty();
 

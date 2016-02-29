@@ -22,6 +22,7 @@ import uk.ac.ebi.solrIndexer.common.Formater;
 import uk.ac.ebi.solrIndexer.main.repo.BioSampleGroupRepository;
 import uk.ac.ebi.solrIndexer.main.repo.BioSampleRepository;
 import uk.ac.ebi.solrIndexer.threads.GroupRepoCallable;
+import uk.ac.ebi.solrIndexer.threads.SampleRepoCallable;
 
 @Component
 public class App implements ApplicationRunner {
@@ -104,6 +105,23 @@ public class App implements ApplicationRunner {
 	        	callable.setPageStart(i);
 	        	callable.setPageSize(groupsFetchStep);
 	        	
+	        	
+				if (poolThreadCount == 0) {
+					callable.call();
+				} else {
+					futures.add(threadPool.submit(callable));
+				}
+	        }
+	        
+			//Handle samples
+			log.info("Handling samples");
+			
+	        for (int i = 0; i < sampleCount; i+= samplesFetchStep) {
+	        	SampleRepoCallable callable = context.getBean("sampleRepoCallable", SampleRepoCallable.class);
+	        	
+	        	callable.setClient(client);
+	        	callable.setPageStart(i);
+	        	callable.setPageSize(samplesFetchStep);	        	
 	        	
 				if (poolThreadCount == 0) {
 					callable.call();

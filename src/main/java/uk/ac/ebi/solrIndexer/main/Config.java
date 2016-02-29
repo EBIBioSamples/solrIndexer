@@ -1,6 +1,5 @@
 package uk.ac.ebi.solrIndexer.main;
 
-import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.orm.jpa.EntityScan;
@@ -10,6 +9,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 import uk.ac.ebi.solrIndexer.threads.GroupRepoCallable;
+import uk.ac.ebi.solrIndexer.threads.SampleRepoCallable;
 
 
 
@@ -28,14 +28,16 @@ public class Config {
 		return new PropertySourcesPlaceholderConfigurer();
 	}
 
+	//needed to inject callables
 	@Bean
 	public static GroupRepoCallable getGroupRepoCallable() {
 		return new GroupRepoCallable();		
 	}
 
+	//needed to inject callables
 	@Bean
-	public static GroupRepoCallable getGroupRepoCallable(int pageStart, int pageSize, ConcurrentUpdateSolrClient client) {
-		return new GroupRepoCallable(pageStart, pageSize, client);		
+	public static SampleRepoCallable getSampleRepoCallable() {
+		return new SampleRepoCallable();		
 	}
 	
 
