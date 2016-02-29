@@ -1,5 +1,7 @@
 package uk.ac.ebi.solrIndexer.common;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -53,6 +55,20 @@ public class Formater {
 	 */
 	public static Optional<String> formatOntologyTermURL (OntologyEntry onto) {
 		String acc = null;
+		
+		//see if it is already a valid URI
+		URI uri = null;
+		try {
+			uri = new URI(onto.getAcc());
+		} catch (URISyntaxException e) {
+			uri = null;
+		}
+		if (uri != null) {
+			return Optional.of(uri.toString());
+		}
+		return Optional.empty();
+		
+	/*
 
 		if (onto.getSource() != null) {
 			acc = onto.getSource().getAcc();
@@ -74,7 +90,7 @@ public class Formater {
 			log.error("Unknown ontology mapping with null source. Ontology accession: " + acc);
 			return Optional.empty();
 		}
-
+*/
 	}
 
 	/**
