@@ -3,6 +3,7 @@ package uk.ac.ebi.solrIndexer.threads;
 import java.util.concurrent.Callable;
 
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
+import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
@@ -24,7 +25,10 @@ public class GroupCallable implements Callable<Integer> {
 		SolrManager solrManager = new SolrManager();
 		for (BioSampleGroup group : groupsForThread) {
 			log.trace("Creating solr document for group "+group.getAcc());
-			client.add(solrManager.generateBioSampleGroupSolrDocument(group));
+			SolrInputDocument doc = solrManager.generateBioSampleGroupSolrDocument(group);
+			if (doc != null) {
+				client.add(doc);
+			}
 			log.trace("Finished solr document for group "+group.getAcc());
 		}
 
