@@ -20,11 +20,11 @@ public class SampleCallable implements Callable<Integer> {
 
 	@Override
 	public Integer call() throws Exception {
-		SolrManager solrManager = new SolrManager();
-		
+		SolrManager solrManager = new SolrManager();		
 		for (BioSample sample : samplesForThread) {
-			log.info("Creating solr document for group "+sample.getAcc());
+			log.trace("Creating solr document for sample "+sample.getAcc());
 			client.add(solrManager.generateBioSampleSolrDocument(sample));
+			log.trace("Finished solr document for sample "+sample.getAcc());
 		}
 	
 		return 1;
