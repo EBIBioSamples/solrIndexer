@@ -19,6 +19,7 @@ import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -59,6 +60,10 @@ public class App implements ApplicationRunner {
 	private int solrIndexQueueSize;
 	@Value("${solrIndexer.threadCount:4}")
 	private int solrIndexThreadCount;
+	
+	
+	@Autowired 
+	private BioSampleRepository bioSampleRepository;
 	
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
