@@ -65,7 +65,9 @@ public class App implements ApplicationRunner {
 		}
 		try{
 			ConcurrentUpdateSolrClient client = new ConcurrentUpdateSolrClient(solrIndexCorePath, solrIndexQueueSize, solrIndexThreadCount);
-			client.setParser(new XMLResponseParser());
+			//client.setParser(new XMLResponseParser());
+			log.warn("DELETING EXISTING SOLR INDEX!!!");
+			client.deleteByQuery( "*:*" );// CAUTION: deletes everything!
 	
 			List<Future<Integer>> futures = new ArrayList<Future<Integer>>();
 			int callableCount = 0;
@@ -82,20 +84,22 @@ public class App implements ApplicationRunner {
 			//Handle Groups
 			log.info("Handling Groups");
 			
-			log.info(bioSampleRepository.getClass().getName());
-			
 	        for (int i = 0; i < groupCount; i+= groupsFetchStep) {
 	        	//Callable<Integer> callable;
 	        	//can't pass the repository around as then its not trasactional
 	        	//callable = new GroupPageCallable(i, groupsFetchStep, bioSampleGroupRepository, client);
 	        	
-	        	//cant pass a page around as then hibernate has concurrent modificaiton exceptions
+	        	//can't pass a page around as then hibernate has concurrent modification exceptions
 	        	//Page<BioSampleGroup> page = bioSampleGroupRepository.findAll(new PageRequest(i/groupsFetchStep, groupsFetchStep));
 	        	//callable = new GroupCallable(page, client);
 	        	
 	        	//can't autowire the repository as then its a signleton
-	        	//callable = new GroupRepoCallable(i, groupsFetchStep, client);
-	        	GroupRepoCallable callable = context.getBean(GroupRepoCallable.class);
+	        	//callable = new GroupRepoCallable(i, groupsFetchStep, client);	   
+	        	
+	        	//have to create multiple beans via context so they all have their own repository object
+	        	//this is apparently bad Inversion Of Control but I can't see a better way to do it
+	        	GroupRepoCallable callable = context.getBean("groupRepoCallable", GroupRepoCallable.class);
+	        	
 	        	callable.setClient(client);
 	        	callable.setPageStart(i);
 	        	callable.setPageSize(groupsFetchStep);
@@ -118,10 +122,11 @@ public class App implements ApplicationRunner {
 			//close down thread pool
 			if (threadPool != null) {
 		        log.info("Shutting down thread pool");
+		        threadPool.shutdown();
 				threadPool.awaitTermination(1, TimeUnit.DAYS);
 			}
 			
-			log.info("closing solr client");
+			log.info("Closing solr client");
 			//finish the solr client
 			client.commit();		
 			client.close();
