@@ -45,9 +45,6 @@ public class SolrManager {
 
 	@Value("${onto.mapping.annotator:false}")
 	private boolean useAnnotator;
-	
-	@Autowired
-	private EntityManager entityManager;
 
 	//Generate Group Solr Document
 	public SolrInputDocument generateBioSampleGroupSolrDocument(BioSampleGroup bsg) {

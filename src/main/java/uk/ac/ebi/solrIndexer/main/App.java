@@ -19,8 +19,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ebi.solrIndexer.common.Formater;
-import uk.ac.ebi.solrIndexer.main.repo.BioSampleGroupRepository;
-import uk.ac.ebi.solrIndexer.main.repo.BioSampleRepository;
 import uk.ac.ebi.solrIndexer.threads.GroupRepoCallable;
 import uk.ac.ebi.solrIndexer.threads.SampleRepoCallable;
 
@@ -45,16 +43,13 @@ public class App implements ApplicationRunner {
 	@Value("${solrIndexer.threadCount:4}")
 	private int solrIndexThreadCount;
 	
-	
-	@Autowired 
-	private BioSampleRepository bioSampleRepository;
-	@Autowired 
-	private BioSampleGroupRepository bioSampleGroupRepository;
-
 	private ExecutorService threadPool = null;
 
 	@Autowired
 	private ApplicationContext context;
+	
+	@Autowired
+	private JDBCDAO jdbcdao;
 	
 	@Override
 	@Transactional
@@ -76,34 +71,20 @@ public class App implements ApplicationRunner {
 			//DataBaseManager dbm = new DataBaseManager();
 	        //int groupCount = dbm.getGroupCount();
 			
-			int sampleCount = (int) bioSampleRepository.count();
-			int groupCount = (int) bioSampleGroupRepository.count();
-	
-	        log.info("Counted "+groupCount+" groups");
-	        log.info("Counted "+groupCount+" samples");
+			log.info("Getting group accessions");
+			List<String> groupAccs = jdbcdao.getPublicGroups();
+	        log.info("got "+groupAccs.size()+" groups");
 	        
 			//Handle Groups
 			log.info("Handling Groups");
 			
-	        for (int i = 0; i < groupCount; i+= groupsFetchStep) {
-	        	//Callable<Integer> callable;
-	        	//can't pass the repository around as then its not trasactional
-	        	//callable = new GroupPageCallable(i, groupsFetchStep, bioSampleGroupRepository, client);
-	        	
-	        	//can't pass a page around as then hibernate has concurrent modification exceptions
-	        	//Page<BioSampleGroup> page = bioSampleGroupRepository.findAll(new PageRequest(i/groupsFetchStep, groupsFetchStep));
-	        	//callable = new GroupCallable(page, client);
-	        	
-	        	//can't autowire the repository as then its a signleton
-	        	//callable = new GroupRepoCallable(i, groupsFetchStep, client);	   
-	        	
-	        	//have to create multiple beans via context so they all have their own repository object
+	        for (int i = 0; i < groupAccs.size(); i+= groupsFetchStep) {	        	
+	        	//have to create multiple beans via context so they all have their own dao object
 	        	//this is apparently bad Inversion Of Control but I can't see a better way to do it
 	        	GroupRepoCallable callable = context.getBean("groupRepoCallable", GroupRepoCallable.class);
 	        	
 	        	callable.setClient(client);
-	        	callable.setPageStart(i);
-	        	callable.setPageSize(groupsFetchStep);
+	        	callable.setAccessions(groupAccs.subList(i, Math.min(i+groupsFetchStep, groupAccs.size())));
 	        	
 	        	
 				if (poolThreadCount == 0) {
@@ -112,16 +93,19 @@ public class App implements ApplicationRunner {
 					futures.add(threadPool.submit(callable));
 				}
 	        }
+
+	        log.info("Getting sample accessions");
+			List<String> sampleAccs = jdbcdao.getPublicSamples();
+	        log.info("Counted "+sampleAccs.size()+" samples");
 	        
 			//Handle samples
 			log.info("Handling samples");
 			
-	        for (int i = 0; i < sampleCount; i+= samplesFetchStep) {
+	        for (int i = 0; i < sampleAccs.size(); i+= samplesFetchStep) {
 	        	SampleRepoCallable callable = context.getBean("sampleRepoCallable", SampleRepoCallable.class);
 	        	
-	        	callable.setClient(client);
-	        	callable.setPageStart(i);
-	        	callable.setPageSize(samplesFetchStep);	        	
+	        	callable.setClient(client);	
+	        	callable.setAccessions(sampleAccs.subList(i, Math.min(i+samplesFetchStep, sampleAccs.size())));
 	        	
 				if (poolThreadCount == 0) {
 					callable.call();
@@ -156,6 +140,7 @@ public class App implements ApplicationRunner {
 			log.info("Indexing finished!");
 		} finally {
 			if (threadPool != null && !threadPool.isShutdown()) {
+		        log.info("Shutting down thread pool");
 				threadPool.shutdownNow();
 			}
 		}

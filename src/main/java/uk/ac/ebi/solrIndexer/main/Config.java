@@ -14,8 +14,6 @@ import uk.ac.ebi.solrIndexer.threads.SampleRepoCallable;
 
 
 @SpringBootApplication
-//need to check for hibernate model classes in various packages
-@EntityScan(basePackages = { "uk.ac.ebi.fg.biosd.model", "uk.ac.ebi.fg.core_model" })
 //check the packages here for components
 @ComponentScan(basePackages = { "uk.ac.ebi.solrIndexer" })
 //turn on advanced proxy object creation so the multi-threading and repositories work
