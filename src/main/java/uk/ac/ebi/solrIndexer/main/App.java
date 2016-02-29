@@ -28,24 +28,27 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.fg.core_model.persistence.dao.hibernate.toplevel.AccessibleDAO;
 import uk.ac.ebi.fg.core_model.resources.Resources;
 import uk.ac.ebi.solrIndexer.common.Formater;
-import uk.ac.ebi.solrIndexer.threads.ThreadGroup;
-import uk.ac.ebi.solrIndexer.threads.ThreadGroupByOffset;
-import uk.ac.ebi.solrIndexer.threads.ThreadSample;
-import uk.ac.ebi.solrIndexer.threads.ThreadSampleByOffset;
+import uk.ac.ebi.solrIndexer.main.repo.BioSampleGroupRepository;
+import uk.ac.ebi.solrIndexer.main.repo.BioSampleRepository;
+import uk.ac.ebi.solrIndexer.threads.GroupCallable;
+import uk.ac.ebi.solrIndexer.threads.SampleCallable;
 
 @Component
 public class App implements ApplicationRunner {
 	
 	private Logger log = LoggerFactory.getLogger(this.getClass());
 
-	@Value("${threadcount:4}")
+	@Value("${threadcount:0}")
 	private int poolThreadCount;
 	
 	@Value("${samples.fetchStep:1000}")
@@ -64,13 +67,21 @@ public class App implements ApplicationRunner {
 	
 	@Autowired 
 	private BioSampleRepository bioSampleRepository;
+	@Autowired 
+	private BioSampleGroupRepository bioSampleGroupRepository;
+	
+
+
+	private ExecutorService threadPool = null;
 	
 	@Override
+	@Transactional
 	public void run(ApplicationArguments args) throws Exception {
 		log.info("Entering application.");
 		long startTime = System.currentTimeMillis();
-
-		ExecutorService threadPool = Executors.newFixedThreadPool(poolThreadCount);
+		if (poolThreadCount > 0) {
+			threadPool = Executors.newFixedThreadPool(poolThreadCount);
+		}
 		ConcurrentUpdateSolrClient client = new ConcurrentUpdateSolrClient(solrIndexCorePath, solrIndexQueueSize, solrIndexThreadCount);
 		client.setParser(new XMLResponseParser());
 
@@ -79,94 +90,40 @@ public class App implements ApplicationRunner {
 
 		//DataBaseManager dbm = new DataBaseManager();
         //int groupCount = dbm.getGroupCount();
+		
+		int sampleCount = (int) bioSampleRepository.count();
+		int groupCount = (int) bioSampleGroupRepository.count();
+
+        log.info("Counted "+groupCount+" groups");
+        log.info("Counted "+groupCount+" samples");
+        
+		//Handle Groups
+		log.info("Handling Groups");
+        
+        for (int i = 0; i < (groupCount/groupsFetchStep)+1; i++) {
+        	Callable<Integer> callable = new GroupCallable(bioSampleGroupRepository.findAll(new PageRequest(i, groupsFetchStep)), client);
+			if (poolThreadCount == 0) {
+				callable.call();
+			} else {
+				futures.add(threadPool.submit(callable));
+			}
+        }
+
+        //wait for all other futures to finish
+		for (Future<Integer> future : futures) {
+			callableCount += future.get();
+			log.info(""+callableCount+" sucessful callables so far...");
+		}
+		
+		client.commit();		
+		client.close();
+
+		log.info("Generated documents from "+callableCount+" sucessful callables in "+Formater.formatTime(System.currentTimeMillis() - startTime));
+		
+		//finish handling samples
+
+		log.info("Indexing finished!");
+		
 		return;
 	}
-		
-	public void foo() {
-		log.info("Entering application.");
-		long startTime = System.currentTimeMillis();
-
-		ExecutorService threadPool = Executors.newFixedThreadPool(poolThreadCount);
-		ConcurrentUpdateSolrClient client = new ConcurrentUpdateSolrClient(solrIndexCorePath, solrIndexQueueSize, solrIndexThreadCount);
-		client.setParser(new XMLResponseParser());
-
-		List<Future<Integer>> futures = new ArrayList<Future<Integer>>();
-		int callableCount = 0;
-		
-		try {
-
-			DataBaseManager dbm = new DataBaseManager();
-	        int groupCount = dbm.getGroupCount();
-	        int sampleCount = dbm.getSampleCount();
-	        
-			//Handle Groups
-			log.info("Handling Groups");
-
-	        
-	        log.info("Counted "+groupCount+" groups");
-	        
-	        for (int i = 0; i < groupCount; i+=groupsFetchStep) {
-				futures.add(threadPool.submit(new ThreadGroupByOffset(client, i, groupsFetchStep)));
-				/*
-				//check and remove any previous futures that have finished
-				Iterator<Future<Integer>> iter = futures.iterator();
-				while (iter.hasNext()) {
-					Future<Integer> future = iter.next();
-					if (future.isDone()) {
-						callableCount += future.get();
-						log.info(""+callableCount+" sucessful callables so far...");
-						iter.remove();
-					}
-				}
-				*/
-	        }
-	        
-			//Handle Samples
-			
-			log.info("Handling Samples");
-			//reset counters
-			callableCount = 0;			
-
-	        
-	        log.info("Counted "+sampleCount+" samples");
-	        
-	        for (int i = 0; i < sampleCount; i+=samplesFetchStep) {
-				futures.add(threadPool.submit(new ThreadSampleByOffset(client, i, samplesFetchStep)));
-				/*
-				//check and remove any previous futures that have finished
-				Iterator<Future<Integer>> iter = futures.iterator();
-				while (iter.hasNext()) {
-					Future<Integer> future = iter.next();
-					if (future.isDone()) {
-						callableCount += future.get();
-						log.info(""+callableCount+" sucessful callables so far...");
-						iter.remove();
-					}
-				}
-				*/
-	        }
-
-	        //wait for all other futures to finish
-			for (Future<Integer> future : futures) {
-				callableCount += future.get();
-				log.info(""+callableCount+" sucessful callables so far...");
-			}
-
-			log.info("Generated documents from "+callableCount+" sucessful callables in "+Formater.formatTime(System.currentTimeMillis() - startTime));
-			
-			//finish handling samples
-
-			log.info("Indexing finished!");
-
-		} catch (Exception e) {
-			log.error("Error creating index", e);
-
-		} finally {
-			client.close();
-			log.info("Running time: " + Formater.formatTime(System.currentTimeMillis() - startTime));
-
-			System.exit(0);
-		}
-	}
-
 }

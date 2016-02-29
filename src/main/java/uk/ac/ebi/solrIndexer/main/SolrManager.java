@@ -15,6 +15,7 @@ import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_DESCRIPTI
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_TITLE;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_UPDATE_DATE;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
@@ -40,66 +41,57 @@ public class SolrManager {
 
 	//Generate Group Solr Document
 	public SolrInputDocument generateBioSampleGroupSolrDocument(BioSampleGroup bsg) {
+		
+		log.trace("Creating solr document for group "+bsg.getAcc());
+		
 		SolrInputDocument document;
 
-		try{
-			document = new SolrInputDocument();
+		document = new SolrInputDocument();
 
-			document.addField(ID, bsg.getId());
-			document.addField(GROUP_ACC, bsg.getAcc());
-			document.addField(GROUP_UPDATE_DATE, Formater.formatDateToSolr(bsg.getUpdateDate()));
-			document.addField(CONTENT_TYPE, "group");
+		document.addField(ID, bsg.getId());
+		document.addField(GROUP_ACC, bsg.getAcc());
+		document.addField(GROUP_UPDATE_DATE, Formater.formatDateToSolr(bsg.getUpdateDate()));
+		document.addField(CONTENT_TYPE, "group");
 
-			Set<MSI> msi = bsg.getMSIs();
-			if (msi.iterator().hasNext()) {
-				MSI submission = msi.iterator().next();
-				document.addField(SUBMISSION_ACC,submission.getAcc());
-				document.addField(SUBMISSION_DESCRIPTION,submission.getDescription());
-				document.addField(SUBMISSION_TITLE, submission.getTitle());
-				document.addField(SUBMISSION_UPDATE_DATE,Formater.formatDateToSolr(submission.getUpdateDate()));
+		Set<MSI> msi = bsg.getMSIs();
+		if (msi.iterator().hasNext()) {
+			MSI submission = msi.iterator().next();
+			document.addField(SUBMISSION_ACC,submission.getAcc());
+			document.addField(SUBMISSION_DESCRIPTION,submission.getDescription());
+			document.addField(SUBMISSION_TITLE, submission.getTitle());
+			document.addField(SUBMISSION_UPDATE_DATE,Formater.formatDateToSolr(submission.getUpdateDate()));
 
-				Set<DatabaseRecordRef> db = submission.getDatabaseRecordRefs();
-				if (db.iterator().hasNext()) {
-					DatabaseRecordRef dbrr = db.iterator().next();
-					document.addField(DB_ACC, dbrr.getAcc());
-					document.addField(DB_NAME, dbrr.getDbName());
-					document.addField(DB_URL, dbrr.getUrl());
-				}
+			Set<DatabaseRecordRef> db = submission.getDatabaseRecordRefs();
+			if (db.iterator().hasNext()) {
+				DatabaseRecordRef dbrr = db.iterator().next();
+				document.addField(DB_ACC, dbrr.getAcc());
+				document.addField(DB_NAME, dbrr.getDbName());
+				document.addField(DB_URL, dbrr.getUrl());
 			}
+		}
 
-			for (ExperimentalPropertyValue<?> epv : bsg.getPropertyValues()) {
-				document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());
+		for (ExperimentalPropertyValue<?> epv : bsg.getPropertyValues()) {
+			document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());
 
-				// Ontologies from Annotator
-				if (useAnnotator) {
-					List<String> urls = null;
+			// Ontologies from Annotator
+			if (useAnnotator) {
+				List<String> urls = new ArrayList<>();
 
-					try {
-						DataBaseManager dbm = new DataBaseManager();
-						urls = dbm.getOntologyFromAnnotator(epv);
+				//DataBaseManager dbm = new DataBaseManager();
+				//urls = dbm.getOntologyFromAnnotator(epv);
 
-						for (String url : urls) {
-							if (url != null) {
-								document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
-							}
-						}
-
-					} catch (IllegalArgumentException e) {
-						log.error("Group: [" + bsg.getAcc() + "] for ExperimentalPropertyValue [" + epv.getTermText() + "]", e);
-					}
-
-				// Ontologies from Submission
-				} else {
-					Optional<String> url = getOntologyFromSubmission(epv);
-					if (url.isPresent()) {
-						document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url.get());
+				for (String url : urls) {
+					if (url != null) {
+						document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
 					}
 				}
+			// Ontologies from Submission
+			} else {
+				Optional<String> url = getOntologyFromSubmission(epv);
+				if (url.isPresent()) {
+					document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url.get());
+				}
 			}
-
-		} catch (Exception e) {
-			log.error("Error creating group [" + bsg.getAcc() + "] solr document: ", e);
-			return null;
 		}
 
 		return document;
@@ -109,78 +101,67 @@ public class SolrManager {
 	public SolrInputDocument generateBioSampleSolrDocument(BioSample bs) {
 		SolrInputDocument document = null;
 
-		try {
-			Set<MSI> msi = bs.getMSIs();
-			if (msi.size() > 1) {
-				StringBuffer msiAccs = new StringBuffer();
-				msi.forEach(m -> msiAccs.append(m.getAcc() + "|"));
-				log.warn("Sample with accession [" + bs.getAcc() + "] has multiple MSI [" + msiAccs.substring(0, msiAccs.length() - 1) + "] - sample skipped.");
-				return null;
-			}
-
-			if (msi.iterator().hasNext()) {
-				MSI submission = msi.iterator().next();
-				if (submission.getReleaseDate().after(Calendar.getInstance().getTime())) {
-					log.trace("Private sample skipped [" + bs.getAcc() + "]");
-					return null;
-				} 
-				document = new SolrInputDocument();
-
-				document.addField(SUBMISSION_ACC,submission.getAcc());
-				document.addField(SUBMISSION_DESCRIPTION,submission.getDescription());
-				document.addField(SUBMISSION_TITLE, submission.getTitle());
-				document.addField(SUBMISSION_UPDATE_DATE,Formater.formatDateToSolr(submission.getUpdateDate()));
-
-				Set<DatabaseRecordRef> db = submission.getDatabaseRecordRefs();
-				if (db.iterator().hasNext()) {
-					DatabaseRecordRef dbrr = db.iterator().next();
-					document.addField(DB_ACC, dbrr.getAcc());
-					document.addField(DB_NAME, dbrr.getDbName());
-					document.addField(DB_URL, dbrr.getUrl());
-				}
-			}
-
-			document.addField(ID, bs.getId());
-			document.addField(SAMPLE_ACC, bs.getAcc());
-			document.addField(SAMPLE_UPDATE_DATE, Formater.formatDateToSolr(bs.getUpdateDate()));
-			document.addField(SAMPLE_RELEASE_DATE, Formater.formatDateToSolr(bs.getReleaseDate()));
-			document.addField(CONTENT_TYPE, "sample");
-
-			for (ExperimentalPropertyValue<?> epv : bs.getPropertyValues()) {
-				document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());
-
-				// Ontologies from Annotator
-				if (useAnnotator) {
-					List<String> urls = null;
-
-					try {
-						DataBaseManager dbm = new DataBaseManager();
-						urls = dbm.getOntologyFromAnnotator(epv);
-
-						for (String url : urls) {
-							if (url != null) {
-								document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
-							}
-						}
-
-					} catch (IllegalArgumentException e) {
-						log.error("Sample: [" + bs.getAcc() + "] for ExperimentalPropertyValue [" + epv.getTermText() + "]", e);
-					}
-
-				// Ontologies from Submission
-				} else {
-					Optional<String> url = getOntologyFromSubmission(epv);
-					if (url.isPresent()) {
-						document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url.get());
-					}
-				}
-			}
-
-		} catch (Exception e) {
-			log.error("Error creating sample [" + bs.getAcc() + "] solr document: ", e);
+		Set<MSI> msi = bs.getMSIs();
+		if (msi.size() > 1) {
+			StringBuffer msiAccs = new StringBuffer();
+			msi.forEach(m -> msiAccs.append(m.getAcc() + "|"));
+			log.warn("Sample with accession [" + bs.getAcc() + "] has multiple MSI [" + msiAccs.substring(0, msiAccs.length() - 1) + "] - sample skipped.");
 			return null;
 		}
 
+		if (msi.iterator().hasNext()) {
+			MSI submission = msi.iterator().next();
+			if (submission.getReleaseDate().after(Calendar.getInstance().getTime())) {
+				log.trace("Private sample skipped [" + bs.getAcc() + "]");
+				return null;
+			} 
+			document = new SolrInputDocument();
+
+			document.addField(SUBMISSION_ACC,submission.getAcc());
+			document.addField(SUBMISSION_DESCRIPTION,submission.getDescription());
+			document.addField(SUBMISSION_TITLE, submission.getTitle());
+			document.addField(SUBMISSION_UPDATE_DATE,Formater.formatDateToSolr(submission.getUpdateDate()));
+
+			Set<DatabaseRecordRef> db = submission.getDatabaseRecordRefs();
+			if (db.iterator().hasNext()) {
+				DatabaseRecordRef dbrr = db.iterator().next();
+				document.addField(DB_ACC, dbrr.getAcc());
+				document.addField(DB_NAME, dbrr.getDbName());
+				document.addField(DB_URL, dbrr.getUrl());
+			}
+		}
+
+		document.addField(ID, bs.getId());
+		document.addField(SAMPLE_ACC, bs.getAcc());
+		document.addField(SAMPLE_UPDATE_DATE, Formater.formatDateToSolr(bs.getUpdateDate()));
+		document.addField(SAMPLE_RELEASE_DATE, Formater.formatDateToSolr(bs.getReleaseDate()));
+		document.addField(CONTENT_TYPE, "sample");
+
+		for (ExperimentalPropertyValue<?> epv : bs.getPropertyValues()) {
+			document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());
+
+			// Ontologies from Annotator
+			if (useAnnotator) {
+				List<String> urls = new ArrayList<>();
+
+				//DataBaseManager dbm = new DataBaseManager();
+				//urls = dbm.getOntologyFromAnnotator(epv);
+
+				for (String url : urls) {
+					if (url != null) {
+						document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
+					}
+				}
+
+
+			// Ontologies from Submission
+			} else {
+				Optional<String> url = getOntologyFromSubmission(epv);
+				if (url.isPresent()) {
+					document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url.get());
+				}
+			}
+		}
 		return document;
 	}
 
