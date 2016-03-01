@@ -85,14 +85,17 @@ public class App implements ApplicationRunner {
 			stepscale = Integer.parseInt(args.getOptionValues("stepscale").get(0));
 		}
 		
-		
-		log.info("Getting group accessions");
-		groupAccs = jdbcdao.getPublicGroups();
-        log.info("got "+groupAccs.size()+" groups");
+		if (!args.containsOption("notgroups")) {
+			log.info("Getting group accessions");
+			groupAccs = jdbcdao.getPublicGroups();
+	        log.info("got "+groupAccs.size()+" groups");
+		}
 
-        log.info("Getting sample accessions");
-		sampleAccs = jdbcdao.getPublicSamples();
-        log.info("Counted "+sampleAccs.size()+" samples");
+		if (!args.containsOption("notsamples")) {
+	        log.info("Getting sample accessions");
+			sampleAccs = jdbcdao.getPublicSamples();
+	        log.info("Counted "+sampleAccs.size()+" samples");
+		}
         
         
         
