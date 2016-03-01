@@ -25,7 +25,7 @@ public class Config {
 	public static PropertySourcesPlaceholderConfigurer propertyConfigIn() {
 		return new PropertySourcesPlaceholderConfigurer();
 	}
-
+/*
 	//needed to inject callables
 	@Bean
 	public static GroupRepoCallable getGroupRepoCallable() {
@@ -37,7 +37,7 @@ public class Config {
 	public static SampleRepoCallable getSampleRepoCallable() {
 		return new SampleRepoCallable();		
 	}
-	
+*/
 
 	public static void main(String[] args) {
 		SpringApplication.run(Config.class, args);
