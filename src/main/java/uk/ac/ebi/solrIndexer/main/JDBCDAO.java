@@ -1,7 +1,5 @@
 package uk.ac.ebi.solrIndexer.main;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -11,14 +9,8 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
-import org.hibernate.engine.jdbc.connections.internal.DriverManagerConnectionProviderImpl;
-import org.hibernate.internal.SessionFactoryImpl;
-import org.hibernate.jpa.HibernateEntityManagerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
@@ -29,27 +21,27 @@ import uk.ac.ebi.fg.core_model.resources.Resources;
 public class JDBCDAO {
 
 	private Logger log = LoggerFactory.getLogger(this.getClass());
-    
-    public List<String> getPublicSamples() {
-		EntityManagerFactory emf = Resources.getInstance ().getEntityManagerFactory ();
-		EntityManager em = emf.createEntityManager ();
-		
+
+	public List<String> getPublicSamples() {
+		EntityManagerFactory emf = Resources.getInstance().getEntityManagerFactory();
+		EntityManager em = emf.createEntityManager();
+
 		CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
 		CriteriaQuery<String> criteriaQuery = criteriaBuilder.createQuery(String.class);
 		Root<BioSample> root = criteriaQuery.from(BioSample.class);
 		criteriaQuery.select(root.get("acc"));
 		TypedQuery<String> query = em.createQuery(criteriaQuery);
 		List<String> results = query.getResultList();
-		
+
 		em.close();
-		
+
 		return results;
-    }
-    
-    public List<String> getPublicGroups() {
-		EntityManagerFactory emf = Resources.getInstance ().getEntityManagerFactory ();
-		EntityManager em = emf.createEntityManager ();
-		
+	}
+
+	public List<String> getPublicGroups() {
+		EntityManagerFactory emf = Resources.getInstance().getEntityManagerFactory();
+		EntityManager em = emf.createEntityManager();
+
 		CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
 		CriteriaQuery<String> criteriaQuery = criteriaBuilder.createQuery(String.class);
 		Root<BioSampleGroup> root = criteriaQuery.from(BioSampleGroup.class);
@@ -58,7 +50,7 @@ public class JDBCDAO {
 		List<String> results = query.getResultList();
 
 		em.close();
-		
+
 		return results;
-    }
+	}
 }
