@@ -67,7 +67,11 @@ public class App implements ApplicationRunner {
 	private List<String> groupAccs;
 	private List<String> sampleAccs; 
 	
+	private boolean doGroups = true;
+	private boolean doSamples = true;
 	private int stepscale = 1;
+	private int offsetCount = -1;
+	private int offsetTotal = -1;
 	
 	@Override
 	@Transactional
@@ -80,20 +84,44 @@ public class App implements ApplicationRunner {
 		if (args.containsOption("stepscale")) {
 			stepscale = Integer.parseInt(args.getOptionValues("stepscale").get(0));
 		}
-		
-		if (!args.containsOption("notgroups")) {
-			log.info("Getting group accessions");
-			groupAccs = jdbcdao.getPublicGroups();
-	        log.info("got "+groupAccs.size()+" groups");
+		if (args.containsOption("offsetcount")) {
+			offsetCount = Integer.parseInt(args.getOptionValues("offsetcount").get(0));
 		}
+		if (args.containsOption("offsettotal")) {
+			offsetTotal = Integer.parseInt(args.getOptionValues("offsettotal").get(0));
+		}
+		doGroups = !args.containsOption("notgroups");
+		doSamples = !args.containsOption("notsamples");
+        
 
-		if (!args.containsOption("notsamples")) {
-	        log.info("Getting sample accessions");
-			sampleAccs = jdbcdao.getPublicSamples();
-	        log.info("Counted "+sampleAccs.size()+" samples");
+		if (doGroups) {
+			if (offsetTotal > 0) {
+				int count = jdbcdao.getGroupCount();
+				int offsetSize = count/offsetTotal;
+				int start = offsetSize*offsetCount;
+				log.info("Getting group accessions for chunk "+offsetCount+" of "+offsetTotal);
+				groupAccs =jdbcdao.getGroupAccessions(start, offsetSize);
+		        log.info("got "+groupAccs.size()+" groups");
+			} else {
+				log.info("Getting group accessions");
+				groupAccs = jdbcdao.getGroupAccessions();
+		        log.info("got "+groupAccs.size()+" groups");
+			}
 		}
-        
-        
+		if (doSamples) {
+			if (offsetTotal > 0) {
+				int count = jdbcdao.getSampleCount();
+				int offsetSize = count/offsetTotal;
+				int start = offsetSize*offsetCount;
+				log.info("Getting sample accessions for chunk "+offsetCount+" of "+offsetTotal);
+				sampleAccs =jdbcdao.getSampleAccessions(start, offsetSize);
+		        log.info("got "+sampleAccs.size()+" groups");
+			} else {
+		        log.info("Getting sample accessions");
+				sampleAccs = jdbcdao.getSampleAccessions();
+		        log.info("Counted "+sampleAccs.size()+" samples");
+			}
+		}
         
 		try{
 			//create solr index
@@ -128,7 +156,7 @@ public class App implements ApplicationRunner {
 			        log.info("Waiting for futures...");
 					for (Future<Integer> future : futures) {
 						callableCount += future.get();
-						log.trace(""+callableCount+" sucessful callables so far...");
+						log.trace(""+callableCount+" sucessful callables so far, "+futures.size()+" remaining");
 					}
 					
 					//close down thread pool
