@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +29,8 @@ import uk.ac.ebi.solrIndexer.common.Formater;
 import uk.ac.ebi.solrIndexer.threads.GroupRepoCallable;
 import uk.ac.ebi.solrIndexer.threads.SampleRepoCallable;
 
-@Component
+@Component 
+@PropertySource("classpath:solrIndexer.properties")
 public class App implements ApplicationRunner {
 	
 	private Logger log = LoggerFactory.getLogger(this.getClass());

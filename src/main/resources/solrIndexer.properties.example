@@ -1,0 +1,8 @@
+solrIndexer.corePath=http://localhost:8983/solr/solrIndexer
+solrIndexer.queueSize=1000
+solrIndexer.threadCount=4
+groups.fetchStep=1000
+samples.fetchStep=1000
+onto.mapping.annotator=true
+#number of EXTRA threads to use, zero will run it all on main thread
+threadcount=12
