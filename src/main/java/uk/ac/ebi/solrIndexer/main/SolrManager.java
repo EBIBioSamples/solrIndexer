@@ -58,6 +58,7 @@ public class SolrManager {
 	//Generate Group Solr Document
 	public Optional<SolrInputDocument> generateBioSampleGroupSolrDocument(BioSampleGroup bsg) {
 		//check if it should be public
+		/*
 		try {
 			if (!bsg.isPublic()) {
 				log.trace("Group "+bsg.getAcc()+" is private, skipping");
@@ -68,6 +69,7 @@ public class SolrManager {
 			log.error("Group "+bsg.getAcc()+" has unusual MSIs", e);
 			return Optional.empty();
 		}
+		*/
 		
 		log.trace("Creating solr document for group "+bsg.getAcc());
 
@@ -100,6 +102,7 @@ public class SolrManager {
 	//Generate Sample Solr Document
 	public Optional<SolrInputDocument> generateBioSampleSolrDocument(BioSample bs) {
 		//check if it should be public
+		/*
 		try {
 			if (!bs.isPublic()) {
 				log.trace("Sample "+bs.getAcc()+" is private, skipping");
@@ -110,6 +113,7 @@ public class SolrManager {
 			log.error("Sample "+bs.getAcc()+" has unusual MSIs", e);
 			return Optional.empty();
 		}
+		*/
 		
 		SolrInputDocument document = new SolrInputDocument();
 		
@@ -156,9 +160,8 @@ public class SolrManager {
 
 		document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());
 
-		// Ontologies from Annotator
 		if (annotator != null) {
-
+			// Ontologies from Annotator
 			List<String> urls = new ArrayList<String>();
 			List<OntologyEntry> ontologies = annotator.getAllOntologyEntries(epv);
 			ontologies.forEach(oe -> urls.add(oe.getAcc()));
@@ -169,10 +172,8 @@ public class SolrManager {
 					document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
 				}
 			}
-
-
-		// Ontologies from Submission
 		} else {
+			// Ontologies from Submission
 			if (epv.getSingleOntologyTerm() != null) {
 				Optional<URI> uri = Formater.getOntologyTermURI(epv.getSingleOntologyTerm());
 				if (uri.isPresent()) {
