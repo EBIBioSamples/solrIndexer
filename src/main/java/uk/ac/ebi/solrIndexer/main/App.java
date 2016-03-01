@@ -71,11 +71,20 @@ public class App implements ApplicationRunner {
 	private List<String> groupAccs;
 	private List<String> sampleAccs; 
 	
+	private int stepscale = 1;
+	
 	@Override
 	@Transactional
 	public void run(ApplicationArguments args) throws Exception {
 		log.info("Entering application.");
 		long startTime = System.currentTimeMillis();
+		
+
+        //process arguments
+		if (args.containsOption("stepscale")) {
+			stepscale = Integer.parseInt(args.getOptionValues("stepscale").get(0));
+		}
+		
 		
 		log.info("Getting group accessions");
 		groupAccs = jdbcdao.getPublicGroups();
@@ -84,6 +93,8 @@ public class App implements ApplicationRunner {
         log.info("Getting sample accessions");
 		sampleAccs = jdbcdao.getPublicSamples();
         log.info("Counted "+sampleAccs.size()+" samples");
+        
+        
         
 		try{
 			//create solr index
@@ -158,7 +169,7 @@ public class App implements ApplicationRunner {
 	private void runGroups(List<String> groupAccs) throws Exception {
 		//Handle Groups
 		log.info("Handling Groups");		
-        for (int i = 0; i < groupAccs.size(); i+= groupsFetchStep) {	        	
+        for (int i = 0; i < groupAccs.size(); i += groupsFetchStep*stepscale) {	        	
         	//have to create multiple beans via context so they all have their own dao object
         	//this is apparently bad Inversion Of Control but I can't see a better way to do it
         	GroupRepoCallable callable = context.getBean(GroupRepoCallable.class);
@@ -177,7 +188,7 @@ public class App implements ApplicationRunner {
 	private void runSamples(List<String> sampleAccs) throws Exception {
 		//Handle samples
 		log.info("Handling samples");
-        for (int i = 0; i < sampleAccs.size(); i+= samplesFetchStep) {
+        for (int i = 0; i < sampleAccs.size(); i += samplesFetchStep*stepscale) {
         	//have to create multiple beans via context so they all have their own dao object
         	//this is apparently bad Inversion Of Control but I can't see a better way to do it
         	SampleRepoCallable callable = context.getBean(SampleRepoCallable.class);
