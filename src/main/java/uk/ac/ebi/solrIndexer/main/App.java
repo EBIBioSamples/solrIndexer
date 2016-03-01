@@ -66,6 +66,8 @@ public class App implements ApplicationRunner {
 	private SolrManager solrManager;
 
 	private ConcurrentUpdateSolrClient client = null;
+	private List<String> groupAccs;
+	private List<String> sampleAccs; 
 	
 	@Override
 	@Transactional
@@ -74,11 +76,11 @@ public class App implements ApplicationRunner {
 		long startTime = System.currentTimeMillis();
 		
 		log.info("Getting group accessions");
-		List<String> groupAccs = jdbcdao.getPublicGroups();
+		groupAccs = jdbcdao.getPublicGroups();
         log.info("got "+groupAccs.size()+" groups");
 
         log.info("Getting sample accessions");
-		List<String> sampleAccs = jdbcdao.getPublicSamples();
+		sampleAccs = jdbcdao.getPublicSamples();
         log.info("Counted "+sampleAccs.size()+" samples");
         
 		try{
@@ -142,7 +144,7 @@ public class App implements ApplicationRunner {
 			//finish the solr client
 			log.info("Closing solr client");
 			client.commit();		
-			client.blockUntilFinished();
+			//client.blockUntilFinished();
 			client.close();
 		}
 		
