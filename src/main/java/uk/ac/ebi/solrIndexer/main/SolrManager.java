@@ -65,7 +65,7 @@ public class SolrManager {
 			}
 		} catch (IllegalStateException e) {
 			//has multiple msis
-			log.error("Group "+bsg.getAcc()+" has usual MSIs", e);
+			log.error("Group "+bsg.getAcc()+" has unusual MSIs", e);
 			return Optional.empty();
 		}
 		
@@ -102,12 +102,12 @@ public class SolrManager {
 		//check if it should be public
 		try {
 			if (!bs.isPublic()) {
-				log.trace("Group "+bs.getAcc()+" is private, skipping");
+				log.trace("Sample "+bs.getAcc()+" is private, skipping");
 				return Optional.empty();
 			}
 		} catch (IllegalStateException e) {
 			//has multiple msis
-			log.error("Group "+bs.getAcc()+" has usual MSIs", e);
+			log.error("Sample "+bs.getAcc()+" has unusual MSIs", e);
 			return Optional.empty();
 		}
 		
