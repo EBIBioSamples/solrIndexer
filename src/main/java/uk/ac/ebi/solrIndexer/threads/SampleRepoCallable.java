@@ -56,9 +56,10 @@ public class SampleRepoCallable extends SampleCallable {
 	public Integer call() throws Exception {
 		log.info("Starting call()");
 		EntityManagerFactory emf = Resources.getInstance().getEntityManagerFactory();
-		EntityManager em = emf.createEntityManager();
+		EntityManager em = null;
 		int toReturn;
 		try {
+			em = emf.createEntityManager();
 			AccessibleDAO<BioSample> dao = new AccessibleDAO<>(BioSample.class, em);
 
 			List<BioSample> samples = new ArrayList<>();

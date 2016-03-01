@@ -58,9 +58,10 @@ public class GroupRepoCallable extends GroupCallable {
 		log.info("Starting call()");
 
 		EntityManagerFactory emf = Resources.getInstance().getEntityManagerFactory();
-		EntityManager em = emf.createEntityManager();
+		EntityManager em = null;
 		int toReturn;
 		try {
+			em = emf.createEntityManager();
 			AccessibleDAO<BioSampleGroup> dao = new AccessibleDAO<>(BioSampleGroup.class, em);
 
 			List<BioSampleGroup> groups = new ArrayList<>();
