@@ -30,7 +30,7 @@ import uk.ac.ebi.solrIndexer.threads.GroupRepoCallable;
 import uk.ac.ebi.solrIndexer.threads.SampleRepoCallable;
 
 @Component 
-@PropertySource("classpath:solrIndexer.properties")
+@PropertySource("solrIndexer.properties")
 public class App implements ApplicationRunner {
 	
 	private Logger log = LoggerFactory.getLogger(this.getClass());
