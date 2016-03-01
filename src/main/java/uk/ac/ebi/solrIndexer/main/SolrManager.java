@@ -58,8 +58,14 @@ public class SolrManager {
 	//Generate Group Solr Document
 	public Optional<SolrInputDocument> generateBioSampleGroupSolrDocument(BioSampleGroup bsg) {
 		//check if it should be public
-		if (!bsg.isPublic()) {
-			log.trace("Group "+bsg.getAcc()+" is private, skipping");
+		try {
+			if (!bsg.isPublic()) {
+				log.trace("Group "+bsg.getAcc()+" is private, skipping");
+				return Optional.empty();
+			}
+		} catch (IllegalStateException e) {
+			//has multiple msis
+			log.error("Group "+bsg.getAcc()+" has usual MSIs", e);
 			return Optional.empty();
 		}
 		
@@ -94,8 +100,14 @@ public class SolrManager {
 	//Generate Sample Solr Document
 	public Optional<SolrInputDocument> generateBioSampleSolrDocument(BioSample bs) {
 		//check if it should be public
-		if (!bs.isPublic()) {
-			log.trace("Group "+bs.getAcc()+" is private, skipping");
+		try {
+			if (!bs.isPublic()) {
+				log.trace("Group "+bs.getAcc()+" is private, skipping");
+				return Optional.empty();
+			}
+		} catch (IllegalStateException e) {
+			//has multiple msis
+			log.error("Group "+bs.getAcc()+" has usual MSIs", e);
 			return Optional.empty();
 		}
 		
