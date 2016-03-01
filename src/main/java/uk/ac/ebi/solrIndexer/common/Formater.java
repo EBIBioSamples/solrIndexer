@@ -45,7 +45,8 @@ public class Formater {
 	}
 
 	/**
-	 * Generates the ontology url associated with the ontology term for EFO and NCBI Taxonomy.
+	 * Returns the ontology uri associated with the ontology term when present
+	 * in an OntologyEntry
 	 * 
 	 * If no url can be found, returns an empty optional object to caller.
 	 * 
@@ -53,7 +54,7 @@ public class Formater {
 	 * @param acc 
 	 * @return
 	 */
-	public static Optional<String> formatOntologyTermURL (OntologyEntry onto) {
+	public static Optional<URI> getOntologyTermURI (OntologyEntry onto) {
 		String acc = null;
 		
 		//see if it is already a valid URI
@@ -64,7 +65,7 @@ public class Formater {
 			uri = null;
 		}
 		if (uri != null) {
-			return Optional.of(uri.toString());
+			return Optional.of(uri);
 		}
 		return Optional.empty();
 		

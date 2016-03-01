@@ -1,5 +1,6 @@
 package uk.ac.ebi.solrIndexer.threads;
 
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 import org.apache.solr.common.SolrInputDocument;
@@ -34,9 +35,9 @@ public class SampleCallable implements Callable<Integer> {
 	public Integer call() throws Exception {	
 		for (BioSample sample : samples) {
 			log.trace("Creating solr document for sample "+sample.getAcc());
-			SolrInputDocument doc = solrManager.generateBioSampleSolrDocument(sample);
-			if (doc != null) {
-				client.add(doc);
+			Optional<SolrInputDocument> doc = solrManager.generateBioSampleSolrDocument(sample);
+			if (doc.isPresent()) {
+				client.add(doc.get());
 			}
 			log.trace("Finished solr document for sample "+sample.getAcc());
 		}
