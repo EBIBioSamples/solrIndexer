@@ -29,6 +29,10 @@ public interface XMLService<E> {
 	}
 	
 	public default String clean(String in) {
+		//handle nulls
+        if (in == null){
+            return in;
+        }
         //trim extra whitespace at start and end
         in = in.trim();
         //XML automatically replaces consecutive spaces with single spaces
