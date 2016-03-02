@@ -22,6 +22,8 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.expgraph.properties.SampleCommentValue;
@@ -38,9 +40,10 @@ import uk.ac.ebi.fg.myequivalents.model.Entity;
 import uk.ac.ebi.solrIndexer.main.MyEquivalenceManager;
 
 
+@Component
 public class BioSampleXMLService implements XMLService<BioSample> {
-
-	private static Logger log = LoggerFactory.getLogger(BioSampleGroupXMLService.class.getName());
+	private Logger log = LoggerFactory.getLogger(this.getClass());
+		
 	private final Namespace XMLNS =
 			Namespace.getNamespace("http://www.ebi.ac.uk/biosamples/SampleGroupExport/1.0");
 
@@ -61,6 +64,8 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 //			.appendTimeZoneOffset("+00:00",true,2,2)
 //			.toFormatter();
 
+    @Autowired
+    private MyEquivalenceManager myEquivalentsManager;
 
 	public BioSampleXMLService() {}
 
@@ -216,11 +221,11 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 
 	}
 
-	private Boolean isComment(ExperimentalPropertyValue propertyValue) {
+	private Boolean isComment(ExperimentalPropertyValue<?> propertyValue) {
 		return propertyValue instanceof SampleCommentValue;
 	}
 
-	private Boolean isCharacterstic(ExperimentalPropertyValue propertyValue) {
+	private Boolean isCharacterstic(ExperimentalPropertyValue<?> propertyValue) {
 		return propertyValue instanceof BioCharacteristicValue;
 	}
 
@@ -345,7 +350,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 
 
 		// Add MyEquivalence references
-		Set<Entity> externalEquivalences = MyEquivalenceManager.getSampleExternalEquivalences(sample.getAcc());
+		Set<Entity> externalEquivalences = myEquivalentsManager.getSampleExternalEquivalences(sample.getAcc());
 		externalEquivalences.forEach(entity -> {
 
 			Element dbRecord = new Element("Database",XMLNS);
@@ -424,7 +429,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 		}).findFirst();
 	}
 
-	private boolean isDerivedFromPropertyType(ExperimentalPropertyValue pv) {
+	private boolean isDerivedFromPropertyType(ExperimentalPropertyValue<?> pv) {
 		return pv.getType().getTermText().equals("Derived From");
 	}
 

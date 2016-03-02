@@ -15,9 +15,9 @@ public interface XMLService<E> {
 
 	Element getXMLElement(E type);
 
-	public default void filterDescendantOf(Element element, Filter filter) {
+	public default void filterDescendantOf(Element element, Filter<?> filter) {
 
-		Iterator iterator = element.getDescendants().iterator();
+		Iterator<?> iterator = element.getDescendants().iterator();
 
 		while(iterator.hasNext()) {
 			Content child = (Content)iterator.next();

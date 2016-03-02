@@ -18,6 +18,8 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.expgraph.properties.SampleCommentValue;
@@ -37,16 +39,19 @@ import uk.ac.ebi.fg.myequivalents.model.Entity;
 import uk.ac.ebi.solrIndexer.main.MyEquivalenceManager;
 
 
+@Component
 public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
-
-
-	private static Logger log = LoggerFactory.getLogger(BioSampleGroupXMLService.class.getName());
+	private Logger log = LoggerFactory.getLogger(this.getClass());
+	
 	private final Namespace XMLNS =
 			Namespace.getNamespace("http://www.ebi.ac.uk/biosamples/SampleGroupExport/1.0");
 
     private final DateTimeZone dtz = DateTimeZone.forID("Etc/GMT");
     private final DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZZ");
 
+    @Autowired
+    private MyEquivalenceManager myEquivalentsManager;
+    
 	public BioSampleGroupXMLService() { }
 
 	@Override
@@ -543,7 +548,7 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup>{
 
 
         // Add MyEquivalence references
-        Set<Entity> externalEquivalences = MyEquivalenceManager.getGroupExternalEquivalences(group.getAcc());
+        Set<Entity> externalEquivalences = myEquivalentsManager.getGroupExternalEquivalences(group.getAcc());
         externalEquivalences.forEach(entity -> {
 
             Element dbRecord = new Element("Database",XMLNS);
