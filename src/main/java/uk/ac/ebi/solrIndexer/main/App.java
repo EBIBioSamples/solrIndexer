@@ -69,8 +69,7 @@ public class App implements ApplicationRunner {
 	
 	private boolean doGroups = true;
 	private boolean doSamples = true;
-	private int stepscale = 1;
-	private int offsetCount = -1;
+	private int offsetCount = 1;
 	private int offsetTotal = -1;
 	
 	@Override
@@ -81,9 +80,6 @@ public class App implements ApplicationRunner {
 		
 
         //process arguments
-		if (args.containsOption("stepscale")) {
-			stepscale = Integer.parseInt(args.getOptionValues("stepscale").get(0));
-		}
 		if (args.containsOption("offsetcount")) {
 			offsetCount = Integer.parseInt(args.getOptionValues("offsetcount").get(0));
 		}
@@ -196,7 +192,7 @@ public class App implements ApplicationRunner {
 	private void runGroups(List<String> groupAccs) throws Exception {
 		//Handle Groups
 		log.info("Handling Groups");		
-        for (int i = 0; i < groupAccs.size(); i += groupsFetchStep*stepscale) {	        	
+        for (int i = 0; i < groupAccs.size(); i += groupsFetchStep) {	        	
         	//have to create multiple beans via context so they all have their own dao object
         	//this is apparently bad Inversion Of Control but I can't see a better way to do it
         	GroupRepoCallable callable = context.getBean(GroupRepoCallable.class);
@@ -215,7 +211,7 @@ public class App implements ApplicationRunner {
 	private void runSamples(List<String> sampleAccs) throws Exception {
 		//Handle samples
 		log.info("Handling samples");
-        for (int i = 0; i < sampleAccs.size(); i += samplesFetchStep*stepscale) {
+        for (int i = 0; i < sampleAccs.size(); i += samplesFetchStep) {
         	//have to create multiple beans via context so they all have their own dao object
         	//this is apparently bad Inversion Of Control but I can't see a better way to do it
         	SampleRepoCallable callable = context.getBean(SampleRepoCallable.class);
