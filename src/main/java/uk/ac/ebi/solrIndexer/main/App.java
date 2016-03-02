@@ -88,6 +88,7 @@ public class App implements ApplicationRunner {
 		}
 		doGroups = !args.containsOption("notgroups");
 		doSamples = !args.containsOption("notsamples");
+		solrManager.setIncludeXML(args.containsOption("includexml"));
         
 
 		if (doGroups) {

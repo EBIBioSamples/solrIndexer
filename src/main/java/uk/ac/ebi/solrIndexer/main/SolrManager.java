@@ -42,6 +42,8 @@ public class SolrManager {
 	private Logger log = LoggerFactory.getLogger (this.getClass());
 
 	private AnnotatorAccessor annotator = null;
+	
+	private boolean includeXML = false;
 
 	public AnnotatorAccessor getAnnotator() {
 		return annotator;
@@ -49,6 +51,14 @@ public class SolrManager {
 
 	public void setAnnotator(AnnotatorAccessor annotator) {
 		this.annotator = annotator;
+	}
+
+	public boolean isIncludeXML() {
+		return includeXML;
+	}
+
+	public void setIncludeXML(boolean includeXML) {
+		this.includeXML = includeXML;
 	}
 
 	//Generate Group Solr Document
@@ -92,7 +102,9 @@ public class SolrManager {
 			handlePropertyValue(epv, document);
 		}
 		
-		document.addField(XML, XMLManager.getXMLString(bsg));
+		if (includeXML) {
+			document.addField(XML, XMLManager.getXMLString(bsg));
+		}
 
 		return Optional.of(document);
 	}
@@ -135,7 +147,10 @@ public class SolrManager {
 		for (ExperimentalPropertyValue<?> epv : bs.getPropertyValues()) {
 			handlePropertyValue(epv, document);
 		}
-		document.addField(XML, XMLManager.getXMLString(bs));
+		
+		if (includeXML) {
+			document.addField(XML, XMLManager.getXMLString(bs));
+		}
 
 		return Optional.of(document);
 	}
