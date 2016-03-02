@@ -153,6 +153,10 @@ public class App implements ApplicationRunner {
 					for (Future<Integer> future : futures) {
 						callableCount += future.get();
 						log.trace(""+callableCount+" sucessful callables so far, "+futures.size()+" remaining");
+						//after each finished callable make the solr client commit
+						//populates the index as we go, and doing them all here reduces collision risk
+						//if collisions do occur, increase samples.fetchStep and groups.fetchStep
+						client.commit();	
 					}
 					
 					//close down thread pool
