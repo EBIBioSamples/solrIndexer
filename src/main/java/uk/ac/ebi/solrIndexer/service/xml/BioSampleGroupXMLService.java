@@ -185,7 +185,7 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup> {
 
 		DateTime gmtReleaseDate = getGMTDateTime(msi.getReleaseDate());
 
-		Element value = new Element("Value", XMLNS).setText(gmtReleaseDate.toString(dtf));
+		Element value = new Element("Value", XMLNS).setText(clean(gmtReleaseDate.toString(dtf)));
 		qualifiedValue.setContent(value);
 
 		property.setAttributes(attributes);
@@ -212,7 +212,7 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup> {
 		Element qualifiedValue = new Element("QualifiedValue", XMLNS);
 		DateTime gmtUpdateDate = getGMTDateTime(msi.getUpdateDate());
 
-		Element value = new Element("Value", XMLNS).setText(gmtUpdateDate.toString(dtf));
+		Element value = new Element("Value", XMLNS).setText(clean(gmtUpdateDate.toString(dtf)));
 		qualifiedValue.setContent(value);
 
 		property.setAttributes(attributes);
@@ -236,7 +236,7 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup> {
 		attributes.add(commentAttr);
 
 		Element qualifiedValue = new Element("QualifiedValue", XMLNS);
-		Element value = new Element("Value", XMLNS).setText(msi.getAcc());
+		Element value = new Element("Value", XMLNS).setText(clean(msi.getAcc()));
 		qualifiedValue.setContent(value);
 
 		property.setAttributes(attributes);
@@ -260,7 +260,7 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup> {
 		attributes.add(commentAttr);
 
 		Element qualifiedValue = new Element("QualifiedValue", XMLNS);
-		Element value = new Element("Value", XMLNS).setText(msi.getTitle());
+		Element value = new Element("Value", XMLNS).setText(clean(msi.getTitle()));
 		qualifiedValue.setContent(value);
 
 		property.setAttributes(attributes);
@@ -284,7 +284,7 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup> {
 		attributes.add(commentAttr);
 
 		Element qualifiedValue = new Element("QualifiedValue", XMLNS);
-		Element value = new Element("Value", XMLNS).setText(msi.getDescription());
+		Element value = new Element("Value", XMLNS).setText(clean(msi.getDescription()));
 		qualifiedValue.setContent(value);
 
 		property.setAttributes(attributes);
@@ -348,7 +348,7 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup> {
 
 		ExperimentalPropertyType propertyType = propertyValue.getType();
 
-		Attribute classAttr = new Attribute("class", propertyType.getTermText());
+		Attribute classAttr = new Attribute("class", clean(propertyType.getTermText()));
 		Attribute characteristicAttr = new Attribute("characteristic",
 				Boolean.toString(isCharacterstic(propertyValue)));
 		Attribute typeAttr = new Attribute("type", "STRING");
@@ -391,11 +391,11 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup> {
 
 		Element qualifiedValue = new Element("QualifiedValue", XMLNS);
 
-		Element value = new Element("Value", XMLNS).setText(propertyValue.getTermText());
+		Element value = new Element("Value", XMLNS).setText(clean(propertyValue.getTermText()));
 		Element termSourceRef = getQualityValue_TermSourceRef(propertyValue);
 		Element unit = new Element("Unit", XMLNS);
 		if (propertyValue.getUnit() != null) {
-			unit.setText(propertyValue.getUnit().getTermText());
+			unit.setText(clean(propertyValue.getUnit().getTermText()));
 		}
 
 		qualifiedValue.addContent(value);
@@ -422,11 +422,11 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup> {
 
 			if (ontologyRefSource != null) {
 
-				Element tsrName = new Element("Name", XMLNS).setText(ontologyRefSource.getName());
-				Element tsrDescription = new Element("Description", XMLNS).setText(ontologyRefSource.getDescription());
-				Element tsrURI = new Element("URI", XMLNS).setText(ontologyRefSource.getUrl());
-				Element tsrVersion = new Element("Version", XMLNS).setText(ontologyRefSource.getVersion());
-				Element tsrTermSourceID = new Element("TermSourceID", XMLNS).setText(ontology.getAcc());
+				Element tsrName = new Element("Name", XMLNS).setText(clean(ontologyRefSource.getName()));
+				Element tsrDescription = new Element("Description", XMLNS).setText(clean(ontologyRefSource.getDescription()));
+				Element tsrURI = new Element("URI", XMLNS).setText(clean(ontologyRefSource.getUrl()));
+				Element tsrVersion = new Element("Version", XMLNS).setText(clean(ontologyRefSource.getVersion()));
+				Element tsrTermSourceID = new Element("TermSourceID", XMLNS).setText(clean(ontology.getAcc()));
 
 				List<Element> allContents = new ArrayList<>();
 				allContents.add(tsrName);
@@ -466,10 +466,10 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup> {
 
 		Element organizationElement = new Element("Organization", XMLNS);
 
-		organizationElement.addContent(new Element("Name", XMLNS).setText(organization.getName()));
-		organizationElement.addContent(new Element("Address", XMLNS).setText(organization.getAddress()));
-		organizationElement.addContent(new Element("URI", XMLNS).setText(organization.getUrl()));
-		organizationElement.addContent(new Element("Email", XMLNS).setText(organization.getEmail()));
+		organizationElement.addContent(new Element("Name", XMLNS).setText(clean(organization.getName())));
+		organizationElement.addContent(new Element("Address", XMLNS).setText(clean(organization.getAddress())));
+		organizationElement.addContent(new Element("URI", XMLNS).setText(clean(organization.getUrl())));
+		organizationElement.addContent(new Element("Email", XMLNS).setText(clean(organization.getEmail())));
 
 		if (organization.getOrganizationRoles().size() > 0) {
 			organization.getOrganizationRoles().forEach(role -> {
@@ -503,14 +503,14 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup> {
 
 		Element personElement = new Element("Person", XMLNS);
 
-		personElement.addContent(new Element("FirstName", XMLNS).setText(user.getFirstName()));
-		personElement.addContent(new Element("LastName", XMLNS).setText(user.getLastName()));
-		personElement.addContent(new Element("MidInitials", XMLNS).setText(user.getMidInitials()));
-		personElement.addContent(new Element("Email", XMLNS).setText(user.getEmail()));
+		personElement.addContent(new Element("FirstName", XMLNS).setText(clean(user.getFirstName())));
+		personElement.addContent(new Element("LastName", XMLNS).setText(clean(user.getLastName())));
+		personElement.addContent(new Element("MidInitials", XMLNS).setText(clean(user.getMidInitials())));
+		personElement.addContent(new Element("Email", XMLNS).setText(clean(user.getEmail())));
 
 		if (!user.getContactRoles().isEmpty()) {
 			ContactRole firstRole = user.getContactRoles().stream().findFirst().get();
-			personElement.addContent(new Element("Role", XMLNS).setText(firstRole.getName()));
+			personElement.addContent(new Element("Role", XMLNS).setText(clean(firstRole.getName())));
 		} else {
 			personElement.addContent(new Element("Role", XMLNS));
 		}
@@ -530,9 +530,9 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup> {
 			Set<DatabaseRecordRef> databases = msi.getDatabaseRecordRefs();
 			databases.forEach(databaseRecordRef -> {
 				Element dbRecord = new Element("Database", XMLNS);
-				dbRecord.addContent(new Element("Name", XMLNS).setText(databaseRecordRef.getDbName()));
-				dbRecord.addContent(new Element("ID", XMLNS).setText(databaseRecordRef.getAcc()));
-				dbRecord.addContent(new Element("URI", XMLNS).setText(databaseRecordRef.getUrl()));
+				dbRecord.addContent(new Element("Name", XMLNS).setText(clean(databaseRecordRef.getDbName())));
+				dbRecord.addContent(new Element("ID", XMLNS).setText(clean(databaseRecordRef.getAcc())));
+				dbRecord.addContent(new Element("URI", XMLNS).setText(clean(databaseRecordRef.getUrl())));
 
 				databaseElements.add(dbRecord);
 			});
@@ -544,9 +544,9 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup> {
 		externalEquivalences.forEach(entity -> {
 
 			Element dbRecord = new Element("Database", XMLNS);
-			dbRecord.addContent(new Element("Name", XMLNS).setText(entity.getService().getTitle()));
-			dbRecord.addContent(new Element("ID", XMLNS).setText(entity.getAccession()));
-			dbRecord.addContent(new Element("URI", XMLNS).setText(entity.getURI()));
+			dbRecord.addContent(new Element("Name", XMLNS).setText(clean(entity.getService().getTitle())));
+			dbRecord.addContent(new Element("ID", XMLNS).setText(clean(entity.getAccession())));
+			dbRecord.addContent(new Element("URI", XMLNS).setText(clean(entity.getURI())));
 			databaseElements.add(dbRecord);
 
 		});
@@ -573,8 +573,8 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup> {
 
 		Element publicationElement = new Element("Publication", XMLNS);
 
-		publicationElement.addContent(new Element("DOI", XMLNS).setText(publication.getDOI()));
-		publicationElement.addContent(new Element("PubMedID", XMLNS).setText(publication.getPubmedId()));
+		publicationElement.addContent(new Element("DOI", XMLNS).setText(clean(publication.getDOI())));
+		publicationElement.addContent(new Element("PubMedID", XMLNS).setText(clean(publication.getPubmedId())));
 
 		return publicationElement;
 
@@ -586,7 +586,7 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup> {
 		if (existsAndUniqueMSI(group)) {
 			Set<BioSample> biosamples = group.getMSIs().stream().findFirst().get().getSamples();
 			biosamples.forEach(biosample -> {
-				sampleIdsElement.addContent(new Element("Id", XMLNS).setText(biosample.getAcc()));
+				sampleIdsElement.addContent(new Element("Id", XMLNS).setText(clean(biosample.getAcc())));
 			});
 		}
 
