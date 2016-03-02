@@ -69,7 +69,7 @@ public class App implements ApplicationRunner {
 	
 	private boolean doGroups = true;
 	private boolean doSamples = true;
-	private int offsetCount = -1;
+	private int offsetCount = 1;
 	private int offsetTotal = -1;
 	
 	@Override
