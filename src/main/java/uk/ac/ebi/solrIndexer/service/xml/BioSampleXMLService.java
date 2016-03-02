@@ -167,7 +167,6 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 				.filter(expProperty -> !isDerivedFromPropertyType(expProperty))
 				.collect(Collectors.toList());
 
-
 		allProperties.forEach(
 				propertyValue -> {
 					Element property = getProperty(propertyValue);
@@ -190,7 +189,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 	}
 
 	//TODO Handle the situation where each property has multiple qualified values
-	private Element getProperty(ExperimentalPropertyValue pv) {
+	private Element getProperty(ExperimentalPropertyValue<?> pv) {
 
 		Element propertyElement = new Element("Property",XMLNS);
 
@@ -226,7 +225,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 	}
 
 	//TODO a property can have multiple qualified values
-	private Element getPropertyQualifiedValue(ExperimentalPropertyValue pv) {
+	private Element getPropertyQualifiedValue(ExperimentalPropertyValue<?> pv) {
 
 		Element qualityValueElement = new Element("QualifiedValue",XMLNS);
 
@@ -255,7 +254,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 
 	}
 
-	private Element getQualityValue_TermSourceRef(ExperimentalPropertyValue pv) {
+	private Element getQualityValue_TermSourceRef(ExperimentalPropertyValue<?> pv) {
 
 
 		Element termSourceRef = new Element("TermSourceREF",XMLNS);
@@ -389,7 +388,6 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 			Element derivedFrom = new Element("derivedFrom",XMLNS).setText(propertyDerivedFrom.get().getTermText());
 			derivations.add(derivedFrom);
 		}
-
 
 		return derivations;
 	}

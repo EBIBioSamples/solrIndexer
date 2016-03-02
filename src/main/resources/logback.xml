@@ -12,8 +12,8 @@
 	</appender>
 
 	<appender name="File-Main" class="ch.qos.logback.core.FileAppender">
-		<Append>true</Append>
-		<File>logs/Main.log</File>
+		<Append>false</Append>
+		<File>logs/main.log</File>
 
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<pattern>%d{dd MMM yyyy - HH:mm:ss.SSS} %-5level [%thread] %logger{36}: %msg%n</pattern>
@@ -29,8 +29,8 @@
 	</appender>
 
 	<appender name="File-Hibernate" class="ch.qos.logback.core.FileAppender">
-		<Append>true</Append>
-		<File>logs/Hibernate.log</File>
+		<Append>false</Append>
+		<File>logs/hibernate.log</File>
 
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<pattern>%d{dd MMM yyyy - HH:mm:ss.SSS} %-5level [%thread] %logger{36}: %msg%n</pattern>

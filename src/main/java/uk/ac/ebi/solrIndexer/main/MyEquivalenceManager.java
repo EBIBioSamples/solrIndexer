@@ -72,10 +72,11 @@ public class MyEquivalenceManager {
 
                         if (entityAccession.equals(groupAccession)) {
                             continue;
-                        } else if (! DataBaseStorage.isGroupPublic(entityAccession)) {
-                            log.debug("Equivalence with private or non existent group not inserted");
-                            continue;
-                        }
+                        } 
+                        //else if (! DataBaseStorage.isGroupPublic(entityAccession)) {
+                        //    log.debug("Equivalence with private or non existent group not inserted");
+                        //    continue;
+                        //}
                     }
 
                     otherEquivalences.add(entity);
@@ -111,12 +112,12 @@ public class MyEquivalenceManager {
 
                             if (entityAccession.equals(sampleAccession)) {
                                 return false;
-                            } else if (!DataBaseStorage.isSamplePublic(entityAccession)){
-
-                                log.debug("Equivalence with private or not existent sample not inserted");
-                                return false;
-
-                            }
+                            } 
+                            //TODO check if accession is public
+                            //else if (!DataBaseStorage.isSamplePublic(entityAccession)){
+                            //    log.debug("Equivalence with private or not existent sample not inserted");
+                            //    return false;
+                            //}
                         }
 
                         return true;
