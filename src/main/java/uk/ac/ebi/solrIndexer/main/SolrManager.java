@@ -25,6 +25,7 @@ import java.util.Set;
 import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import uk.ac.ebi.fg.biosd.annotator.persistence.AnnotatorAccessor;
@@ -35,6 +36,8 @@ import uk.ac.ebi.fg.biosd.model.xref.DatabaseRecordRef;
 import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.solrIndexer.common.Formater;
+import uk.ac.ebi.solrIndexer.service.xml.BioSampleGroupXMLService;
+import uk.ac.ebi.solrIndexer.service.xml.BioSampleXMLService;
 
 @Component
 public class SolrManager {
@@ -42,6 +45,12 @@ public class SolrManager {
 	private Logger log = LoggerFactory.getLogger (this.getClass());
 
 	private AnnotatorAccessor annotator = null;
+
+    @Autowired
+    private BioSampleGroupXMLService groupXmlService;
+
+    @Autowired
+    private BioSampleXMLService sampleXmlService;
 	
 	private boolean includeXML = false;
 
@@ -103,7 +112,8 @@ public class SolrManager {
 		}
 		
 		if (includeXML) {
-			document.addField(XML, XMLManager.getXMLString(bsg));
+			String xml = groupXmlService.getXMLString(bsg);
+			document.addField(XML, xml);
 		}
 
 		return Optional.of(document);
@@ -149,7 +159,8 @@ public class SolrManager {
 		}
 		
 		if (includeXML) {
-			document.addField(XML, XMLManager.getXMLString(bs));
+			String xml = sampleXmlService.getXMLString(bs);
+			document.addField(XML, xml);
 		}
 
 		return Optional.of(document);

@@ -97,7 +97,7 @@ public class App implements ApplicationRunner {
 				int offsetSize = count/offsetTotal;
 				int start = offsetSize*offsetCount;
 				log.info("Getting group accessions for chunk "+offsetCount+" of "+offsetTotal);
-				groupAccs =jdbcdao.getGroupAccessions(start, offsetSize);
+				groupAccs = jdbcdao.getGroupAccessions(start, offsetSize);
 		        log.info("got "+groupAccs.size()+" groups");
 			} else {
 				log.info("Getting group accessions");

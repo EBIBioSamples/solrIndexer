@@ -42,6 +42,7 @@ biosample-test.xml
 solrIndexer.properties
 application.properties
 hibernate.properties
+myeq.properties
 
 # data files in conf directory - ignore
 solr-conf/*/data

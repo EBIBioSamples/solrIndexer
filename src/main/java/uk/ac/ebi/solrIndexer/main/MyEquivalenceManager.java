@@ -1,36 +1,73 @@
 package uk.ac.ebi.solrIndexer.main;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
+import uk.ac.ebi.fg.myequivalents.managers.impl.db.DbManagerFactory;
 import uk.ac.ebi.fg.myequivalents.managers.interfaces.EntityMappingManager;
 import uk.ac.ebi.fg.myequivalents.managers.interfaces.EntityMappingSearchResult;
 import uk.ac.ebi.fg.myequivalents.managers.interfaces.ManagerFactory;
 import uk.ac.ebi.fg.myequivalents.model.Entity;
-import uk.ac.ebi.fg.myequivalents.resources.Resources;
 
-/**
- * Created by lucacherubin on 26/01/2016.
- */
+@Component
 public class MyEquivalenceManager {
 
 	private Logger log = LoggerFactory.getLogger(this.getClass());
 
-	private ManagerFactory managerFactory = Resources.getInstance().getMyEqManagerFactory();
+	//@Autowired
+	//private ManagerFactory managerFactory; 
+	
+	private ManagerFactory managerFactory = null;
 	
 	private MyEquivalenceManager() {
+	}
+
+	public synchronized ManagerFactory getManagerFactory() {
+		if (managerFactory == null) {
+			//managerFactory = Resources.getInstance().getMyEqManagerFactory();
+
+			Properties properties = new Properties();
+			InputStream is = null;
+			try {
+				is = this.getClass().getResourceAsStream("/myeq.properties");
+				if (is == null) {
+					throw new RuntimeException("Unable to find myeq.properties");
+				}
+				properties.load(is);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			} finally {
+				if (is != null) {
+					try {
+						is.close();
+					} catch (IOException e) {
+						//do nothing
+					}
+				}
+			}
+			return new DbManagerFactory(properties);
+		}
+		return managerFactory;
+	}
+
+	public void setManagerFactory(ManagerFactory managerFactory) {
+		this.managerFactory = managerFactory;
 	}
 
 	public Set<Entity> getGroupExternalEquivalences(String groupAccession) {
 		Set<Entity> otherEquivalences = new HashSet<>();
 		EntityMappingManager entityMappingManager = null;
 		try {
-			entityMappingManager = managerFactory.newEntityMappingManager();
+			entityMappingManager = getManagerFactory().newEntityMappingManager();
 			
 			Collection<EntityMappingSearchResult.Bundle> bundles = entityMappingManager
 					.getMappings(false, "ebi.biosamples.groups:" + groupAccession).getBundles();
@@ -77,7 +114,7 @@ public class MyEquivalenceManager {
 		Set<Entity> otherEquivalences = new HashSet<>();
 		EntityMappingManager entityMappingManager = null;
 		try {
-			entityMappingManager = managerFactory.newEntityMappingManager();
+			entityMappingManager = getManagerFactory().newEntityMappingManager();
 			
 			Collection<EntityMappingSearchResult.Bundle> bundles = entityMappingManager
 					.getMappings(false, "ebi.biosamples.samples:" + sampleAccession).getBundles();
