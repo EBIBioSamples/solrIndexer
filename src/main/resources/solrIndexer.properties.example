@@ -1,6 +1,7 @@
 solrIndexer.corePath=http://localhost:8983/solr/solrIndexer
 solrIndexer.queueSize=1000
 solrIndexer.threadCount=4
+solrIndexer.commitWithin=60000
 groups.fetchStep=1000
 samples.fetchStep=1000
 onto.mapping.annotator=true

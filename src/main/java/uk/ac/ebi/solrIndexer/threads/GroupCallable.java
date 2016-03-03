@@ -8,6 +8,7 @@ import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
@@ -22,6 +23,9 @@ public class GroupCallable implements Callable<Integer> {
 	
 	@Autowired
 	private SolrManager solrManager;
+
+	@Value("${solrIndexer.commitWithin:60000}")
+	private int commitWithin;
 
 	public GroupCallable() {
 		
@@ -38,7 +42,7 @@ public class GroupCallable implements Callable<Integer> {
 			log.trace("Creating solr document for group "+group.getAcc());
 			Optional<SolrInputDocument> doc = solrManager.generateBioSampleGroupSolrDocument(group);
 			if (doc.isPresent()) {
-				client.add(doc.get());
+				client.add(doc.get(), commitWithin);
 			}
 			log.trace("Finished solr document for group "+group.getAcc());
 		}

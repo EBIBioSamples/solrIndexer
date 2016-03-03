@@ -159,7 +159,8 @@ public class App implements ApplicationRunner {
 						//after each finished callable make the solr client commit
 						//populates the index as we go, and doing them all here reduces collision risk
 						//if collisions do occur, increase samples.fetchStep and groups.fetchStep
-						client.commit();	
+						//client.commit();
+						//removing this in favour of commitwithin parameter on add
 					}
 					
 					//close down thread pool
@@ -191,7 +192,7 @@ public class App implements ApplicationRunner {
 			//finish the solr client
 			log.info("Closing solr client");
 			client.commit();		
-			//client.blockUntilFinished();
+			client.blockUntilFinished();
 			client.close();
 		}
 		

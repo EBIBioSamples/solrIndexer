@@ -7,6 +7,7 @@ import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
@@ -21,6 +22,9 @@ public class SampleCallable implements Callable<Integer> {
 	
 	@Autowired
 	private SolrManager solrManager;
+
+	@Value("${solrIndexer.commitWithin:60000}")
+	private int commitWithin;
 
 	public SampleCallable() {
 		
@@ -37,7 +41,7 @@ public class SampleCallable implements Callable<Integer> {
 			log.trace("Creating solr document for sample "+sample.getAcc());
 			Optional<SolrInputDocument> doc = solrManager.generateBioSampleSolrDocument(sample);
 			if (doc.isPresent()) {
-				client.add(doc.get());
+				client.add(doc.get(), commitWithin);
 			}
 			log.trace("Finished solr document for sample "+sample.getAcc());
 		}
