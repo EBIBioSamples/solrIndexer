@@ -1,33 +1,9 @@
 package uk.ac.ebi.solrIndexer.main;
 
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.CONTENT_TYPE;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.DB_ACC;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.DB_NAME;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.DB_URL;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.GROUP_ACC;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.GROUP_UPDATE_DATE;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.ID;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SAMPLE_ACC;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SAMPLE_RELEASE_DATE;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SAMPLE_UPDATE_DATE;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_ACC;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_DESCRIPTION;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_TITLE;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_UPDATE_DATE;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.fg.biosd.model.organizational.MSI;
@@ -36,6 +12,14 @@ import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.solrIndexer.common.Formater;
 import uk.ac.ebi.solrIndexer.common.PropertiesManager;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.*;
 
 public class SolrManager {
 	private static Logger log = LoggerFactory.getLogger (SolrManager.class.getName());
@@ -153,12 +137,12 @@ public class SolrManager {
 			document.addField(SAMPLE_RELEASE_DATE, Formater.formatDateToSolr(bs.getReleaseDate()));
 			document.addField(CONTENT_TYPE, "sample");
 
+			List<String> characteristic_types = new ArrayList<>();
 			for (ExperimentalPropertyValue epv : bs.getPropertyValues()) {
 				// controlled fields
-
-
 				String fieldName = Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText());
 				String jsonFieldName = fieldName + "_json";
+				characteristic_types.add(fieldName);
 
 				document.addField(fieldName, epv.getTermText());
 
@@ -201,6 +185,7 @@ public class SolrManager {
 				}
 			}
 
+			document.addField(CRT_TYPE, characteristic_types);
 		} catch (Exception e) {
 			log.error("Error creating sample [" + bs.getAcc() + "] solr document: ", e);
 			return null;
