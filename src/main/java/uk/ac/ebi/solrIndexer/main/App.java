@@ -69,7 +69,7 @@ public class App implements ApplicationRunner {
 	
 	private boolean doGroups = true;
 	private boolean doSamples = true;
-	private int offsetCount = 1;
+	private int offsetCount = 0;
 	private int offsetTotal = -1;
 	
 	@Override
@@ -81,7 +81,9 @@ public class App implements ApplicationRunner {
 
         //process arguments
 		if (args.containsOption("offsetcount")) {
-			offsetCount = Integer.parseInt(args.getOptionValues("offsetcount").get(0));
+			//subtract one so we use 1 to Total externally and 0 to (Total-1) internally
+			//better human readable and LSF compatability
+			offsetCount = Integer.parseInt(args.getOptionValues("offsetcount").get(0))-1;
 		}
 		if (args.containsOption("offsettotal")) {
 			offsetTotal = Integer.parseInt(args.getOptionValues("offsettotal").get(0));
@@ -164,12 +166,16 @@ public class App implements ApplicationRunner {
 					if (threadPool != null) {
 				        log.info("Shutting down thread pool");
 				        threadPool.shutdown();
+				        //one day is a lot, but better safe than sorry!
 						threadPool.awaitTermination(1, TimeUnit.DAYS);
 					}		
 				} finally {
 					//handle closing of thread pool in case of error
 					if (threadPool != null && !threadPool.isShutdown()) {
 				        log.info("Shutting down thread pool");
+				        //allow a second to cleanly terminate before forcing
+				        threadPool.shutdown();
+						threadPool.awaitTermination(1, TimeUnit.SECONDS);
 						threadPool.shutdownNow();
 					}
 				}
