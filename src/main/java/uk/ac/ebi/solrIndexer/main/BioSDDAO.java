@@ -7,6 +7,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Root;
 
 import org.slf4j.Logger;
@@ -19,7 +20,7 @@ import uk.ac.ebi.fg.core_model.persistence.dao.hibernate.toplevel.AccessibleDAO;
 import uk.ac.ebi.fg.core_model.resources.Resources;
 
 @Component
-public class JDBCDAO {
+public class BioSDDAO {
 
 	private Logger log = LoggerFactory.getLogger(this.getClass());
 

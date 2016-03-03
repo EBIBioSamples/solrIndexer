@@ -58,7 +58,7 @@ public class App implements ApplicationRunner {
 	private ApplicationContext context;
 	
 	@Autowired
-	private JDBCDAO jdbcdao;
+	private BioSDDAO jdbcdao;
 	
 	@Autowired
 	private SolrManager solrManager;
