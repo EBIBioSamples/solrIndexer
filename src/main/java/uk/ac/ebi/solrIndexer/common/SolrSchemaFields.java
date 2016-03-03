@@ -42,4 +42,7 @@ public class SolrSchemaFields {
 	
 	/* --- Other --- */
 	public static final String XML = "xmlAPI";
+
+	/* --- BioSolr Plugin Field ---*/
+	public static final String BIO_SOLR_FIELD = "ontology_uri";
 }

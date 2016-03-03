@@ -1,5 +1,6 @@
 package uk.ac.ebi.solrIndexer.main;
 
+import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.BIO_SOLR_FIELD;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.CONTENT_TYPE;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.DB_ACC;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.DB_NAME;
@@ -195,6 +196,7 @@ public class SolrManager {
 				log.trace(url);
 				if (url != null) {
 					document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
+					document.addField(BIO_SOLR_FIELD, url);
 				}
 			}
 		} else {

@@ -121,7 +121,7 @@
 		<dependency>
 			<groupId>org.apache.solr</groupId>
 			<artifactId>solr-solrj</artifactId>
-			<version>5.2.1</version>
+			<version>5.4.1</version>
 		</dependency>
 
 		<!-- would be good to move to dom4j as all other code uses it -->
