@@ -181,7 +181,7 @@
         <field name="accession" type="text_general" indexed="false" stored="true"/>
         <field name="update_date" type="text_general" indexed="false" stored="true" multiValued="true"/>
         <field name="name" type="text_general" indexed="false" stored="true"/>
-        <field name="crt_type" type="text_general" indexed="true" stored="true" />
+        <field name="crt_type" type="text_general" indexed="true" stored="true" multiValued="true"/>
         <!-- BIOSAMPLES end -->
         
         <!-- Main body of document extracted by SolrCell.
@@ -353,9 +353,10 @@
     <copyField source="submission_description" dest="description"/>
 
     <copyField source="*_crt" dest="text"/>
+    <copyField source="*_crt" dest="*_crt_ss"/>
 
     <!-- Create a string version of crt_type for faceting -->
-    <copyField source="crt_type" dest="crt_type_s"/>
+    <copyField source="crt_type" dest="crt_type_ss"/>
     <!-- BIOSAMPLES End -->
     
     <!-- Above, multiple source fields are copied to the [text] field.
