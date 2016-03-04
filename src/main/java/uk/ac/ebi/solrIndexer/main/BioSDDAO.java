@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
+import uk.ac.ebi.fg.biosd.model.organizational.MSI;
 import uk.ac.ebi.fg.core_model.persistence.dao.hibernate.toplevel.AccessibleDAO;
 import uk.ac.ebi.fg.core_model.resources.Resources;
 
@@ -23,6 +24,18 @@ import uk.ac.ebi.fg.core_model.resources.Resources;
 public class BioSDDAO {
 
 	private Logger log = LoggerFactory.getLogger(this.getClass());
+
+	public int getMSICount() {
+		return getCount(MSI.class);
+	}
+	
+	public List<String> getMSIAccessions() {
+		return getSampleAccessions(-1, -1);
+	}
+
+	public List<String> getMSIAccessions(int startPosition, int maxResultCount) {
+		return getAccessions(MSI.class, startPosition, maxResultCount);
+	}	
 
 	public int getSampleCount() {
 		return getCount(BioSample.class);
