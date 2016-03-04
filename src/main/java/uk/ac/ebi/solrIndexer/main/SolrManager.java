@@ -196,9 +196,7 @@ public class SolrManager {
 				log.trace(url);
 				if (url != null) {
 					document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
-					if(!document.containsKey(BIO_SOLR_FIELD)) {
-						document.addField(BIO_SOLR_FIELD, url);
-					}
+					document.addField(BIO_SOLR_FIELD, url);
 				}
 			}
 		} else {
