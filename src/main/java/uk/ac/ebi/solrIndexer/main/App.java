@@ -67,6 +67,7 @@ public class App implements ApplicationRunner {
 	private List<String> groupAccs;
 	private List<String> sampleAccs; 
 	
+	private boolean cleanup = false;
 	private boolean doGroups = true;
 	private boolean doSamples = true;
 	private int offsetCount = 0;
@@ -88,6 +89,9 @@ public class App implements ApplicationRunner {
 		if (args.containsOption("offsettotal")) {
 			offsetTotal = Integer.parseInt(args.getOptionValues("offsettotal").get(0));
 		}
+		//wipes the existing index
+		//will only apply if offsetCount==0
+		cleanup = args.containsOption("cleanup");
 		doGroups = !args.containsOption("notgroups");
 		doSamples = !args.containsOption("notsamples");
 		solrManager.setIncludeXML(args.containsOption("includexml"));
@@ -127,8 +131,10 @@ public class App implements ApplicationRunner {
 			client = new ConcurrentUpdateSolrClient(solrIndexCorePath, solrIndexQueueSize, solrIndexThreadCount);
 			//maybe we want this, maybe not?
 			//client.setParser(new XMLResponseParser());
-			log.warn("DELETING EXISTING SOLR INDEX!!!");
-			client.deleteByQuery( "*:*" );// CAUTION: deletes everything!
+			if (cleanup && offsetCount==0) {
+				log.warn("DELETING EXISTING SOLR INDEX!!!");
+				client.deleteByQuery( "*:*" );// CAUTION: deletes everything!
+			}
 
 			//setup annotator, if using
 			AnnotatorAccessor annotator = null;
