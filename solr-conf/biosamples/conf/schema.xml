@@ -175,7 +175,7 @@
         <field name="sample_update_date" type="date" indexed="true" stored="true"/>
         <field name="number_of_samples" type="int" indexed="true" stored="true"/>
         <field name="group_samples" type="string" indexed="true" stored="true"/>
-        <field name="xmlAPI" type="string" indexed="true" stored="true"/>
+        <field name="xmlAPI" type="text_general" indexed="true" stored="true"/>
 
         <!--  -->
         <field name="accession" type="text_general" indexed="false" stored="true"/>
