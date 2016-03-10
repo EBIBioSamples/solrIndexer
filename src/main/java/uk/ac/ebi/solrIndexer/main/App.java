@@ -118,7 +118,7 @@ public class App implements ApplicationRunner {
 				int start = offsetSize*offsetCount;
 				log.info("Getting sample accessions for chunk "+offsetCount+" of "+offsetTotal);
 				sampleAccs =jdbcdao.getSampleAccessions(start, offsetSize);
-		        log.info("got "+sampleAccs.size()+" groups");
+		        log.info("got "+sampleAccs.size()+" samples");
 			} else {
 		        log.info("Getting sample accessions");
 				sampleAccs = jdbcdao.getSampleAccessions();
