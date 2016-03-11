@@ -40,8 +40,11 @@ public class App implements ApplicationRunner {
 	@Value("${groups.fetchStep:1000}")
 	private int groupsFetchStep;
 	
-	@Value("${solrIndexer.corePath}")
-	private String solrIndexCorePath;
+	@Value("${solrIndexer.groups.corePath}")
+	private String solrIndexGroupsCorePath;
+	@Value("${solrIndexer.samples.corePath}")
+	private String solrIndexSamplesCorePath;
+
 	@Value("${solrIndexer.queueSize:1000}")
 	private int solrIndexQueueSize;
 	@Value("${solrIndexer.threadCount:4}")
@@ -63,7 +66,8 @@ public class App implements ApplicationRunner {
 	@Autowired
 	private SolrManager solrManager;
 
-	private ConcurrentUpdateSolrClient client = null;
+	private ConcurrentUpdateSolrClient groupsClient = null;
+	private ConcurrentUpdateSolrClient samplesClient = null;
 	private List<String> groupAccs;
 	private List<String> sampleAccs; 
 	
@@ -95,7 +99,6 @@ public class App implements ApplicationRunner {
 		doGroups = !args.containsOption("notgroups");
 		doSamples = !args.containsOption("notsamples");
 		solrManager.setIncludeXML(args.containsOption("includexml"));
-        
 
 		if (doGroups) {
 			if (offsetTotal > 0) {
@@ -128,12 +131,15 @@ public class App implements ApplicationRunner {
         
 		try{
 			//create solr index
-			client = new ConcurrentUpdateSolrClient(solrIndexCorePath, solrIndexQueueSize, solrIndexThreadCount);
+			groupsClient = new ConcurrentUpdateSolrClient(solrIndexGroupsCorePath, solrIndexQueueSize, solrIndexThreadCount);
+			samplesClient  = new ConcurrentUpdateSolrClient(solrIndexSamplesCorePath, solrIndexQueueSize, solrIndexThreadCount);
 			//maybe we want this, maybe not?
 			//client.setParser(new XMLResponseParser());
 			if (cleanup && offsetCount==0) {
 				log.warn("DELETING EXISTING SOLR INDEX!!!");
-				client.deleteByQuery( "*:*" );// CAUTION: deletes everything!
+				// CAUTION: deletes everything!
+				groupsClient.deleteByQuery( "*:*" );
+				samplesClient.deleteByQuery( "*:*" );
 			}
 
 			//setup annotator, if using
@@ -197,9 +203,13 @@ public class App implements ApplicationRunner {
 
 			//finish the solr client
 			log.info("Closing solr client");
-			client.commit();		
-			client.blockUntilFinished();
-			client.close();
+			groupsClient.commit();
+			groupsClient.blockUntilFinished();
+			groupsClient.close();
+
+			samplesClient.commit();
+			samplesClient.blockUntilFinished();
+			samplesClient.close();
 		}
 		
 		log.info("Generated documents from "+callableCount+" sucessful callables in "+Formater.formatTime(System.currentTimeMillis() - startTime));
@@ -215,7 +225,7 @@ public class App implements ApplicationRunner {
         	//this is apparently bad Inversion Of Control but I can't see a better way to do it
         	GroupRepoCallable callable = context.getBean(GroupRepoCallable.class);
         	
-        	callable.setClient(client);
+        	callable.setClient(groupsClient);
         	callable.setAccessions(groupAccs.subList(i, Math.min(i+groupsFetchStep, groupAccs.size())));        	
         	
 			if (poolThreadCount == 0) {
@@ -234,7 +244,7 @@ public class App implements ApplicationRunner {
         	//this is apparently bad Inversion Of Control but I can't see a better way to do it
         	SampleRepoCallable callable = context.getBean(SampleRepoCallable.class);
         	
-        	callable.setClient(client);	
+        	callable.setClient(samplesClient);
         	callable.setAccessions(sampleAccs.subList(i, Math.min(i+samplesFetchStep, sampleAccs.size())));
         	
 			if (poolThreadCount == 0) {

@@ -1,4 +1,5 @@
-solrIndexer.corePath=http://localhost:8983/solr/solrIndexer
+solrIndexer.groups.corePath=http://localhost:8983/solr/groups
+solrIndexer.samples.corePath=http://localhost:8983/solr/samples
 solrIndexer.queueSize=1000
 solrIndexer.threadCount=4
 solrIndexer.commitWithin=60000
