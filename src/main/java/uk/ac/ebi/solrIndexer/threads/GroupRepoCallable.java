@@ -24,29 +24,10 @@ public class GroupRepoCallable extends GroupCallable {
 	private Logger log = LoggerFactory.getLogger(this.getClass());
 
 	private Iterable<String> accessions;
-
-	public GroupRepoCallable() {
-		super();
-	}
-
-	public GroupRepoCallable(ConcurrentUpdateSolrClient client) {
+	
+	public GroupRepoCallable(ConcurrentUpdateSolrClient client, Iterable<String> accessions) {
 		super();
 		this.client = client;
-	}
-
-	public ConcurrentUpdateSolrClient getClient() {
-		return client;
-	}
-
-	public void setClient(ConcurrentUpdateSolrClient client) {
-		this.client = client;
-	}
-
-	public Iterable<String> getAccessions() {
-		return accessions;
-	}
-
-	public void setAccessions(Iterable<String> accessions) {
 		this.accessions = accessions;
 	}
 

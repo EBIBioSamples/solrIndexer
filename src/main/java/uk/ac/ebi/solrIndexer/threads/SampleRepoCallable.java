@@ -25,27 +25,9 @@ public class SampleRepoCallable extends SampleCallable {
 
 	private Iterable<String> accessions;
 
-	public SampleRepoCallable() {
+	public SampleRepoCallable(ConcurrentUpdateSolrClient client, Iterable<String> accessions) {
 		super();
-	}
-
-	public SampleRepoCallable(ConcurrentUpdateSolrClient client) {
 		this.client = client;
-	}
-
-	public ConcurrentUpdateSolrClient getClient() {
-		return client;
-	}
-
-	public void setClient(ConcurrentUpdateSolrClient client) {
-		this.client = client;
-	}
-
-	public Iterable<String> getAccessions() {
-		return accessions;
-	}
-
-	public void setAccessions(Iterable<String> accessions) {
 		this.accessions = accessions;
 	}
 

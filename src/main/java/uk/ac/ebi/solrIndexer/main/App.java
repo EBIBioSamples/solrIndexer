@@ -234,12 +234,10 @@ public class App implements ApplicationRunner {
 			//Handle Groups
 			log.info("Handling Groups");		
 	        for (int i = 0; i < groupAccs.size(); i += groupsFetchStep) {	        	
+	        	List<String> theseGroupAccs = groupAccs.subList(i, Math.min(i+groupsFetchStep, groupAccs.size()));
 	        	//have to create multiple beans via context so they all have their own dao object
 	        	//this is apparently bad Inversion Of Control but I can't see a better way to do it
-	        	GroupRepoCallable callable = context.getBean(GroupRepoCallable.class);
-	        	
-	        	callable.setClient(groupsClient);
-	        	callable.setAccessions(groupAccs.subList(i, Math.min(i+groupsFetchStep, groupAccs.size())));        	
+	        	GroupRepoCallable callable = context.getBean(GroupRepoCallable.class, groupsClient, theseGroupAccs);
 	        	
 				if (poolThreadCount == 0) {
 					callable.call();
@@ -255,12 +253,10 @@ public class App implements ApplicationRunner {
 			//Handle samples
 			log.info("Handling samples");
 	        for (int i = 0; i < sampleAccs.size(); i += samplesFetchStep) {
+	        	List<String> theseSampleAccs = sampleAccs.subList(i, Math.min(i+samplesFetchStep, sampleAccs.size()));
 	        	//have to create multiple beans via context so they all have their own dao object
 	        	//this is apparently bad Inversion Of Control but I can't see a better way to do it
-	        	SampleRepoCallable callable = context.getBean(SampleRepoCallable.class);
-	        	
-	        	callable.setClient(samplesClient);
-	        	callable.setAccessions(sampleAccs.subList(i, Math.min(i+samplesFetchStep, sampleAccs.size())));
+	        	SampleRepoCallable callable = context.getBean(SampleRepoCallable.class, samplesClient, theseSampleAccs);
 	        	
 				if (poolThreadCount == 0) {
 					callable.call();
