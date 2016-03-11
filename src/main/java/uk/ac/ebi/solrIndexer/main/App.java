@@ -54,7 +54,7 @@ public class App implements ApplicationRunner {
 	private boolean useAnnotator;
 	
 	private ExecutorService threadPool = null;
-	private List<Future<Integer>> futures = new ArrayList<Future<Integer>>();
+	private List<Future<Integer>> futures = new ArrayList<>();
 	private int callableCount = 0;
 
 	@Autowired
@@ -68,8 +68,8 @@ public class App implements ApplicationRunner {
 
 	private ConcurrentUpdateSolrClient groupsClient = null;
 	private ConcurrentUpdateSolrClient samplesClient = null;
-	private List<String> groupAccs;
-	private List<String> sampleAccs; 
+	private List<String> groupAccs = new ArrayList<>();
+	private List<String> sampleAccs = new ArrayList<>();; 
 	
 	private boolean cleanup = false;
 	private boolean doGroups = true;
@@ -113,6 +113,7 @@ public class App implements ApplicationRunner {
 				groupAccs = jdbcdao.getGroupAccessions();
 		        log.info("got "+groupAccs.size()+" groups");
 			}
+			groupsClient = new ConcurrentUpdateSolrClient(solrIndexGroupsCorePath, solrIndexQueueSize, solrIndexThreadCount);
 		}
 		if (doSamples) {
 			if (offsetTotal > 0) {
@@ -127,19 +128,22 @@ public class App implements ApplicationRunner {
 				sampleAccs = jdbcdao.getSampleAccessions();
 		        log.info("Counted "+sampleAccs.size()+" samples");
 			}
+			samplesClient = new ConcurrentUpdateSolrClient(solrIndexSamplesCorePath, solrIndexQueueSize, solrIndexThreadCount);
 		}
         
 		try{
 			//create solr index
-			groupsClient = new ConcurrentUpdateSolrClient(solrIndexGroupsCorePath, solrIndexQueueSize, solrIndexThreadCount);
-			samplesClient  = new ConcurrentUpdateSolrClient(solrIndexSamplesCorePath, solrIndexQueueSize, solrIndexThreadCount);
 			//maybe we want this, maybe not?
 			//client.setParser(new XMLResponseParser());
 			if (cleanup && offsetCount==0) {
 				log.warn("DELETING EXISTING SOLR INDEX!!!");
 				// CAUTION: deletes everything!
-				groupsClient.deleteByQuery( "*:*" );
-				samplesClient.deleteByQuery( "*:*" );
+				if (groupsClient != null) {
+					groupsClient.deleteByQuery( "*:*" );
+				}
+				if (samplesClient != null) {
+					samplesClient.deleteByQuery( "*:*" );
+				}
 			}
 
 			//setup annotator, if using
@@ -160,8 +164,12 @@ public class App implements ApplicationRunner {
 					}	
 				
 					//process things
-					runGroups(groupAccs);
-					runSamples(sampleAccs);				
+					if (doGroups) {
+						runGroups(groupAccs);
+					}
+					if (doSamples) {
+						runSamples(sampleAccs);
+					}
 			
 			        //wait for all other futures to finish
 			        log.info("Waiting for futures...");
@@ -202,14 +210,18 @@ public class App implements ApplicationRunner {
 		} finally {
 
 			//finish the solr client
-			log.info("Closing solr client");
-			groupsClient.commit();
-			groupsClient.blockUntilFinished();
-			groupsClient.close();
+			log.info("Closing solr clients");
+			if (groupsClient != null) {
+				groupsClient.commit();
+				groupsClient.blockUntilFinished();
+				groupsClient.close();
+			}
 
-			samplesClient.commit();
-			samplesClient.blockUntilFinished();
-			samplesClient.close();
+			if (samplesClient != null) {
+				samplesClient.commit();
+				samplesClient.blockUntilFinished();
+				samplesClient.close();
+			}
 		}
 		
 		log.info("Generated documents from "+callableCount+" sucessful callables in "+Formater.formatTime(System.currentTimeMillis() - startTime));
@@ -218,40 +230,44 @@ public class App implements ApplicationRunner {
 	}
 	
 	private void runGroups(List<String> groupAccs) throws Exception {
-		//Handle Groups
-		log.info("Handling Groups");		
-        for (int i = 0; i < groupAccs.size(); i += groupsFetchStep) {	        	
-        	//have to create multiple beans via context so they all have their own dao object
-        	//this is apparently bad Inversion Of Control but I can't see a better way to do it
-        	GroupRepoCallable callable = context.getBean(GroupRepoCallable.class);
-        	
-        	callable.setClient(groupsClient);
-        	callable.setAccessions(groupAccs.subList(i, Math.min(i+groupsFetchStep, groupAccs.size())));        	
-        	
-			if (poolThreadCount == 0) {
-				callable.call();
-			} else {
-				futures.add(threadPool.submit(callable));
-			}
-        }        
+		if (doGroups) {
+			//Handle Groups
+			log.info("Handling Groups");		
+	        for (int i = 0; i < groupAccs.size(); i += groupsFetchStep) {	        	
+	        	//have to create multiple beans via context so they all have their own dao object
+	        	//this is apparently bad Inversion Of Control but I can't see a better way to do it
+	        	GroupRepoCallable callable = context.getBean(GroupRepoCallable.class);
+	        	
+	        	callable.setClient(groupsClient);
+	        	callable.setAccessions(groupAccs.subList(i, Math.min(i+groupsFetchStep, groupAccs.size())));        	
+	        	
+				if (poolThreadCount == 0) {
+					callable.call();
+				} else {
+					futures.add(threadPool.submit(callable));
+				}
+	        }        
+		}
 	}
 	
 	private void runSamples(List<String> sampleAccs) throws Exception {
-		//Handle samples
-		log.info("Handling samples");
-        for (int i = 0; i < sampleAccs.size(); i += samplesFetchStep) {
-        	//have to create multiple beans via context so they all have their own dao object
-        	//this is apparently bad Inversion Of Control but I can't see a better way to do it
-        	SampleRepoCallable callable = context.getBean(SampleRepoCallable.class);
-        	
-        	callable.setClient(samplesClient);
-        	callable.setAccessions(sampleAccs.subList(i, Math.min(i+samplesFetchStep, sampleAccs.size())));
-        	
-			if (poolThreadCount == 0) {
-				callable.call();
-			} else {
-				futures.add(threadPool.submit(callable));
-			}
-        }
+		if (doSamples) {
+			//Handle samples
+			log.info("Handling samples");
+	        for (int i = 0; i < sampleAccs.size(); i += samplesFetchStep) {
+	        	//have to create multiple beans via context so they all have their own dao object
+	        	//this is apparently bad Inversion Of Control but I can't see a better way to do it
+	        	SampleRepoCallable callable = context.getBean(SampleRepoCallable.class);
+	        	
+	        	callable.setClient(samplesClient);
+	        	callable.setAccessions(sampleAccs.subList(i, Math.min(i+samplesFetchStep, sampleAccs.size())));
+	        	
+				if (poolThreadCount == 0) {
+					callable.call();
+				} else {
+					futures.add(threadPool.submit(callable));
+				}
+	        }
+		}
 	}
 }
