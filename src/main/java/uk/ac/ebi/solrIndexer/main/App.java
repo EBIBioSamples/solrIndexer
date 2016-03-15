@@ -166,7 +166,6 @@ public class App implements ApplicationRunner {
 					//process things
 					if (doGroups) {
 						runGroups(groupAccs);
-						this.wait(300000); //Groups must finish before samples start - waiting for 5min
 					}
 					if (doSamples) {
 						runSamples(sampleAccs);
