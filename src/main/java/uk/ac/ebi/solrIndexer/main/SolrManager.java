@@ -6,8 +6,11 @@ import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.DB_ACC;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.DB_NAME;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.DB_URL;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.GROUP_ACC;
+import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.GROUP_RELEASE_DATE;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.GROUP_UPDATE_DATE;
+import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.GRP_SAMPLE_ACC;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.ID;
+import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.NUMBER_OF_SAMPLES;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SAMPLE_ACC;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SAMPLE_RELEASE_DATE;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SAMPLE_UPDATE_DATE;
@@ -94,7 +97,7 @@ public class SolrManager {
 		document.addField(ID, bsg.getId());
 		document.addField(GROUP_ACC, bsg.getAcc());
 		document.addField(GROUP_UPDATE_DATE, Formater.formatDateToSolr(bsg.getUpdateDate()));
-		//TODO add group release date here too
+		document.addField(GROUP_RELEASE_DATE, Formater.formatDateToSolr(bsg.getReleaseDate())); //TODO add group release date here too
 		document.addField(CONTENT_TYPE, "group");
 
 		Set<MSI> msi = bsg.getMSIs();
@@ -111,7 +114,14 @@ public class SolrManager {
 		for (ExperimentalPropertyValue<?> epv : bsg.getPropertyValues()) {
 			handlePropertyValue(epv, document);
 		}
-		
+
+		Set<BioSample> samples = bsg.getSamples();
+		int samples_nr = samples.size();
+		if (samples_nr > 0) {
+			samples.forEach(sample -> document.addField(GRP_SAMPLE_ACC, sample.getAcc()));
+		}
+		document.addField(NUMBER_OF_SAMPLES, samples_nr);
+
 		if (includeXML) {
 			String xml = groupXmlService.getXMLString(bsg);
 			document.addField(XML, xml);
