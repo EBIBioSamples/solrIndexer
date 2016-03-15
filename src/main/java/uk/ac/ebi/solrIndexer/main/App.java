@@ -166,6 +166,7 @@ public class App implements ApplicationRunner {
 					//process things
 					if (doGroups) {
 						runGroups(groupAccs);
+						this.wait(300000); //Groups must finish before samples start - waiting for 5min
 					}
 					if (doSamples) {
 						runSamples(sampleAccs);
@@ -180,7 +181,7 @@ public class App implements ApplicationRunner {
 						//populates the index as we go, and doing them all here reduces collision risk
 						//if collisions do occur, increase samples.fetchStep and groups.fetchStep
 						//client.commit();
-						//removing this in favour of commitwithin parameter on add
+						//removing this in favour of commit within parameter on add
 					}
 					
 					//close down thread pool
