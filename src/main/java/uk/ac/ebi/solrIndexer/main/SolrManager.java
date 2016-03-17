@@ -12,6 +12,7 @@ import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.GRP_SAMPLE_ACC;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.ID;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.NUMBER_OF_SAMPLES;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SAMPLE_ACC;
+import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SAMPLE_GRP_ACC;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SAMPLE_RELEASE_DATE;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SAMPLE_UPDATE_DATE;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_ACC;
@@ -168,7 +169,12 @@ public class SolrManager {
 		for (ExperimentalPropertyValue<?> epv : bs.getPropertyValues()) {
 			handlePropertyValue(epv, document);
 		}
-		
+
+		Set<BioSampleGroup> groups = bs.getGroups();
+		if (groups.size() > 0) {
+			groups.forEach(group -> document.addField(SAMPLE_GRP_ACC, group.getAcc()));
+		}
+
 		if (includeXML) {
 			String xml = sampleXmlService.getXMLString(bs);
 			document.addField(XML, xml);
