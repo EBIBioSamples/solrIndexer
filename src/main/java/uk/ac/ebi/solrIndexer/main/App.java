@@ -52,7 +52,10 @@ public class App implements ApplicationRunner {
 
 	@Value("${onto.mapping.annotator:false}")
 	private boolean useAnnotator;
-	
+
+	@Value("#{'${acc.list}'.split(',')}")
+	private List<String> accessionsList;
+
 	private ExecutorService threadPool = null;
 	private List<Future<Integer>> futures = new ArrayList<>();
 	private int callableCount = 0;
@@ -100,37 +103,56 @@ public class App implements ApplicationRunner {
 		doSamples = !args.containsOption("notsamples");
 		solrManager.setIncludeXML(args.containsOption("includexml"));
 
-		if (doGroups) {
-			if (offsetTotal > 0) {
-				int count = jdbcdao.getGroupCount();
-				int offsetSize = count/offsetTotal;
-				int start = offsetSize*offsetCount;
-				log.info("Getting group accessions for chunk "+offsetCount+" of "+offsetTotal);
-				groupAccs = jdbcdao.getGroupAccessions(start, offsetSize);
-		        log.info("got "+groupAccs.size()+" groups");
-			} else {
-				log.info("Getting group accessions");
-				groupAccs = jdbcdao.getGroupAccessions();
-		        log.info("got "+groupAccs.size()+" groups");
+		if (accessionsList.size() <= 0) { // Do full export of BioDS
+			if (doGroups) {
+				if (offsetTotal > 0) {
+					int count = jdbcdao.getGroupCount();
+					int offsetSize = count / offsetTotal;
+					int start = offsetSize * offsetCount;
+					log.info("Getting group accessions for chunk " + offsetCount + " of " + offsetTotal);
+					groupAccs = jdbcdao.getGroupAccessions(start, offsetSize);
+					log.info("got " + groupAccs.size() + " groups");
+				} else {
+					log.info("Getting group accessions");
+					groupAccs = jdbcdao.getGroupAccessions();
+					log.info("got " + groupAccs.size() + " groups");
+				}
+				groupsClient = new ConcurrentUpdateSolrClient(solrIndexGroupsCorePath, solrIndexQueueSize, solrIndexThreadCount);
 			}
-			groupsClient = new ConcurrentUpdateSolrClient(solrIndexGroupsCorePath, solrIndexQueueSize, solrIndexThreadCount);
-		}
-		if (doSamples) {
-			if (offsetTotal > 0) {
-				int count = jdbcdao.getSampleCount();
-				int offsetSize = count/offsetTotal;
-				int start = offsetSize*offsetCount;
-				log.info("Getting sample accessions for chunk "+offsetCount+" of "+offsetTotal);
-				sampleAccs =jdbcdao.getSampleAccessions(start, offsetSize);
-		        log.info("got "+sampleAccs.size()+" samples");
-			} else {
-		        log.info("Getting sample accessions");
-				sampleAccs = jdbcdao.getSampleAccessions();
-		        log.info("Counted "+sampleAccs.size()+" samples");
+			if (doSamples) {
+				if (offsetTotal > 0) {
+					int count = jdbcdao.getSampleCount();
+					int offsetSize = count / offsetTotal;
+					int start = offsetSize * offsetCount;
+					log.info("Getting sample accessions for chunk " + offsetCount + " of " + offsetTotal);
+					sampleAccs = jdbcdao.getSampleAccessions(start, offsetSize);
+					log.info("got " + sampleAccs.size() + " samples");
+				} else {
+					log.info("Getting sample accessions");
+					sampleAccs = jdbcdao.getSampleAccessions();
+					log.info("Counted " + sampleAccs.size() + " samples");
+				}
+				samplesClient = new ConcurrentUpdateSolrClient(solrIndexSamplesCorePath, solrIndexQueueSize, solrIndexThreadCount);
 			}
-			samplesClient = new ConcurrentUpdateSolrClient(solrIndexSamplesCorePath, solrIndexQueueSize, solrIndexThreadCount);
+
+		} else if (accessionsList.size() > 0) { // Do partial export from list of accessions
+			if (doSamples) {
+				if (offsetTotal > 0) {
+					int count = accessionsList.size();
+					int offsetSize = count / offsetTotal;
+					int start = offsetSize * offsetCount;
+					log.info("Getting sample accessions for chunk " + offsetCount + " of " + offsetTotal);
+					sampleAccs = accessionsList.subList(start, offsetSize);
+					log.info("got " + sampleAccs.size() + " samples");
+				} else {
+					log.info("Getting sample accessions");
+					sampleAccs = accessionsList;
+					log.info("Counted " + sampleAccs.size() + " samples");
+				}
+				samplesClient = new ConcurrentUpdateSolrClient(solrIndexSamplesCorePath, solrIndexQueueSize, solrIndexThreadCount);
+			}
 		}
-        
+
 		try{
 			//create solr index
 			//maybe we want this, maybe not?
@@ -164,10 +186,10 @@ public class App implements ApplicationRunner {
 					}	
 				
 					//process things
-					if (doGroups) {
+					if (doGroups && groupsClient != null) {
 						runGroups(groupAccs);
 					}
-					if (doSamples) {
+					if (doSamples && samplesClient != null) {
 						runSamples(sampleAccs);
 					}
 			
