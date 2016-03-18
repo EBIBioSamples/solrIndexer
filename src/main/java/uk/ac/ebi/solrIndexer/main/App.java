@@ -103,7 +103,7 @@ public class App implements ApplicationRunner {
 		doSamples = !args.containsOption("notsamples");
 		solrManager.setIncludeXML(args.containsOption("includexml"));
 
-		if (accessionsList.size() <= 0) { // Do full export of BioDS
+		if (accessionsList == null || accessionsList.size() <= 0) { // Do full export of BioDS
 			if (doGroups) {
 				if (offsetTotal > 0) {
 					int count = jdbcdao.getGroupCount();
