@@ -1,10 +1,21 @@
 solrIndexer.groups.corePath=http://localhost:8983/solr/groups
 solrIndexer.samples.corePath=http://localhost:8983/solr/samples
+
+#number of documents to queue at once
+#lower saves memory here, but increases network traffic
+#higher uses more memory here, but increases network traffic
 solrIndexer.queueSize=1000
+
+#number of EXTRA threads to use, zero will run it all on main thread
 solrIndexer.threadCount=4
+
+#maximum number of miliseconds before solr commits each new thing
 solrIndexer.commitWithin=60000
+
+#number of groups/samples to handle in one callable
+#too low and too much multithreading overhead
+#too high and multithreading not used efficiently
 groups.fetchStep=1000
 samples.fetchStep=1000
+
 onto.mapping.annotator=true
-#number of EXTRA threads to use, zero will run it all on main thread
-threadcount=12
