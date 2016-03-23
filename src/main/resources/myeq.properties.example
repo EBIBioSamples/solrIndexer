@@ -1,0 +1,12 @@
+hibernate.connection.username=USERNAME
+hibernate.connection.password=PASSWORD
+hibernate.connection.url=jdbc:oracle:thin:@HOSTNAME:PORT:DATABASE
+hibernate.connection.driver_class=oracle.jdbc.driver.OracleDriver
+hibernate.dialect=org.hibernate.dialect.Oracle10gDialect
+hibernate.hbm2ddl.auto=
+hibernate.connection.autocommit=false
+hibernate.jdbc.batch_size=50
+hibernate.show_sql=false
+hibernate.connection.pool_size=1
+hibernate.jdbc.use_scrollable_resultset=true
+hibernate.jdbc.wrap_result_sets=true

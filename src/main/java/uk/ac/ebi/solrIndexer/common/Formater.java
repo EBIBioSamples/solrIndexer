@@ -1,8 +1,11 @@
 package uk.ac.ebi.solrIndexer.common;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -14,11 +17,17 @@ public class Formater {
 	private static Logger log = LoggerFactory.getLogger (Formater.class.getName());
 
 	private static final String EFO = "EFO";
+	private static final String EFO_LINK = "http://www.ebi.ac.uk/efo/";
 	private static final String NCBI = "NCBI Taxonomy";
 	private static final String ONTOBEE = "http://purl.obolibrary.org/";
 	private static final String BIOONTO = "http://purl.bioontology.org/";
 	private static final String ICD10 = "ICD10";
 	private static final String MESH = "MeSH";
+	private static final String GO = "GO";
+	private static final String GRO = "GRO";
+	private static final String PRIDE = "PRIDE";
+	private static final String WORDNET = "http://wordnet.rkbexplorer.com/";
+	
 	private static final String ERROR = "ERROR";
 
 	/**
@@ -43,35 +52,30 @@ public class Formater {
 	}
 
 	/**
-	 * Generates the ontology url associated with the ontology term for EFO and NCBI Taxonomy.
+	 * Returns the ontology uri associated with the ontology term when present
+	 * in an OntologyEntry
+	 * 
+	 * If no url can be found, returns an empty optional object to caller.
+	 * 
 	 * @param onto
 	 * @param acc 
 	 * @return
 	 */
-	public static String formatOntologyTermURL (OntologyEntry onto) {
+	public static Optional<URI> getOntologyTermURI (OntologyEntry onto) {
 		String acc = null;
-
-		if (onto.getSource() != null) {
-			acc = onto.getSource().getAcc();
-			
-			if (EFO.equals(acc) || acc.startsWith(ONTOBEE) || MESH.equals(acc)) {
-				return onto.getAcc();
-			} else if (NCBI.equals(acc)) {
-				return onto.getSource().getUrl() + "?term=" + onto.getAcc();
-			} else if (ICD10.equals(acc)) {
-				return onto.getSource().getUrl();
-			} else {
-				log.error("Unknown ontology mapping with source: " + onto.getSource());
-				return ERROR;
-			}
-		} else if (onto.getSource() == null && (onto.getAcc().startsWith(ONTOBEE) || onto.getAcc().startsWith(BIOONTO))) {
-			return onto.getAcc();
-		} else {
-			acc = onto.getAcc();
-			log.error("Unknown ontology mapping with null source. Ontology accession: " + acc);
-			return ERROR;
+		
+		//see if it is already a valid URI
+		URI uri = null;
+		try {
+			uri = new URI(onto.getAcc());
+		} catch (URISyntaxException e) {
+			uri = null;
 		}
-
+		if (uri != null) {
+			return Optional.of(uri);
+		}
+		return Optional.empty();
+		
 	}
 
 	/**

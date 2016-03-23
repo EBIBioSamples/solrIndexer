@@ -1,169 +1,353 @@
 package uk.ac.ebi.solrIndexer.main;
 
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
-import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
-import uk.ac.ebi.solrIndexer.common.Formater;
-import uk.ac.ebi.solrIndexer.common.PropertiesManager;
-import uk.ac.ebi.solrIndexer.threads.ThreadGroup;
-import uk.ac.ebi.solrIndexer.threads.ThreadSample;
-
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
-import java.util.HashSet;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
-public class App {
-    private static Logger log = LoggerFactory.getLogger(App.class.getName());
+import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
-    public static void main(String[] args) {
-        if (args.length != 1) {
-            System.err.println(
-                    "Please specify a single command, 'samples' or 'groups', to specify whether samples or groups should be indexed");
-            System.exit(2);
-        }
-        else {
-            if (!args[0].equals("samples") && !args[0].equals("groups")) {
-                System.err.println("Unrecognised command '" + args[0] + "' - please specify 'samples' or 'groups'");
-                System.exit(2);
-            }
-        }
+import uk.ac.ebi.fg.biosd.annotator.persistence.AnnotatorAccessor;
+import uk.ac.ebi.fg.core_model.resources.Resources;
+import uk.ac.ebi.solrIndexer.common.Formater;
+import uk.ac.ebi.solrIndexer.threads.GroupRepoCallable;
+import uk.ac.ebi.solrIndexer.threads.SampleRepoCallable;
 
-        log.info("Entering application - indexing " + args[0]);
-        long startTime = System.currentTimeMillis();
+@Component
+@PropertySource("solrIndexer.properties")
+public class App implements ApplicationRunner {
 
-        Set<Future<Integer>> set = new HashSet<>();
-        ExecutorService scheduler = Executors.newFixedThreadPool(8);
-        final AtomicInteger atomicInteger = new AtomicInteger(1);
-        ExecutorService indexer = new ThreadPoolExecutor(
-                16,
-                16,
-                0L,
-                TimeUnit.MILLISECONDS,
-                new LinkedBlockingDeque<>(),
-                r -> new Thread(r, "document-indexing-thread-" + atomicInteger.getAndIncrement()),
-                (r, executor) -> log.warn("Request rejected - " +
-                                                  "queued requests: " + executor.getQueue().size() + "; " +
-                                                  "completed requests: " + executor.getCompletedTaskCount()));
+	private Logger log = LoggerFactory.getLogger(this.getClass());
 
-        int sum;
-        if (args[0].equals("groups")) {
-            final SolrClient client =
-                    new ConcurrentUpdateSolrClient(PropertiesManager.getSolrCorePath() + "/groups", 10, 8);
-            try {
-                /* -- Handle Groups -- */
-                log.info("Handling Groups");
-                int max = 50000; // todo - replace this with group count query
-                int start = 0;
-                Set<Future<?>> tasks = new HashSet<>();
-                int step = PropertiesManager.getGroupsFetchStep();
-                while (start < max) {
-                    final int from = start;
-                    final int to = from + step;
-                    log.trace("Scheduling groups from " + from + " to " + to + "...");
-                    tasks.add(scheduler.submit(() -> {
-                        log.debug("Querying for groups from " + from + " to " + to + " from database...");
-                        List<BioSampleGroup> groups = DataBaseManager.getAllIterableGroups(from, step);
-                        log.debug("Acquired groups from " + from + " to " + to + ", submitting for indexing");
-                        Future<Integer> future = indexer.submit(new ThreadGroup(groups, client, from));
-                        set.add(future);
-                    }));
-                    start += step;
-                }
+	@Value("${threadcount:0}")
+	private int poolThreadCount;
 
-                for (Future<?> f : tasks) {
-                    f.get();
-                }
-                log.info("Scheduling of group indexing tasks complete!");
+	@Value("${samples.fetchStep:1000}")
+	private int samplesFetchStep;
 
-                sum = 0;
-                for (Future<Integer> future : set) {
-                    sum += future.get();
-                }
+	@Value("${groups.fetchStep:1000}")
+	private int groupsFetchStep;
 
-                log.info("Group documents generated. " + sum + " threads finished successfully.");
-                /* -------------------- */
-            }
-            catch (Exception e) {
-                log.error("Error creating index", e);
-            }
-            finally {
-                try {
-                    client.close();
-                }
-                catch (IOException e) {
-                    // tried our best
-                }
-                long duration = (System.currentTimeMillis() - startTime);
-                log.info("Running time: " + Formater.formatTime(duration));
-            }
-        }
-        else {
-            final SolrClient client =
-                    new ConcurrentUpdateSolrClient(PropertiesManager.getSolrCorePath() + "/samples", 10, 8);
-            try {
-                /* -- Handle Samples -- */
-                log.info("Handling Samples");
-                int max = 1_000_000; // todo - replace this with sample count query
-                int start = 0;
-                Set<Future<?>> tasks = new HashSet<>();
-                int step = PropertiesManager.getSamplesFetchStep();
-                while (start < max) {
-                    final int from = start;
-                    final int to = from + step;
-                    log.trace("Scheduling samples from " + from + " to " + to + "...");
-                    tasks.add(scheduler.submit(() -> {
-                        log.debug("Querying for samples from " + from + " to " + to + " from database...");
-                        List<BioSample> samples = DataBaseManager.getAllIterableSamples(from, step);
-                        log.debug("Acquired samples from " + from + " to " + to + ", submitting for indexing");
-                        Future<Integer> future = indexer.submit(new ThreadSample(samples, client, from));
-                        set.add(future);
-                    }));
-                    start += step;
-                }
+	@Value("${solrIndexer.groups.corePath}")
+	private String solrIndexGroupsCorePath;
+	@Value("${solrIndexer.samples.corePath}")
+	private String solrIndexSamplesCorePath;
 
-                for (Future<?> f : tasks) {
-                    f.get();
-                }
-                log.info("Scheduling of sample indexing tasks complete!");
+	@Value("${solrIndexer.queueSize:1000}")
+	private int solrIndexQueueSize;
+	@Value("${solrIndexer.threadCount:4}")
+	private int solrIndexThreadCount;
 
-                sum = 0;
-                for (Future<Integer> future : set) {
-                    sum += future.get();
-                }
+	@Value("${onto.mapping.annotator:false}")
+	private boolean useAnnotator;
 
-                log.info("Sample documents generated. " + sum + " threads finished successfully.");
-                /* -------------------- */
-            }
-            catch (Exception e) {
-                log.error("Error creating index", e);
+	private ExecutorService threadPool = null;
+	private List<Future<Integer>> futures = new ArrayList<>();
+	private int callableCount = 0;
 
-            }
-            finally {
-                try {
-                    client.close();
-                }
-                catch (IOException e) {
-                    // tried our best
-                }
-                long duration = (System.currentTimeMillis() - startTime);
-                log.info("Running time: " + Formater.formatTime(duration));
-            }
-        }
+	@Autowired
+	private ApplicationContext context;
 
-        log.debug("Shutting down services...");
-        scheduler.shutdown();
-        indexer.shutdown();
-        log.info("Indexing finished!");
-    }
+	@Autowired
+	private BioSDDAO jdbcdao;
+
+	@Autowired
+	private SolrManager solrManager;
+
+	private ConcurrentUpdateSolrClient groupsClient = null;
+	private ConcurrentUpdateSolrClient samplesClient = null;
+	private List<String> groupAccs = new ArrayList<>();
+	private List<String> sampleAccs = new ArrayList<>();;
+
+	private boolean cleanup = false;
+	private boolean doGroups = true;
+	private boolean doSamples = true;
+	private int offsetCount = 0;
+	private int offsetTotal = -1;
+
+	@Override
+	@Transactional
+	public void run(ApplicationArguments args) throws Exception {
+		log.info("Entering application.");
+		long startTime = System.currentTimeMillis();
+
+		// process arguments
+		if (args.containsOption("offsetcount")) {
+			// subtract one so we use 1 to Total externally and 0 to (Total-1)
+			// internally
+			// better human readable and LSF compatability
+			offsetCount = Integer.parseInt(args.getOptionValues("offsetcount").get(0)) - 1;
+		}
+		if (args.containsOption("offsettotal")) {
+			offsetTotal = Integer.parseInt(args.getOptionValues("offsettotal").get(0));
+		}
+		// wipes the existing index
+		// will only apply if offsetCount==0
+		cleanup = args.containsOption("cleanup");
+		doGroups = !args.containsOption("notgroups");
+		doSamples = !args.containsOption("notsamples");
+		solrManager.setIncludeXML(args.containsOption("includexml"));
+		if (args.containsOption("sourcefile")) {
+			//if -- is a filename then read stdin
+			handleFilenames(args.getOptionValues("sourcefile"));
+		}
+
+		// only bother getting accessions from db if we will actually use them
+		if (doGroups) {
+			groupsClient = new ConcurrentUpdateSolrClient(solrIndexGroupsCorePath, solrIndexQueueSize,
+					solrIndexThreadCount);
+			// don't get from db if we were given a file with them
+			if (groupAccs.size() == 0) {
+				if (offsetTotal > 0) {
+					int count = jdbcdao.getGroupCount();
+					int offsetSize = count / offsetTotal;
+					int start = offsetSize * offsetCount;
+					log.info("Getting group accessions for chunk " + offsetCount + " of " + offsetTotal);
+					groupAccs = jdbcdao.getGroupAccessions(start, offsetSize);
+					log.info("got " + groupAccs.size() + " groups");
+				} else {
+					log.info("Getting group accessions");
+					groupAccs = jdbcdao.getGroupAccessions();
+					log.info("got " + groupAccs.size() + " groups");
+				}
+			}
+		}
+		// only bother getting accessions from db if we will actually use them
+		if (doSamples) {
+			samplesClient = new ConcurrentUpdateSolrClient(solrIndexSamplesCorePath, solrIndexQueueSize,
+					solrIndexThreadCount);
+			// don't get from db if we were given a file with them
+			if (sampleAccs.size() == 0) {
+				if (offsetTotal > 0) {
+					int count = jdbcdao.getSampleCount();
+					int offsetSize = count / offsetTotal;
+					int start = offsetSize * offsetCount;
+					log.info("Getting sample accessions for chunk " + offsetCount + " of " + offsetTotal);
+					sampleAccs = jdbcdao.getSampleAccessions(start, offsetSize);
+					log.info("got " + sampleAccs.size() + " samples");
+				} else {
+					log.info("Getting sample accessions");
+					sampleAccs = jdbcdao.getSampleAccessions();
+					log.info("Counted " + sampleAccs.size() + " samples");
+				}
+			}
+		}
+
+		try {
+			// create solr index
+			// maybe we want this, maybe not?
+			// client.setParser(new XMLResponseParser());
+			if (cleanup && offsetCount == 0) {
+				log.warn("DELETING EXISTING SOLR INDEX!!!");
+				// CAUTION: deletes everything!
+				if (groupsClient != null) {
+					groupsClient.deleteByQuery("*:*");
+				}
+				if (samplesClient != null) {
+					samplesClient.deleteByQuery("*:*");
+				}
+			}
+
+			// setup annotator, if using
+			AnnotatorAccessor annotator = null;
+			try {
+				if (useAnnotator) {
+					annotator = new AnnotatorAccessor(
+							Resources.getInstance().getEntityManagerFactory().createEntityManager());
+					// set the solr manager to use the annotator
+					// because spring autowires singletons,
+					// this is the same solrmanager as the one autowired in the
+					// callables
+					solrManager.setAnnotator(annotator);
+				}
+
+				// create the thread stuff if required
+				try {
+					if (poolThreadCount > 0) {
+						threadPool = Executors.newFixedThreadPool(poolThreadCount);
+					}
+
+					// process things
+					if (doGroups && groupsClient != null) {
+						runGroups(groupAccs);
+					}
+					if (doSamples && samplesClient != null) {
+						runSamples(sampleAccs);
+					}
+
+					// wait for all other futures to finish
+					log.info("Waiting for futures...");
+					for (Future<Integer> future : futures) {
+						callableCount += future.get();
+						log.trace("" + callableCount + " sucessful callables so far, " + futures.size() + " remaining");
+						// after each finished callable make the solr client
+						// commit
+						// populates the index as we go, and doing them all here
+						// reduces collision risk
+						// if collisions do occur, increase samples.fetchStep
+						// and groups.fetchStep
+						// client.commit();
+						// removing this in favour of commit within parameter on
+						// add
+					}
+
+					// close down thread pool
+					if (threadPool != null) {
+						log.info("Shutting down thread pool");
+						threadPool.shutdown();
+						// one day is a lot, but better safe than sorry!
+						threadPool.awaitTermination(1, TimeUnit.DAYS);
+					}
+				} finally {
+					// handle closing of thread pool in case of error
+					if (threadPool != null && !threadPool.isShutdown()) {
+						log.info("Shutting down thread pool");
+						// allow a second to cleanly terminate before forcing
+						threadPool.shutdown();
+						threadPool.awaitTermination(1, TimeUnit.SECONDS);
+						threadPool.shutdownNow();
+					}
+				}
+			} finally {
+				// handle closing of annotator entity manager
+				if (annotator != null) {
+					annotator.close();
+				}
+			}
+
+		} finally {
+
+			// finish the solr client
+			log.info("Closing solr clients");
+			if (groupsClient != null) {
+				groupsClient.commit();
+				groupsClient.blockUntilFinished();
+				groupsClient.close();
+			}
+
+			if (samplesClient != null) {
+				samplesClient.commit();
+				samplesClient.blockUntilFinished();
+				samplesClient.close();
+			}
+		}
+
+		log.info("Generated documents from " + callableCount + " sucessful callables in "
+				+ Formater.formatTime(System.currentTimeMillis() - startTime));
+		log.info("Indexing finished!");
+		return;
+	}
+
+	private void runGroups(List<String> groupAccs) throws Exception {
+		if (doGroups) {
+			// Handle Groups
+			log.info("Handling Groups");
+			for (int i = 0; i < groupAccs.size(); i += groupsFetchStep) {
+				List<String> theseGroupAccs = groupAccs.subList(i, Math.min(i + groupsFetchStep, groupAccs.size()));
+				// have to create multiple beans via context so they all have
+				// their own dao object
+				// this is apparently bad Inversion Of Control but I can't see a
+				// better way to do it
+				GroupRepoCallable callable = context.getBean(GroupRepoCallable.class, groupsClient, theseGroupAccs);
+
+				if (poolThreadCount == 0) {
+					callable.call();
+				} else {
+					futures.add(threadPool.submit(callable));
+				}
+			}
+		}
+	}
+
+	private void runSamples(List<String> sampleAccs) throws Exception {
+		if (doSamples) {
+			// Handle samples
+			log.info("Handling samples");
+			for (int i = 0; i < sampleAccs.size(); i += samplesFetchStep) {
+				List<String> theseSampleAccs = sampleAccs.subList(i, Math.min(i + samplesFetchStep, sampleAccs.size()));
+				// have to create multiple beans via context so they all have
+				// their own dao object
+				// this is apparently bad Inversion Of Control but I can't see a
+				// better way to do it
+				SampleRepoCallable callable = context.getBean(SampleRepoCallable.class, samplesClient, theseSampleAccs);
+
+				if (poolThreadCount == 0) {
+					callable.call();
+				} else {
+					futures.add(threadPool.submit(callable));
+				}
+			}
+		}
+	}
+
+	/**
+	 * Reads a list of named files or (stdin) and extracts sample and group accessions into the appropriate
+	 * lists on this object.
+	 * @param filenames
+	 */
+	private void handleFilenames(List<String> filenames) {
+		for (String filename : filenames) {
+			//read from standard in if a filename is --
+			if (filename.equals("--")) {
+				try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
+					handleBufferedReader(br);
+			    } catch (FileNotFoundException e) {
+					log.error("Unable to find "+filename, e);
+				} catch (IOException e) {
+					log.error("Unable to read "+filename, e);
+				}
+			} else {
+				File file = new File(filename);
+				if (file.exists() && file.isFile()) {		
+					try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+						handleBufferedReader(br);
+				    } catch (FileNotFoundException e) {
+						log.error("Unable to find "+filename, e);
+					} catch (IOException e) {
+						log.error("Unable to read "+filename, e);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Reads from a buffered reader and extracts sample and group accessions into the appropriate
+	 * lists on this object.
+	 * @param filenames
+	 */
+	private void handleBufferedReader(BufferedReader br) throws IOException {
+		String line;
+		while ((line = br.readLine()) != null) {
+			line = line.trim();
+	        if (line.matches("^SAM[END]A?[0-9]+$")) {
+	        	if (!sampleAccs.contains(line)) {
+	        		sampleAccs.add(line);
+	        	}
+	        } else if(line.matches("^SAM[END]G[0-9]+$")) {
+	        	if (groupAccs.contains(line)) {
+	        		groupAccs.add(line);
+	        	}
+	        }  
+		}
+	}
+		
 }
