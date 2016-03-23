@@ -329,6 +329,16 @@ public class App implements ApplicationRunner {
 				}
 			}
 		}
+		//slice down to section specified by arguments
+		int count = sampleAccs.size();
+		int offsetSize = count / offsetTotal;
+		int start = offsetSize * offsetCount;
+		sampleAccs = sampleAccs.subList(start, start+offsetSize);
+
+		count = groupAccs.size();
+		offsetSize = count / offsetTotal;
+		start = offsetSize * offsetCount;
+		groupAccs = groupAccs.subList(start, start+offsetSize);
 	}
 
 	/**
