@@ -347,7 +347,7 @@ public class App implements ApplicationRunner {
 	        		sampleAccs.add(line);
 	        	}
 	        } else if(line.matches("^SAM[END]G[0-9]+$")) {
-	        	if (groupAccs.contains(line)) {
+				if (!groupAccs.contains(line)) {
 	        		log.debug("adding group accession "+line);
 	        		groupAccs.add(line);
 	        	}
