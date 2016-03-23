@@ -307,6 +307,7 @@ public class App implements ApplicationRunner {
 		for (String filename : filenames) {
 			//read from standard in if a filename is --
 			if (filename.equals("--")) {
+				log.info("Reading accessions from standard input");
 				try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
 					handleBufferedReader(br);
 			    } catch (FileNotFoundException e) {
@@ -315,6 +316,7 @@ public class App implements ApplicationRunner {
 					log.error("Unable to read "+filename, e);
 				}
 			} else {
+				log.info("Reading accessions from "+filename);
 				File file = new File(filename);
 				if (file.exists() && file.isFile()) {		
 					try (BufferedReader br = new BufferedReader(new FileReader(file))) {
@@ -338,12 +340,15 @@ public class App implements ApplicationRunner {
 		String line;
 		while ((line = br.readLine()) != null) {
 			line = line.trim();
+			log.debug("reading line '"+line+"'");
 	        if (line.matches("^SAM[END]A?[0-9]+$")) {
 	        	if (!sampleAccs.contains(line)) {
+	        		log.debug("adding sample accession "+line);
 	        		sampleAccs.add(line);
 	        	}
 	        } else if(line.matches("^SAM[END]G[0-9]+$")) {
 	        	if (groupAccs.contains(line)) {
+	        		log.debug("adding group accession "+line);
 	        		groupAccs.add(line);
 	        	}
 	        }  
