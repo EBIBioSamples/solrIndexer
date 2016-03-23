@@ -1,25 +1,6 @@
 package uk.ac.ebi.solrIndexer.main;
 
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.BIO_SOLR_FIELD;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.CONTENT_TYPE;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.DB_ACC;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.DB_NAME;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.DB_URL;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.GROUP_ACC;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.GROUP_RELEASE_DATE;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.GROUP_UPDATE_DATE;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.GRP_SAMPLE_ACC;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.ID;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.NUMBER_OF_SAMPLES;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SAMPLE_ACC;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SAMPLE_GRP_ACC;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SAMPLE_RELEASE_DATE;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SAMPLE_UPDATE_DATE;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_ACC;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_DESCRIPTION;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_TITLE;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_UPDATE_DATE;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.XML;
+import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.*;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -122,7 +103,7 @@ public class SolrManager {
                 log.error("Failed to index group " + bsg.getId(), e);
             }
         }
-        document.addField("crt_type", characteristic_types);
+		document.addField(CRT_TYPE, characteristic_types);
 
 		Set<BioSample> samples = bsg.getSamples();
 		int samples_nr = samples.size();
@@ -183,7 +164,7 @@ public class SolrManager {
                 log.error("Failed to index sample " + bs.getId(), e);
             }
 		}
-        document.addField("crt_type", characteristic_types);
+		document.addField(CRT_TYPE, characteristic_types);
 
 		Set<BioSampleGroup> groups = bs.getGroups();
 		if (groups.size() > 0) {
