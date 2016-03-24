@@ -38,12 +38,11 @@ public class SampleCallable implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {	
 		for (BioSample sample : samples) {
-			log.trace("Creating solr document for sample "+sample.getAcc());
+			if (sample == null) continue;
 			Optional<SolrInputDocument> doc = solrManager.generateBioSampleSolrDocument(sample);
 			if (doc.isPresent()) {
 				client.add(doc.get(), commitWithin);
 			}
-			log.trace("Finished solr document for sample "+sample.getAcc());
 		}
 	
 		return 1;
