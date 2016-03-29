@@ -39,12 +39,11 @@ public class GroupCallable implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 		for (BioSampleGroup group : groups) {
-			log.trace("Creating solr document for group "+group.getAcc());
+			if (group == null) continue;
 			Optional<SolrInputDocument> doc = solrManager.generateBioSampleGroupSolrDocument(group);
 			if (doc.isPresent()) {
 				client.add(doc.get(), commitWithin);
 			}
-			log.trace("Finished solr document for group "+group.getAcc());
 		}
 
 		return 1;
