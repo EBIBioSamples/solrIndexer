@@ -281,7 +281,7 @@ public class App implements ApplicationRunner {
 				// their own dao object
 				// this is apparently bad Inversion Of Control but I can't see a
 				// better way to do it
-				GroupRepoCallable callable = context.getBean(GroupRepoCallable.class, groupsClient, theseGroupAccs);
+				GroupRepoCallable callable = context.getBean(GroupRepoCallable.class, groupsClient, mergedClient, theseGroupAccs);
 
 				if (poolThreadCount == 0) {
 					callable.call();
@@ -359,7 +359,6 @@ public class App implements ApplicationRunner {
 	/**
 	 * Reads from a buffered reader and extracts sample and group accessions into the appropriate
 	 * lists on this object.
-	 * @param filenames
 	 */
 	private void handleBufferedReader(BufferedReader br) throws IOException {
 		String line;
