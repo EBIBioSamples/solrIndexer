@@ -158,29 +158,40 @@
         <field name="links" type="string" indexed="true" stored="true" multiValued="true"/>
         
         <!-- BIOSAMPLES specific fields  -->
-        <field name="sample_acc" type="text_general" indexed="true" stored="true"/>
-        <field name="submission_acc" type="text_general" indexed="true" stored="true"/>
-        <field name="submission_description" type="text_general" indexed="true" stored="true"/>
-        <field name="submission_title" type="text_general" indexed="true" stored="true"/>
-        <field name="sample_release_date" type="date" indexed="true" stored="true"/>
-        <field name="submission_update_date" type="date" indexed="true" stored="true"/>
-        <field name="format_version" type="string" indexed="true" stored="true"/>
-        <field name="data_base_acc" type="text_general" indexed="true" stored="true"/>
-        <field name="data_base_name" type="text_general" indexed="true" stored="true"/>
-        <field name="data_base_url" type="text_general" indexed="true" stored="true"/>
-        <field name="doc_type" type="string" indexed="true" stored="false"/>
-        <field name="group_acc" type="text_general" indexed="true" stored="true"/>
-        <field name="is_ref_layer" type="text_general" indexed="true" stored="true"/>
-        <field name="group_update_date" type="date" indexed="true" stored="true"/>
-        <field name="sample_update_date" type="date" indexed="true" stored="true"/>
-        <field name="number_of_samples" type="int" indexed="true" stored="true"/>
-        <field name="group_samples" type="string" indexed="true" stored="true"/>
-        <field name="xmlAPI" type="text_general" indexed="true" stored="true"/>
-
-        <!--  -->
         <field name="accession" type="text_general" indexed="false" stored="true"/>
         <field name="update_date" type="text_general" indexed="false" stored="true" multiValued="true"/>
         <field name="name" type="text_general" indexed="false" stored="true"/>
+        <field name="content_type" type="string" indexed="true" stored="true"/>
+
+        <field name="sample_acc" type="text_general" indexed="true" stored="true"/>
+        <field name="sample_update_date" type="date" indexed="true" stored="true"/>
+        <field name="sample_release_date" type="date" indexed="true" stored="true"/>
+        <field name="sample_grp_accessions" type="text_general" indexed="true" stored="true" multiValued="true"/>
+
+        <field name="group_acc" type="text_general" indexed="true" stored="true"/>
+        <field name="group_update_date" type="date" indexed="true" stored="true"/>
+        <field name="group_release_date" type="date" indexed="true" stored="true"/>
+        <field name="group_samples" type="string" indexed="true" stored="true"/>
+        <field name="grp_sample_accessions" type="text_general" indexed="true" stored="true" multiValued="true"/>
+        <field name="number_of_samples" type="int" indexed="true" stored="true"/>
+
+        <field name="submission_acc" type="text_general" indexed="true" stored="true"/>
+        <field name="submission_description" type="text_general" indexed="true" stored="true"/>
+        <field name="submission_title" type="text_general" indexed="true" stored="true"/>
+        <field name="submission_update_date" type="date" indexed="true" stored="true"/>
+
+        <field name="data_base_acc" type="text_general" indexed="true" stored="true"/>
+        <field name="data_base_name" type="text_general" indexed="true" stored="true"/>
+        <field name="data_base_url" type="text_general" indexed="true" stored="true"/>
+
+        <field name="doc_type" type="string" indexed="true" stored="false"/>
+        <field name="format_version" type="string" indexed="true" stored="true"/>
+        <field name="is_ref_layer" type="text_general" indexed="true" stored="true"/>
+
+        <field name="xmlAPI" type="text_general" indexed="true" stored="true"/>
+
+        <!-- Field BioSolr will look to find -->
+        <field name="ontology_uri" type="text_general" indexed="true" stored="true"/>
 
         <!-- used to calculate facets -->
         <field name="crt_type" type="text_general" indexed="true" stored="false" multiValued="true"/>

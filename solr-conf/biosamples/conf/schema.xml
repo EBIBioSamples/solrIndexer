@@ -124,6 +124,11 @@
     <copyField source="*" dest="_text_"/>
 
     <!-- BIOSAMPLES specific fields  -->
+    <field name="accession" type="text_general" indexed="false" stored="true"/>
+    <field name="update_date" type="text_general" indexed="false" stored="true" multiValued="true"/>
+    <field name="name" type="text_general" indexed="false" stored="true"/>
+    <field name="content_type" type="string" indexed="true" stored="true"/>
+
     <field name="sample_acc" type="text_general" indexed="true" stored="true"/>
     <field name="sample_update_date" type="date" indexed="true" stored="true"/>
     <field name="sample_release_date" type="date" indexed="true" stored="true"/>
@@ -132,6 +137,7 @@
     <field name="group_acc" type="text_general" indexed="true" stored="true"/>
     <field name="group_update_date" type="date" indexed="true" stored="true"/>
     <field name="group_release_date" type="date" indexed="true" stored="true"/>
+    <field name="group_samples" type="string" indexed="true" stored="true"/>
     <field name="grp_sample_accessions" type="text_general" indexed="true" stored="true" multiValued="true"/>
     <field name="number_of_samples" type="int" indexed="true" stored="true"/>
 
@@ -149,13 +155,12 @@
     <field name="is_ref_layer" type="text_general" indexed="true" stored="true"/>
 
     <field name="xmlAPI" type="text_general" indexed="true" stored="true"/>
-    <field name="accession" type="text_general" indexed="false" stored="true"/>
-    <field name="update_date" type="text_general" indexed="false" stored="true" multiValued="true"/>
-    <field name="name" type="text_general" indexed="false" stored="true"/>
 
-    <field name="content_type" type="string" indexed="true" stored="true"/>
     <!-- Field BioSolr will look to find -->
     <field name="ontology_uri" type="text_general" indexed="true" stored="true"/>
+
+    <!-- used to calculate facets -->
+    <field name="crt_type" type="text_general" indexed="true" stored="false" multiValued="true"/>
     <!-- BIOSAMPLES end -->
 
     <!-- catchall field, containing all other searchable text fields (implemented
@@ -212,6 +217,9 @@
 
     <!-- BIOSAMPLES CHARACTERISTICS -->
     <dynamicField name="*_crt" type="text_general" indexed="true" stored="true" multiValued="true"/>
+    <dynamicField name="*_crt_json" type="string" indexed="false" stored="true" multiValued="true"/>
+
+    <dynamicField name="*_ft" type="string" indexed="true" stored="false" multiValued="true"/>
     <!-- BIOSAMPLES CHARACTERISTICS -->
 
     <!-- uncomment the following to ignore any fields that don't already match an existing 
@@ -271,36 +279,41 @@
   <!-- copy name to alphaNameSort, a field designed for sorting by name -->
   <!-- <copyField source="name" dest="alphaNameSort"/> -->
 
-  <!-- copy BIOSAMPLES fields into text too -->
-  <copyField source="sample_acc" dest="text"/>
-  <copyField source="format_version" dest="text"/>
-  <copyField source="submission_acc" dest="text"/>
-  <copyField source="submission_description" dest="text"/>
-  <copyField source="submission_title" dest="text"/>
-  <copyField source="sample_release_date" dest="text"/>
-  <copyField source="submission_update_date" dest="text"/>
-  <copyField source="format_version" dest="text"/>
-  <copyField source="data_base_acc" dest="text"/>
-  <copyField source="data_base_name" dest="text"/>
-  <copyField source="data_base_url" dest="text"/>
-  <copyField source="doc_type" dest="text"/>
-  <copyField source="group_acc" dest="text"/>
-  <copyField source="group_update_date" dest="text"/>
+    <!-- copy BIOSAMPLES fields into text too -->
+    <copyField source="sample_acc" dest="text"/>
+    <copyField source="format_version" dest="text"/>
+    <copyField source="submission_acc" dest="text"/>
+    <copyField source="submission_description" dest="text"/>
+    <copyField source="submission_title" dest="text"/>
+    <copyField source="sample_release_date" dest="text"/>
+    <copyField source="submission_update_date" dest="text"/>
+    <copyField source="format_version" dest="text"/>
+    <copyField source="data_base_acc" dest="text"/>
+    <copyField source="data_base_name" dest="text"/>
+    <copyField source="data_base_url" dest="text"/>
+    <copyField source="doc_type" dest="text"/>
+    <copyField source="group_acc" dest="text"/>
+    <copyField source="group_update_date" dest="text"/>
+    <copyField source="number_of_samples" dest="text"/>
+    <copyField source="group_samples" dest="text"/>
 
-  <copyField source="group_acc" dest="accession"/>
-  <copyField source="sample_acc" dest="accession"/>
+    <copyField source="group_acc" dest="accession"/>
+    <copyField source="sample_acc" dest="accession"/>
 
-  <copyField source="group_update_date" dest="update_date"/>
-  <copyField source="sample_update_date" dest="update_date"/>
+    <copyField source="group_update_date" dest="update_date"/>
+    <copyField source="sample_update_date" dest="update_date"/>
+    <!--copyField source="submission_update_date" dest="update_date"/-->
 
-  <copyField source="sample_name_crt" dest="name"/>
+    <copyField source="sample_name_crt" dest="name"/>
 
-  <copyField source="submission_description" dest="description"/>
+    <copyField source="submission_description" dest="description"/>
 
-  <copyField source="content_type" dest="text"/>
+    <copyField source="*_crt" dest="text"/>
+    <copyField source="*_crt" dest="*_crt_ft"/>
 
-  <copyField source="*_crt" dest="text"/>
-  <!-- BIOSAMPLES End --> 
+    <!-- Create a string version of crt_type for faceting -->
+    <copyField source="crt_type" dest="crt_type_ft"/>
+    <!-- BIOSAMPLES End -->
 
     <!-- field type definitions. The "name" attribute is
        just a label to be used by field definitions.  The "class"
