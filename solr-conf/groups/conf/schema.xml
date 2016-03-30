@@ -161,7 +161,6 @@
         <field name="accession" type="text_general" indexed="false" stored="true"/>
         <field name="update_date" type="text_general" indexed="false" stored="true" multiValued="true"/>
         <field name="name" type="text_general" indexed="false" stored="true"/>
-        <field name="content_type" type="string" indexed="true" stored="true"/>
 
         <field name="sample_acc" type="text_general" indexed="true" stored="true"/>
         <field name="sample_update_date" type="date" indexed="true" stored="true"/>
