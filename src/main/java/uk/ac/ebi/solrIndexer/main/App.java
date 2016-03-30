@@ -50,6 +50,8 @@ public class App implements ApplicationRunner {
 	private String solrIndexGroupsCorePath;
 	@Value("${solrIndexer.samples.corePath}")
 	private String solrIndexSamplesCorePath;
+	@Value("${solrIndexer.merged.corePath}")
+	private String solrIndexMergedCorePath;
 
 	@Value("${solrIndexer.queueSize:1000}")
 	private int solrIndexQueueSize;
@@ -74,6 +76,7 @@ public class App implements ApplicationRunner {
 
 	private ConcurrentUpdateSolrClient groupsClient = null;
 	private ConcurrentUpdateSolrClient samplesClient = null;
+	private ConcurrentUpdateSolrClient mergedClient = null;
 	private List<String> groupAccs = new ArrayList<>();
 	private List<String> sampleAccs = new ArrayList<>();;
 
@@ -110,10 +113,12 @@ public class App implements ApplicationRunner {
 			handleFilenames(args.getOptionValues("sourcefile"));
 		}
 
+		// Merged core client initialization
+		mergedClient = new ConcurrentUpdateSolrClient(solrIndexMergedCorePath, solrIndexQueueSize, solrIndexThreadCount);
+
 		// only bother getting accessions from db if we will actually use them
 		if (doGroups) {
-			groupsClient = new ConcurrentUpdateSolrClient(solrIndexGroupsCorePath, solrIndexQueueSize,
-					solrIndexThreadCount);
+			groupsClient = new ConcurrentUpdateSolrClient(solrIndexGroupsCorePath, solrIndexQueueSize, solrIndexThreadCount);
 			// don't get from db if we were given a file with them
 			if (groupAccs.size() == 0) {
 				if (offsetTotal > 0) {
@@ -132,8 +137,7 @@ public class App implements ApplicationRunner {
 		}
 		// only bother getting accessions from db if we will actually use them
 		if (doSamples) {
-			samplesClient = new ConcurrentUpdateSolrClient(solrIndexSamplesCorePath, solrIndexQueueSize,
-					solrIndexThreadCount);
+			samplesClient = new ConcurrentUpdateSolrClient(solrIndexSamplesCorePath, solrIndexQueueSize, solrIndexThreadCount);
 			// don't get from db if we were given a file with them
 			if (sampleAccs.size() == 0) {
 				if (offsetTotal > 0) {
@@ -164,6 +168,9 @@ public class App implements ApplicationRunner {
 				if (samplesClient != null) {
 					samplesClient.deleteByQuery("*:*");
 				}
+				if (mergedClient != null) {
+					mergedClient.deleteByQuery("*:*");
+				}
 			}
 
 			// setup annotator, if using
@@ -186,11 +193,13 @@ public class App implements ApplicationRunner {
 					}
 
 					// process things
-					if (doGroups && groupsClient != null) {
-						runGroups(groupAccs);
-					}
-					if (doSamples && samplesClient != null) {
-						runSamples(sampleAccs);
+					if (mergedClient != null) {
+						if (doGroups && groupsClient != null) {
+							runGroups(groupAccs);
+						}
+						if (doSamples && samplesClient != null) {
+							runSamples(sampleAccs);
+						}
 					}
 
 					// wait for all other futures to finish
@@ -235,7 +244,7 @@ public class App implements ApplicationRunner {
 
 		} finally {
 
-			// finish the solr client
+			// finish the solr clients
 			log.info("Closing solr clients");
 			if (groupsClient != null) {
 				groupsClient.commit();
@@ -247,6 +256,12 @@ public class App implements ApplicationRunner {
 				samplesClient.commit();
 				samplesClient.blockUntilFinished();
 				samplesClient.close();
+			}
+
+			if (mergedClient != null) {
+				mergedClient.commit();
+				mergedClient.blockUntilFinished();
+				mergedClient.close();
 			}
 		}
 
