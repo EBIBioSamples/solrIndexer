@@ -25,10 +25,11 @@ public class SampleRepoCallable extends SampleCallable {
 
 	private Iterable<String> accessions;
 
-	public SampleRepoCallable(ConcurrentUpdateSolrClient client, Iterable<String> accessions) {
+	public SampleRepoCallable(ConcurrentUpdateSolrClient client, ConcurrentUpdateSolrClient mergedClient, Iterable<String> accessions) {
 		super();
 		this.client = client;
 		this.accessions = accessions;
+		this.mergedClient = mergedClient;
 	}
 
 	@Override

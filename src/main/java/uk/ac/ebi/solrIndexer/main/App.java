@@ -302,7 +302,7 @@ public class App implements ApplicationRunner {
 				// their own dao object
 				// this is apparently bad Inversion Of Control but I can't see a
 				// better way to do it
-				SampleRepoCallable callable = context.getBean(SampleRepoCallable.class, samplesClient, theseSampleAccs);
+				SampleRepoCallable callable = context.getBean(SampleRepoCallable.class, samplesClient, mergedClient, theseSampleAccs);
 
 				if (poolThreadCount == 0) {
 					callable.call();
