@@ -20,6 +20,7 @@ public class GroupCallable implements Callable<Integer> {
 
 	protected Iterable<BioSampleGroup> groups;
 	protected ConcurrentUpdateSolrClient client;
+	protected ConcurrentUpdateSolrClient mergedClient;
 	
 	@Autowired
 	private SolrManager solrManager;
@@ -31,9 +32,10 @@ public class GroupCallable implements Callable<Integer> {
 		
 	}
 	
-	public GroupCallable (Iterable<BioSampleGroup> groups, ConcurrentUpdateSolrClient client) {
+	public GroupCallable (Iterable<BioSampleGroup> groups, ConcurrentUpdateSolrClient client, ConcurrentUpdateSolrClient mergedClient) {
 		this.groups = groups;
 		this.client = client;
+		this.mergedClient = mergedClient;
 	}
 
 	@Override
@@ -43,6 +45,7 @@ public class GroupCallable implements Callable<Integer> {
 			Optional<SolrInputDocument> doc = solrManager.generateBioSampleGroupSolrDocument(group);
 			if (doc.isPresent()) {
 				client.add(doc.get(), commitWithin);
+				mergedClient.add(doc.get(), commitWithin);
 			}
 		}
 
