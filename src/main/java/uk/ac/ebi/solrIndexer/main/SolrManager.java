@@ -96,12 +96,7 @@ public class SolrManager {
 
         List<String> characteristic_types = new ArrayList<>();
         for (ExperimentalPropertyValue<?> epv : bsg.getPropertyValues()) {
-            try {
-                handlePropertyValue(epv, characteristic_types, document);
-            }
-            catch (RuntimeException e) {
-                log.error("Failed to index group " + bsg.getId(), e);
-            }
+            handlePropertyValue(epv, characteristic_types, document);
         }
 		document.addField(CRT_TYPE, characteristic_types);
 
@@ -157,12 +152,7 @@ public class SolrManager {
 
         List<String> characteristic_types = new ArrayList<>();
 		for (ExperimentalPropertyValue<?> epv : bs.getPropertyValues()) {
-            try {
-                handlePropertyValue(epv, characteristic_types, document);
-            }
-            catch (RuntimeException e) {
-                log.error("Failed to index sample " + bs.getId(), e);
-            }
+            handlePropertyValue(epv, characteristic_types, document);
 		}
 		document.addField(CRT_TYPE, characteristic_types);
 
@@ -203,34 +193,38 @@ public class SolrManager {
 
         if (annotator != null) {
 			// Ontologies from Annotator
-            try {
-                List<String> urls = new ArrayList<>();
-                List<OntologyEntry> ontologies = annotator.getAllOntologyEntries(epv);
-                ontologies.forEach(oe -> urls.add(oe.getAcc()));
+        	
+            List<OntologyEntry> ontologyEntries = annotator.getAllOntologyEntries(epv);
+            List<String> urls = new ArrayList<>();
+            ontologyEntries.forEach(oe -> urls.add(oe.getAcc()));
 
-                // format json
-                StringBuilder sb = new StringBuilder();
-                sb.append("{\"text\":\"").append(epv.getTermText()).append("\"");
-                if (urls.size() > 0) {
-                    sb.append(",");
-                    sb.append("\"ontology_terms\":[");
-                }
-                Iterator<String> urlIt = urls.iterator();
-                while (urlIt.hasNext()) {
-                    sb.append("\"").append(urlIt.next()).append("\"");
-                    if (urlIt.hasNext()) {
-                        sb.append(",");
-                    }
-                }
-                if (urls.size() > 0) {
-                    sb.append("]");
-                }
-                sb.append("}");
-                document.addField(jsonFieldName, sb.toString());
-            } catch (IllegalArgumentException e) {
-                throw new RuntimeException("Failed to index ExperimentalPropertyValue [" + epv.getTermText() + "]", e);
+            // format json
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\"text\":\"").append(epv.getTermText()).append("\"");
+            if (urls.size() > 0) {
+                sb.append(",");
+                sb.append("\"ontology_terms\":[");
             }
+            Iterator<String> urlIt = urls.iterator();
+            while (urlIt.hasNext()) {
+                sb.append("\"").append(urlIt.next()).append("\"");
+                if (urlIt.hasNext()) {
+                    sb.append(",");
+                }
+            }
+            if (urls.size() > 0) {
+                sb.append("]");
+            }
+            sb.append("}");
+            document.addField(jsonFieldName, sb.toString());
 
+            //populate biosolr fields
+			for (String url : urls) {
+				log.trace(url);
+				if (url != null) {
+					document.addField(BIO_SOLR_FIELD, url);
+				}
+			}
         } else {
 			// Ontologies from Submission
             if (epv.getSingleOntologyTerm() != null) {
