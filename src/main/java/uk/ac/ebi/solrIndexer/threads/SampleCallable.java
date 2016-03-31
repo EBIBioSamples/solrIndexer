@@ -19,6 +19,7 @@ public class SampleCallable implements Callable<Integer> {
 
 	protected Iterable<BioSample> samples;
 	protected ConcurrentUpdateSolrClient client;
+	protected ConcurrentUpdateSolrClient mergedClient;
 	
 	@Autowired
 	private SolrManager solrManager;
@@ -30,9 +31,10 @@ public class SampleCallable implements Callable<Integer> {
 		
 	}
 	
-	public SampleCallable (Iterable<BioSample> samples, ConcurrentUpdateSolrClient client) {
+	public SampleCallable (Iterable<BioSample> samples, ConcurrentUpdateSolrClient client, ConcurrentUpdateSolrClient mergedClient) {
 		this.samples = samples;
 		this.client = client;
+		this.mergedClient = mergedClient;
 	}
 
 	@Override
@@ -42,6 +44,7 @@ public class SampleCallable implements Callable<Integer> {
 			Optional<SolrInputDocument> doc = solrManager.generateBioSampleSolrDocument(sample);
 			if (doc.isPresent()) {
 				client.add(doc.get(), commitWithin);
+				mergedClient.add(doc.get(), commitWithin);
 			}
 		}
 	

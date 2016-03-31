@@ -25,10 +25,11 @@ public class GroupRepoCallable extends GroupCallable {
 
 	private Iterable<String> accessions;
 	
-	public GroupRepoCallable(ConcurrentUpdateSolrClient client, Iterable<String> accessions) {
+	public GroupRepoCallable(ConcurrentUpdateSolrClient client, ConcurrentUpdateSolrClient mergedClient, Iterable<String> accessions) {
 		super();
 		this.client = client;
 		this.accessions = accessions;
+		this.mergedClient = mergedClient;
 	}
 
 	@Override
