@@ -69,7 +69,9 @@ public class Formater {
 		try {
 			uri = new URI(onto.getAcc());
 		} catch (URISyntaxException e) {
+			log.warn("OntologyEntry has non-URI acession : "+onto);
 			uri = null;
+			
 		}
 		if (uri != null) {
 			return Optional.of(uri);
