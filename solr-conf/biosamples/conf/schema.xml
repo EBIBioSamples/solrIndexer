@@ -156,6 +156,10 @@
     <field name="content_type" type="string" indexed="true" stored="true"/>
     <!-- Field BioSolr will look to find -->
     <field name="ontology_uri" type="text_general" indexed="true" stored="true"/>
+    
+    <!-- used to calculate facets -->
+    <field name="crt_type" type="text_general" indexed="true" stored="false" multiValued="true"/>
+        
     <!-- BIOSAMPLES end -->
 
     <!-- catchall field, containing all other searchable text fields (implemented
@@ -212,6 +216,8 @@
 
     <!-- BIOSAMPLES CHARACTERISTICS -->
     <dynamicField name="*_crt" type="text_general" indexed="true" stored="true" multiValued="true"/>
+    <dynamicField name="*_crt_json" type="string" indexed="false" stored="true" multiValued="true"/>
+    <dynamicField name="*_ft" type="string" indexed="true" stored="false" multiValued="true"/> 
     <!-- BIOSAMPLES CHARACTERISTICS -->
 
     <!-- uncomment the following to ignore any fields that don't already match an existing 
@@ -299,7 +305,11 @@
 
   <copyField source="content_type" dest="text"/>
 
-  <copyField source="*_crt" dest="text"/>
+  <copyField source="*_crt" dest="text"/>    
+  
+  <!-- Create a string version of crt_type for faceting -->
+  <copyField source="crt_type" dest="crt_type_ft"/>
+  
   <!-- BIOSAMPLES End --> 
 
     <!-- field type definitions. The "name" attribute is
