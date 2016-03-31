@@ -1,28 +1,10 @@
 package uk.ac.ebi.solrIndexer.main;
 
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.BIO_SOLR_FIELD;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.CONTENT_TYPE;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.DB_ACC;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.DB_NAME;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.DB_URL;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.GROUP_ACC;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.GROUP_RELEASE_DATE;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.GROUP_UPDATE_DATE;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.GRP_SAMPLE_ACC;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.ID;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.NUMBER_OF_SAMPLES;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SAMPLE_ACC;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SAMPLE_GRP_ACC;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SAMPLE_RELEASE_DATE;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SAMPLE_UPDATE_DATE;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_ACC;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_DESCRIPTION;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_TITLE;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.SUBMISSION_UPDATE_DATE;
-import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.XML;
+import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.*;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -46,7 +28,7 @@ import uk.ac.ebi.solrIndexer.service.xml.BioSampleXMLService;
 
 @Component
 public class SolrManager {
-	
+
 	private Logger log = LoggerFactory.getLogger (this.getClass());
 
 	private AnnotatorAccessor annotator = null;
@@ -56,7 +38,7 @@ public class SolrManager {
 
     @Autowired
     private BioSampleXMLService sampleXmlService;
-	
+
 	private boolean includeXML = false;
 
 	public AnnotatorAccessor getAnnotator() {
@@ -90,11 +72,11 @@ public class SolrManager {
 			return Optional.empty();
 		}
 		*/
-		
+
 		log.trace("Creating solr document for group "+bsg.getAcc());
 
 		SolrInputDocument document = new SolrInputDocument();
-		
+
 		document.addField(ID, bsg.getId());
 		document.addField(GROUP_ACC, bsg.getAcc());
 		document.addField(GROUP_UPDATE_DATE, Formater.formatDateToSolr(bsg.getUpdateDate()));
@@ -112,9 +94,11 @@ public class SolrManager {
 			return Optional.empty();
 		}
 
-		for (ExperimentalPropertyValue<?> epv : bsg.getPropertyValues()) {
-			handlePropertyValue(epv, document);
-		}
+        List<String> characteristic_types = new ArrayList<>();
+        for (ExperimentalPropertyValue<?> epv : bsg.getPropertyValues()) {
+            handlePropertyValue(epv, characteristic_types, document);
+        }
+		document.addField(CRT_TYPE, characteristic_types);
 
 		Set<BioSample> samples = bsg.getSamples();
 		int samples_nr = samples.size();
@@ -146,9 +130,9 @@ public class SolrManager {
 			return Optional.empty();
 		}
 		*/
-		
+
 		SolrInputDocument document = new SolrInputDocument();
-		
+
 		document.addField(ID, bs.getId());
 		document.addField(SAMPLE_ACC, bs.getAcc());
 		document.addField(SAMPLE_UPDATE_DATE, Formater.formatDateToSolr(bs.getUpdateDate()));
@@ -166,9 +150,11 @@ public class SolrManager {
 			return Optional.empty();
 		}
 
+        List<String> characteristic_types = new ArrayList<>();
 		for (ExperimentalPropertyValue<?> epv : bs.getPropertyValues()) {
-			handlePropertyValue(epv, document);
+            handlePropertyValue(epv, characteristic_types, document);
 		}
+		document.addField(CRT_TYPE, characteristic_types);
 
 		Set<BioSampleGroup> groups = bs.getGroups();
 		if (groups.size() > 0) {
@@ -182,7 +168,7 @@ public class SolrManager {
 
 		return Optional.of(document);
 	}
-	
+
 	private void handleMSI(MSI submission, SolrInputDocument document) {
 		document.addField(SUBMISSION_ACC,submission.getAcc());
 		document.addField(SUBMISSION_DESCRIPTION,submission.getDescription());
@@ -197,31 +183,58 @@ public class SolrManager {
 			document.addField(DB_URL, dbrr.getUrl());
 		}
 	}
-	
-	private void handlePropertyValue(ExperimentalPropertyValue<?> epv, SolrInputDocument document) {
 
-		document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), epv.getTermText());
+	private void handlePropertyValue(ExperimentalPropertyValue<?> epv, List<String> characteristic_types, SolrInputDocument document) {
+        String fieldName = Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText());
+        String jsonFieldName = fieldName + "_json";
+        characteristic_types.add(fieldName);
 
-		if (annotator != null) {
+        document.addField(fieldName, epv.getTermText());
+
+        if (annotator != null) {
 			// Ontologies from Annotator
-			List<String> urls = new ArrayList<String>();
-			List<OntologyEntry> ontologies = annotator.getAllOntologyEntries(epv);
-			ontologies.forEach(oe -> urls.add(oe.getAcc()));
-			
+        	
+            List<OntologyEntry> ontologyEntries = annotator.getAllOntologyEntries(epv);
+            List<String> urls = new ArrayList<>();
+            ontologyEntries.forEach(oe -> urls.add(oe.getAcc()));
+
+            // format json
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\"text\":\"").append(epv.getTermText()).append("\"");
+            if (urls.size() > 0) {
+                sb.append(",");
+                sb.append("\"ontology_terms\":[");
+            }
+            Iterator<String> urlIt = urls.iterator();
+            while (urlIt.hasNext()) {
+                sb.append("\"").append(urlIt.next()).append("\"");
+                if (urlIt.hasNext()) {
+                    sb.append(",");
+                }
+            }
+            if (urls.size() > 0) {
+                sb.append("]");
+            }
+            sb.append("}");
+            document.addField(jsonFieldName, sb.toString());
+
+            //populate biosolr fields
 			for (String url : urls) {
 				log.trace(url);
 				if (url != null) {
-					document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), url);
 					document.addField(BIO_SOLR_FIELD, url);
 				}
 			}
-		} else {
+        } else {
 			// Ontologies from Submission
-			if (epv.getSingleOntologyTerm() != null) {
+            if (epv.getSingleOntologyTerm() != null) {
 				Optional<URI> uri = Formater.getOntologyTermURI(epv.getSingleOntologyTerm());
 				if (uri.isPresent()) {
 					document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), uri.get().toString());
 				}
+                else {
+                    throw new RuntimeException("Failed to format ontology term URI to index ExperimentalPropertyValue [" + epv.getTermText() + "]");
+                }
 			}
 		}
 	}

@@ -6,57 +6,16 @@
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 			<pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %logger{36}: %msg%n</pattern>
 		</encoder>
-		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-			<level>INFO</level>
-		</filter>
 	</appender>
 
-	<appender name="File-Main" class="ch.qos.logback.core.FileAppender">
-		<Append>false</Append>
-		<File>logs/main.log</File>
-
-		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<pattern>%d{dd MMM yyyy - HH:mm:ss.SSS} %-5level [%thread] %logger{36}: %msg%n</pattern>
-		</encoder>
-
-		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
-			<evaluator> 
-				<expression>return (logger.startsWith("org.hibernate") || logger.startsWith("com.mchange"));</expression>
-			</evaluator>
-			<OnMismatch>NEUTRAL</OnMismatch>
-			<OnMatch>DENY</OnMatch>
-		</filter>
-	</appender>
-
-	<appender name="File-Hibernate" class="ch.qos.logback.core.FileAppender">
-		<Append>false</Append>
-		<File>logs/hibernate.log</File>
-
-		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-			<pattern>%d{dd MMM yyyy - HH:mm:ss.SSS} %-5level [%thread] %logger{36}: %msg%n</pattern>
-		</encoder>
-
-		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
-			<evaluator> 
-				<expression>return (logger.startsWith("org.hibernate") || logger.startsWith("com.mchange"));</expression>
-			</evaluator>
-			<OnMismatch>DENY</OnMismatch>
-			<OnMatch>NEUTRAL</OnMatch>
-		</filter>
-		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-			<level>DEBUG</level>
-		</filter>
-	</appender>
 
 	<logger name = "uk.ac.ebi.fg.biosd.model" level = "INFO"/>
-	<logger name = "org.apache.http.wire" level = "WARN"/>
-	<logger name = "o.s.c.i.s.PathMatchingResourcePatternResolver" level = "OFF"/>
-	<logger name = "org.apache.http.headers" level = "WARN"/>
-
-	<root level="DEBUG">
+	<logger name = "uk.ac.ebi.solrIndexer" level = "DEBUG" additivity="false">
 		<appender-ref ref="Console" />
-		<appender-ref ref="File-Main" />
-		<appender-ref ref="File-Hibernate" />
+	</logger>
+
+	<root level="WARN">
+		<appender-ref ref="Console" />
 	</root>
 
 </configuration>
