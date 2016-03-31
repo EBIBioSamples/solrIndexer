@@ -195,34 +195,39 @@ public class SolrManager {
 			// Ontologies from Annotator
         	
             List<OntologyEntry> ontologyEntries = annotator.getAllOntologyEntries(epv);
-            List<String> urls = new ArrayList<>();
-            ontologyEntries.forEach(oe -> urls.add(oe.getAcc()));
+            List<URI> uris = new ArrayList<>();
+            for (OntologyEntry oe : ontologyEntries) {
+				Optional<URI> uri = Formater.getOntologyTermURI(oe);
+				if (uri.isPresent() && !uris.contains(uri.get())) {
+					uris.add(uri.get());
+				}	
+            }
 
             // format json
             StringBuilder sb = new StringBuilder();
             sb.append("{\"text\":\"").append(epv.getTermText()).append("\"");
-            if (urls.size() > 0) {
+            if (uris.size() > 0) {
                 sb.append(",");
                 sb.append("\"ontology_terms\":[");
             }
-            Iterator<String> urlIt = urls.iterator();
+            Iterator<URI> urlIt = uris.iterator();
             while (urlIt.hasNext()) {
                 sb.append("\"").append(urlIt.next()).append("\"");
                 if (urlIt.hasNext()) {
                     sb.append(",");
                 }
             }
-            if (urls.size() > 0) {
+            if (uris.size() > 0) {
                 sb.append("]");
             }
             sb.append("}");
             document.addField(jsonFieldName, sb.toString());
 
             //populate biosolr fields
-			for (String url : urls) {
-				log.trace(url);
-				if (url != null) {
-					document.addField(BIO_SOLR_FIELD, url);
+			for (URI uri : uris) {
+				log.trace("adding "+BIO_SOLR_FIELD+" "+uri);
+				if (uri != null) {
+					document.addField(BIO_SOLR_FIELD, uri);
 				}
 			}
         } else {
@@ -232,9 +237,6 @@ public class SolrManager {
 				if (uri.isPresent()) {
 					document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), uri.get().toString());
 				}
-                else {
-                    throw new RuntimeException("Failed to format ontology term URI to index ExperimentalPropertyValue [" + epv.getTermText() + "]");
-                }
 			}
 		}
 	}
