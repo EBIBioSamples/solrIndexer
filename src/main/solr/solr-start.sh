@@ -1,7 +1,7 @@
 #!/bin/bash
 
 base=${0%/*};
-SOLR_HOME=$base/conf/
+SOLR_HOME=$base/instance/
 
 DEBUG_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044"
 
