@@ -46,4 +46,4 @@ myeq.properties
 
 # data files in conf directory - ignore
 src/main/solr/instance/*/data
-
+solr/
