@@ -45,5 +45,5 @@ hibernate.properties
 myeq.properties
 
 # data files in conf directory - ignore
-solr-conf/*/data
+solr/conf/*/data
 
