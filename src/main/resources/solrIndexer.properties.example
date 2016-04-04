@@ -1,7 +1,9 @@
+##REQUIRED
 solrIndexer.groups.corePath=http://localhost:8983/solr/groups
 solrIndexer.samples.corePath=http://localhost:8983/solr/samples
 solrIndexer.merged.corePath=http://localhost:8983/solr/merged
 
+##OPTIONAL
 #number of documents to queue at once
 #lower saves memory here, but increases network traffic
 #higher uses more memory here, but increases network traffic

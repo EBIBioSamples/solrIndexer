@@ -64,11 +64,21 @@ public class Formater {
 	public static Optional<URI> getOntologyTermURI (OntologyEntry onto) {
 		String acc = null;
 		
+		try {
+			int number = Integer.parseInt(onto.getAcc());
+			//its a complete number, assume NCBI taxonomy
+			//TODO
+			return Optional.empty();
+		} catch (NumberFormatException e) {
+			//do nothing, carry on 
+		}
+		
 		//see if it is already a valid URI
 		URI uri = null;
 		try {
 			uri = new URI(onto.getAcc());
 		} catch (URISyntaxException e) {
+			log.warn("OntologyEntry has non-URI acession : "+onto);
 			uri = null;
 		}
 		if (uri != null) {
