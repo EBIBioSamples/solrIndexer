@@ -14,7 +14,7 @@
     <fileSets>
         <!-- copy any solr config files into config/ -->
         <fileSet>
-            <directory>src/main/solr/</directory>
+            <directory>solr/</directory>
             <outputDirectory>solr/</outputDirectory>
             <filtered>false</filtered>
             <excludes>
@@ -23,9 +23,9 @@
             </excludes>
         </fileSet>
 
-        <!-- copy all scripts into bin/ -->
+        <!-- copy all scripts into solr/ -->
         <fileSet>
-            <directory>src/main/solr/</directory>
+            <directory>solr/</directory>
             <outputDirectory>solr/</outputDirectory>
             <directoryMode>0755</directoryMode>
             <fileMode>0755</fileMode>
