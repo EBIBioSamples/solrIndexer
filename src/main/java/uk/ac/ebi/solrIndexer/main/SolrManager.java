@@ -60,18 +60,21 @@ public class SolrManager {
 	//Generate Group Solr Document
 	public Optional<SolrInputDocument> generateBioSampleGroupSolrDocument(BioSampleGroup bsg) {
 		//check if it should be public
-		/*
+		boolean pub;
 		try {
-			if (!bsg.isPublic()) {
-				log.trace("Group "+bsg.getAcc()+" is private, skipping");
-				return Optional.empty();
-			}
+			pub = bsg.isPublic();
+
 		} catch (IllegalStateException e) {
 			//has multiple msis
-			log.error("Group "+bsg.getAcc()+" has unusual MSIs", e);
+			log.error("Group " + bsg.getAcc() + " has unusual MSIs", e);
 			return Optional.empty();
 		}
-		*/
+
+		if (!pub) {
+			log.trace("Group "+bsg.getAcc()+" is private, skipping");
+			return Optional.empty();
+		}
+
 
 		log.trace("Creating solr document for group "+bsg.getAcc());
 
@@ -80,7 +83,7 @@ public class SolrManager {
 		document.addField(ID, bsg.getId());
 		document.addField(GROUP_ACC, bsg.getAcc());
 		document.addField(GROUP_UPDATE_DATE, Formater.formatDateToSolr(bsg.getUpdateDate()));
-		document.addField(GROUP_RELEASE_DATE, Formater.formatDateToSolr(bsg.getReleaseDate())); //TODO add group release date here too
+		document.addField(GROUP_RELEASE_DATE, Formater.formatDateToSolr(bsg.getReleaseDate()));
 		document.addField(CONTENT_TYPE, "group");
 
 		Set<MSI> msi = bsg.getMSIs();
@@ -118,18 +121,20 @@ public class SolrManager {
 	//Generate Sample Solr Document
 	public Optional<SolrInputDocument> generateBioSampleSolrDocument(BioSample bs) {
 		//check if it should be public
-		/*
+		boolean pub;
 		try {
-			if (!bs.isPublic()) {
-				log.trace("Sample "+bs.getAcc()+" is private, skipping");
-				return Optional.empty();
-			}
+			pub = bs.isPublic();
+
 		} catch (IllegalStateException e) {
 			//has multiple msis
-			log.error("Sample "+bs.getAcc()+" has unusual MSIs", e);
+			log.error("Sample " + bs.getAcc() + " has unusual MSIs", e);
 			return Optional.empty();
 		}
-		*/
+
+		if (!pub) {
+			log.trace("Sample "+bs.getAcc()+" is private, skipping");
+			return Optional.empty();
+		}
 
 		SolrInputDocument document = new SolrInputDocument();
 
