@@ -22,6 +22,7 @@ import uk.ac.ebi.fg.biosd.model.organizational.MSI;
 import uk.ac.ebi.fg.biosd.model.xref.DatabaseRecordRef;
 import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
+import uk.ac.ebi.fg.myequivalents.model.Entity;
 import uk.ac.ebi.solrIndexer.common.Formater;
 import uk.ac.ebi.solrIndexer.service.xml.BioSampleGroupXMLService;
 import uk.ac.ebi.solrIndexer.service.xml.BioSampleXMLService;
@@ -38,6 +39,9 @@ public class SolrManager {
 
     @Autowired
     private BioSampleXMLService sampleXmlService;
+
+	@Autowired
+	private MyEquivalenceManager myEquivalenceManager;
 
 	private boolean includeXML = false;
 
@@ -75,7 +79,6 @@ public class SolrManager {
 			return Optional.empty();
 		}
 
-
 		log.trace("Creating solr document for group "+bsg.getAcc());
 
 		SolrInputDocument document = new SolrInputDocument();
@@ -109,6 +112,10 @@ public class SolrManager {
 			samples.forEach(sample -> document.addField(GRP_SAMPLE_ACC, sample.getAcc()));
 		}
 		document.addField(NUMBER_OF_SAMPLES, samples_nr);
+
+		// Add equivalences
+		Set<Entity> externalEquivalences = myEquivalenceManager.getGroupExternalEquivalences(bsg.getAcc());
+		handleEquivalences(externalEquivalences, document);
 
 		if (includeXML) {
 			String xml = groupXmlService.getXMLString(bsg);
@@ -165,6 +172,10 @@ public class SolrManager {
 		if (groups.size() > 0) {
 			groups.forEach(group -> document.addField(SAMPLE_GRP_ACC, group.getAcc()));
 		}
+
+		// Add equivalences
+		Set<Entity> externalEquivalences = myEquivalenceManager.getSampleExternalEquivalences(bs.getAcc());
+		handleEquivalences(externalEquivalences, document);
 
 		if (includeXML) {
 			String xml = sampleXmlService.getXMLString(bs);
@@ -244,5 +255,14 @@ public class SolrManager {
 				}
 			}
 		}
+	}
+
+	private void handleEquivalences(Set<Entity> externalEquivalences, SolrInputDocument document) {
+		externalEquivalences.forEach(entity -> {
+
+			document.addField("equivalences_s", entity.getService().getTitle());
+			document.addField("equivalences_s", entity.getAccession());
+			document.addField("equivalences_s", entity.getURI());
+		});
 	}
 }
