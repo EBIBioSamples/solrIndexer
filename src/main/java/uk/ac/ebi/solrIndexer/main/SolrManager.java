@@ -9,7 +9,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.solr.common.SolrInputDocument;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,6 +97,9 @@ public class SolrManager {
 			if (msi.iterator().hasNext()) {
 				MSI submission = msi.iterator().next();
 				handleMSI(submission, document);
+
+				// Add equivalences
+				handleEquivalences(myEquivalenceManager.getGroupExternalEquivalences(bsg.getAcc()), document);
 			}
 		} else {
 			log.warn("Group "+bsg.getAcc()+" has "+msi.size()+" MSIs");
@@ -112,10 +118,6 @@ public class SolrManager {
 			samples.forEach(sample -> document.addField(GRP_SAMPLE_ACC, sample.getAcc()));
 		}
 		document.addField(NUMBER_OF_SAMPLES, samples_nr);
-
-		// Add equivalences
-		Set<Entity> externalEquivalences = myEquivalenceManager.getGroupExternalEquivalences(bsg.getAcc());
-		handleEquivalences(externalEquivalences, document);
 
 		if (includeXML) {
 			String xml = groupXmlService.getXMLString(bsg);
@@ -156,6 +158,9 @@ public class SolrManager {
 			if (msi.iterator().hasNext()) {
 				MSI submission = msi.iterator().next();
 				handleMSI(submission, document);
+
+				// Add equivalences
+				handleEquivalences(myEquivalenceManager.getSampleExternalEquivalences(bs.getAcc()), document);
 			}
 		} else {
 			log.warn("Sample "+bs.getAcc()+" has "+msi.size()+" MSIs");
@@ -173,10 +178,6 @@ public class SolrManager {
 			groups.forEach(group -> document.addField(SAMPLE_GRP_ACC, group.getAcc()));
 		}
 
-		// Add equivalences
-		Set<Entity> externalEquivalences = myEquivalenceManager.getSampleExternalEquivalences(bs.getAcc());
-		handleEquivalences(externalEquivalences, document);
-
 		if (includeXML) {
 			String xml = sampleXmlService.getXMLString(bs);
 			document.addField(XML, xml);
@@ -191,13 +192,14 @@ public class SolrManager {
 		document.addField(SUBMISSION_TITLE, submission.getTitle());
 		document.addField(SUBMISSION_UPDATE_DATE,Formater.formatDateToSolr(submission.getUpdateDate()));
 
-		Set<DatabaseRecordRef> db = submission.getDatabaseRecordRefs();
-		if (db.iterator().hasNext()) {
-			DatabaseRecordRef dbrr = db.iterator().next();
-			document.addField(DB_ACC, dbrr.getAcc());
-			document.addField(DB_NAME, dbrr.getDbName());
-			document.addField(DB_URL, dbrr.getUrl());
-		}
+		Set<DatabaseRecordRef> databaseRecordRefs = submission.getDatabaseRecordRefs();
+		databaseRecordRefs.stream()
+				.filter(databaseRecordRef -> UrlValidator.getInstance().isValid(databaseRecordRef.getUrl()))
+				.forEach(databaseRecordRef -> {
+					document.addField(DB_URL, databaseRecordRef.getUrl());
+					document.addField(DB_NAME, StringUtils.isNotEmpty(databaseRecordRef.getDbName()) ? databaseRecordRef.getDbName() : " -- ");
+					document.addField(DB_ACC, StringUtils.isNotEmpty(databaseRecordRef.getAcc()) ? databaseRecordRef.getAcc() : " -- ");
+				});
 	}
 
 	private void handlePropertyValue(ExperimentalPropertyValue<?> epv, List<String> characteristic_types, SolrInputDocument document) {
@@ -258,11 +260,12 @@ public class SolrManager {
 	}
 
 	private void handleEquivalences(Set<Entity> externalEquivalences, SolrInputDocument document) {
-		externalEquivalences.forEach(entity -> {
-
-			document.addField("equivalences_s", entity.getService().getTitle());
-			document.addField("equivalences_s", entity.getAccession());
-			document.addField("equivalences_s", entity.getURI());
-		});
+		externalEquivalences.stream()
+				.filter(entity -> UrlValidator.getInstance().isValid(entity.getURI()))
+				.forEach(entity -> {
+					document.addField(DB_URL, entity.getURI());
+					document.addField(DB_NAME, StringUtils.isNotEmpty(entity.getService().getTitle()) ? entity.getService().getName() : " -- ");
+					document.addField(DB_ACC, StringUtils.isNotEmpty(entity.getAccession()) ? entity.getAccession() : " -- ");
+				});
 	}
 }

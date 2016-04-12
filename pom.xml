@@ -124,6 +124,12 @@
 			<version>5.4.1</version>
 		</dependency>
 
+		<dependency>
+			<groupId>commons-validator</groupId>
+			<artifactId>commons-validator</artifactId>
+			<version>1.5.0</version>
+		</dependency>
+
 		<!-- would be good to move to dom4j as all other code uses it -->
 		<dependency>
 			<groupId>org.jdom</groupId>
