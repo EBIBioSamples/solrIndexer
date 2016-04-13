@@ -313,6 +313,8 @@
   
   <!-- Create a string version of crt_type for faceting -->
   <copyField source="crt_type" dest="crt_type_ft"/>
+  <!-- and likewise a string version of *_crt for faceting -->
+  <copyField source="*_crt" dest="*_crt_ft"/>
   
   <!-- BIOSAMPLES End --> 
 
