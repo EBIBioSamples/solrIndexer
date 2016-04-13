@@ -22,9 +22,7 @@ public class SolrSchemaFields {
 	/* ------------------------------- */
 	/* --         DB_REC_REF        -- */
 	/* ------------------------------- */
-	public static final String DB_ACC = "data_base_acc";
-	public static final String DB_NAME = "data_base_name";
-	public static final String DB_URL = "data_base_url";
+	public static final String REFERENCES = "external_references";
 
 	/* ------------------------------- */
 	/* --           GROUP           -- */
@@ -39,7 +37,6 @@ public class SolrSchemaFields {
 	/* ------------------------------- */
 	public static final String CONTENT_TYPE = "content_type";
 	public static final String NUMBER_OF_SAMPLES = "number_of_samples";
-	public static final String GROUP_SAMPLES = "group_samples";
 	public static final String CRT_TYPE = "crt_type";
 
 	/* --- Other --- */

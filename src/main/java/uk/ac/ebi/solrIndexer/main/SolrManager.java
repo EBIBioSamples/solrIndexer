@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.solr.common.SolrInputDocument;
@@ -47,6 +50,8 @@ public class SolrManager {
 	private MyEquivalenceManager myEquivalenceManager;
 
 	private boolean includeXML = false;
+
+	final JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
 
 	public AnnotatorAccessor getAnnotator() {
 		return annotator;
@@ -96,10 +101,7 @@ public class SolrManager {
 		if (msi.size() == 1) {
 			if (msi.iterator().hasNext()) {
 				MSI submission = msi.iterator().next();
-				handleMSI(submission, document);
-
-				// Add equivalences
-				handleEquivalences(myEquivalenceManager.getGroupExternalEquivalences(bsg.getAcc()), document);
+				handleMSI(submission, document, bsg);
 			}
 		} else {
 			log.warn("Group "+bsg.getAcc()+" has "+msi.size()+" MSIs");
@@ -157,10 +159,7 @@ public class SolrManager {
 		if (msi.size() == 1) {
 			if (msi.iterator().hasNext()) {
 				MSI submission = msi.iterator().next();
-				handleMSI(submission, document);
-
-				// Add equivalences
-				handleEquivalences(myEquivalenceManager.getSampleExternalEquivalences(bs.getAcc()), document);
+				handleMSI(submission, document, bs);
 			}
 		} else {
 			log.warn("Sample "+bs.getAcc()+" has "+msi.size()+" MSIs");
@@ -186,20 +185,43 @@ public class SolrManager {
 		return Optional.of(document);
 	}
 
-	private void handleMSI(MSI submission, SolrInputDocument document) {
+	private void handleMSI(MSI submission, SolrInputDocument document, Object obj) {
+		Set<Entity> externalEquivalences;
+		if (obj instanceof BioSampleGroup) {
+			BioSampleGroup bsg = (BioSampleGroup) obj;
+			externalEquivalences = myEquivalenceManager.getGroupExternalEquivalences(bsg.getAcc());
+			handleMSI(submission, document, externalEquivalences);
+
+		} else if (obj instanceof BioSample) {
+			BioSample bs = (BioSample) obj;
+			externalEquivalences = myEquivalenceManager.getSampleExternalEquivalences(bs.getAcc());
+			handleMSI(submission, document, externalEquivalences);
+		}
+	}
+
+	private void handleMSI(MSI submission, SolrInputDocument document, Set<Entity> externalEquivalences) {
 		document.addField(SUBMISSION_ACC,submission.getAcc());
 		document.addField(SUBMISSION_DESCRIPTION,submission.getDescription());
 		document.addField(SUBMISSION_TITLE, submission.getTitle());
 		document.addField(SUBMISSION_UPDATE_DATE,Formater.formatDateToSolr(submission.getUpdateDate()));
 
 		Set<DatabaseRecordRef> databaseRecordRefs = submission.getDatabaseRecordRefs();
+		ArrayNode array = new ArrayNode(nodeFactory);
 		databaseRecordRefs.stream()
 				.filter(databaseRecordRef -> UrlValidator.getInstance().isValid(databaseRecordRef.getUrl()))
 				.forEach(databaseRecordRef -> {
-					document.addField(DB_URL, databaseRecordRef.getUrl());
-					document.addField(DB_NAME, StringUtils.isNotEmpty(databaseRecordRef.getDbName()) ? databaseRecordRef.getDbName() : " -- ");
-					document.addField(DB_ACC, StringUtils.isNotEmpty(databaseRecordRef.getAcc()) ? databaseRecordRef.getAcc() : " -- ");
+
+					ObjectNode ref = nodeFactory.objectNode();
+					ref.put("Name", StringUtils.isNotEmpty(databaseRecordRef.getDbName()) ? databaseRecordRef.getDbName() : "");
+					ref.put("URL", databaseRecordRef.getUrl());
+					ref.put("Acc", StringUtils.isNotEmpty(databaseRecordRef.getAcc()) ? databaseRecordRef.getAcc() : "");
+
+					array.add(ref);
 				});
+
+		handleEquivalences(externalEquivalences, array);
+
+		document.addField(REFERENCES, array.toString());
 	}
 
 	private void handlePropertyValue(ExperimentalPropertyValue<?> epv, List<String> characteristic_types, SolrInputDocument document) {
@@ -259,13 +281,17 @@ public class SolrManager {
 		}
 	}
 
-	private void handleEquivalences(Set<Entity> externalEquivalences, SolrInputDocument document) {
+	private void handleEquivalences(Set<Entity> externalEquivalences, ArrayNode array) {
 		externalEquivalences.stream()
 				.filter(entity -> UrlValidator.getInstance().isValid(entity.getURI()))
 				.forEach(entity -> {
-					document.addField(DB_URL, entity.getURI());
-					document.addField(DB_NAME, StringUtils.isNotEmpty(entity.getService().getTitle()) ? entity.getService().getName() : " -- ");
-					document.addField(DB_ACC, StringUtils.isNotEmpty(entity.getAccession()) ? entity.getAccession() : " -- ");
+
+					ObjectNode ref = nodeFactory.objectNode();
+					ref.put("Name", StringUtils.isNotEmpty(entity.getService().getTitle()) ? entity.getService().getName() : "");
+					ref.put("URL", entity.getURI());
+					ref.put("Acc", StringUtils.isNotEmpty(entity.getAccession()) ? entity.getAccession() : "");
+
+					array.add(ref);
 				});
 	}
 }
