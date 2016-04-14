@@ -139,7 +139,7 @@
     <field name="submission_title" type="text_general" indexed="true" stored="true" multiValued="false"/>
     <field name="submission_update_date" type="date" indexed="true" stored="true"/>
 
-    <field name="external_references" type="text_general" indexed="false" stored="true" multiValued="false"/>
+    <field name="external_references" type="string" indexed="false" stored="true" multiValued="false"/>
 
     <!-- Replaced by external_references field - to remove -->
     <field name="data_base_acc" type="string" indexed="true" stored="true" multiValued="true"/>
