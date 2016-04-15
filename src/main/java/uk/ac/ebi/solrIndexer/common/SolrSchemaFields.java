@@ -23,6 +23,9 @@ public class SolrSchemaFields {
 	/* --         DB_REC_REF        -- */
 	/* ------------------------------- */
 	public static final String REFERENCES = "external_references";
+	public static final String DB_ACC = "data_base_acc";
+	public static final String DB_NAME = "data_base_name";
+	public static final String DB_URL = "data_base_url";
 
 	/* ------------------------------- */
 	/* --           GROUP           -- */

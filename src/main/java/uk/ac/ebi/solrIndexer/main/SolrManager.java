@@ -211,6 +211,11 @@ public class SolrManager {
 				.filter(databaseRecordRef -> UrlValidator.getInstance().isValid(databaseRecordRef.getUrl()))
 				.forEach(databaseRecordRef -> {
 
+					// For search purposes
+					document.addField(DB_NAME, StringUtils.isNotEmpty(databaseRecordRef.getDbName()) ? databaseRecordRef.getDbName() : "-");
+					document.addField(DB_URL, databaseRecordRef.getUrl());
+					document.addField(DB_ACC, StringUtils.isNotEmpty(databaseRecordRef.getAcc()) ? databaseRecordRef.getAcc() : "-");
+
 					ObjectNode ref = nodeFactory.objectNode();
 					ref.put("Name", StringUtils.isNotEmpty(databaseRecordRef.getDbName()) ? databaseRecordRef.getDbName() : "");
 					ref.put("URL", databaseRecordRef.getUrl());
@@ -221,7 +226,10 @@ public class SolrManager {
 
 		handleEquivalences(externalEquivalences, array);
 
-		document.addField(REFERENCES, array.toString());
+		if (array.size() > 0) {
+			document.addField(REFERENCES, array.toString());
+		}
+
 	}
 
 	private void handlePropertyValue(ExperimentalPropertyValue<?> epv, List<String> characteristic_types, SolrInputDocument document) {
