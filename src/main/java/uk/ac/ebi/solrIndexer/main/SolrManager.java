@@ -205,8 +205,11 @@ public class SolrManager {
 		document.addField(SUBMISSION_TITLE, submission.getTitle());
 		document.addField(SUBMISSION_UPDATE_DATE,Formater.formatDateToSolr(submission.getUpdateDate()));
 
-		Set<DatabaseRecordRef> databaseRecordRefs = submission.getDatabaseRecordRefs();
 		ArrayNode array = new ArrayNode(nodeFactory);
+
+		// External references data from submission
+		Set<DatabaseRecordRef> databaseRecordRefs = submission.getDatabaseRecordRefs();
+
 		databaseRecordRefs.stream()
 				.filter(databaseRecordRef -> UrlValidator.getInstance().isValid(databaseRecordRef.getUrl()))
 				.forEach(databaseRecordRef -> {
@@ -224,7 +227,23 @@ public class SolrManager {
 					array.add(ref);
 				});
 
-		handleEquivalences(externalEquivalences, array);
+		// External references data from MyEquivalences
+		externalEquivalences.stream()
+				.filter(entity -> UrlValidator.getInstance().isValid(entity.getURI()))
+				.forEach(entity -> {
+
+					document.addField(DB_NAME,  StringUtils.isNotEmpty(entity.getService().getTitle()) ? entity.getService().getName() : "-");
+					document.addField(DB_URL, entity.getURI());
+					document.addField(DB_ACC, StringUtils.isNotEmpty(entity.getAccession()) ? entity.getAccession() : "-");
+
+					ObjectNode ref = nodeFactory.objectNode();
+					ref.put("Name", StringUtils.isNotEmpty(entity.getService().getTitle()) ? entity.getService().getName() : "");
+					ref.put("URL", entity.getURI());
+					ref.put("Acc", StringUtils.isNotEmpty(entity.getAccession()) ? entity.getAccession() : "");
+
+					array.add(ref);
+				});
+
 
 		if (array.size() > 0) {
 			document.addField(REFERENCES, array.toString());
@@ -289,17 +308,4 @@ public class SolrManager {
 		}
 	}
 
-	private void handleEquivalences(Set<Entity> externalEquivalences, ArrayNode array) {
-		externalEquivalences.stream()
-				.filter(entity -> UrlValidator.getInstance().isValid(entity.getURI()))
-				.forEach(entity -> {
-
-					ObjectNode ref = nodeFactory.objectNode();
-					ref.put("Name", StringUtils.isNotEmpty(entity.getService().getTitle()) ? entity.getService().getName() : "");
-					ref.put("URL", entity.getURI());
-					ref.put("Acc", StringUtils.isNotEmpty(entity.getAccession()) ? entity.getAccession() : "");
-
-					array.add(ref);
-				});
-	}
 }
