@@ -211,7 +211,9 @@ public class SolrManager {
 		Set<DatabaseRecordRef> databaseRecordRefs = submission.getDatabaseRecordRefs();
 
 		databaseRecordRefs.stream()
-				.filter(databaseRecordRef -> UrlValidator.getInstance().isValid(databaseRecordRef.getUrl()))
+				.filter(databaseRecordRef -> !StringUtils.equals(databaseRecordRef.getAcc(), ("ebi.biosamples.samples"))
+						&& !StringUtils.equals(databaseRecordRef.getAcc(), ("ebi.biosamples.groups"))
+						&& UrlValidator.getInstance().isValid(databaseRecordRef.getUrl()))
 				.forEach(databaseRecordRef -> {
 
 					// For search purposes
@@ -229,7 +231,9 @@ public class SolrManager {
 
 		// External references data from MyEquivalences
 		externalEquivalences.stream()
-				.filter(entity -> UrlValidator.getInstance().isValid(entity.getURI()))
+				.filter(entity -> !StringUtils.equals(entity.getAccession(), "ebi.biosamples.samples")
+						&& !StringUtils.equals(entity.getAccession(), ("ebi.biosamples.groups"))
+						&& UrlValidator.getInstance().isValid(entity.getURI()))
 				.forEach(entity -> {
 
 					document.addField(DB_NAME,  StringUtils.isNotEmpty(entity.getService().getTitle()) ? entity.getService().getName() : "-");
@@ -243,7 +247,6 @@ public class SolrManager {
 
 					array.add(ref);
 				});
-
 
 		if (array.size() > 0) {
 			document.addField(REFERENCES, array.toString());
