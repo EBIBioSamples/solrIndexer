@@ -91,7 +91,7 @@ public class SolrManager {
 
 		SolrInputDocument document = new SolrInputDocument();
 
-		document.addField(ID, bsg.getId());
+		document.addField(ID, bsg.getAcc());
 		document.addField(GROUP_ACC, bsg.getAcc());
 		document.addField(GROUP_UPDATE_DATE, Formater.formatDateToSolr(bsg.getUpdateDate()));
 		document.addField(GROUP_RELEASE_DATE, Formater.formatDateToSolr(bsg.getReleaseDate()));
@@ -149,7 +149,7 @@ public class SolrManager {
 
 		SolrInputDocument document = new SolrInputDocument();
 
-		document.addField(ID, bs.getId());
+		document.addField(ID, bs.getAcc());
 		document.addField(SAMPLE_ACC, bs.getAcc());
 		document.addField(SAMPLE_UPDATE_DATE, Formater.formatDateToSolr(bs.getUpdateDate()));
 		document.addField(SAMPLE_RELEASE_DATE, Formater.formatDateToSolr(bs.getReleaseDate()));
