@@ -122,8 +122,8 @@
     <!-- BIOSAMPLES specific fields  -->
     
     <field name="accession" type="string" indexed="true" stored="true" multiValued="false"/>
-	<!-- Field to use to determine and enforce document uniqueness. Unless this 
-		field is marked with required="false", it will be a required field -->
+  	<!-- Field to use to determine and enforce document uniqueness. Unless this 
+  		field is marked with required="false", it will be a required field -->
     <uniqueKey>accession</uniqueKey>
 	
     <field name="name" type="text_general" indexed="false" stored="true" multiValued="false"/>
@@ -227,8 +227,6 @@
 
   <copyField source="*_crt" dest="text"/>    
 
-  <copyField source="submission_description" dest="description"/>
-
   <copyField source="content_type" dest="text"/>
   
   <!-- Create a string version of crt_type for faceting -->
@@ -324,7 +322,6 @@
     <!-- A Trie based date field for faster date range queries and date faceting. -->
     <fieldType name="tdate" class="solr.TrieDateField" precisionStep="6" positionIncrementGap="0"/>
 
-    <!-- A Date Range Field for range queries . -->
     <fieldType name="rdate" class="solr.DateRangeField" />
 
     <!--Binary data type. The data should be sent/retrieved in as Base64 encoded Strings -->
