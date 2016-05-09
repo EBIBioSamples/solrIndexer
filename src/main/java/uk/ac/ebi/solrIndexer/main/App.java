@@ -7,7 +7,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -319,12 +322,15 @@ public class App implements ApplicationRunner {
 	 * @param filenames
 	 */
 	private void handleFilenames(List<String> filenames) {
+		Set<String> sampleAccs =  new HashSet<>();
+		Set<String> groupAccs =  new HashSet<>();
+		
 		for (String filename : filenames) {
 			//read from standard in if a filename is --
 			if (filename.equals("--")) {
 				log.info("Reading accessions from standard input");
 				try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
-					handleBufferedReader(br);
+					handleBufferedReader(br, sampleAccs, groupAccs);
 			    } catch (FileNotFoundException e) {
 					log.error("Unable to find "+filename, e);
 				} catch (IOException e) {
@@ -335,7 +341,7 @@ public class App implements ApplicationRunner {
 				File file = new File(filename);
 				if (file.exists() && file.isFile()) {		
 					try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-						handleBufferedReader(br);
+						handleBufferedReader(br, sampleAccs, groupAccs);
 				    } catch (FileNotFoundException e) {
 						log.error("Unable to find "+filename, e);
 					} catch (IOException e) {
@@ -344,36 +350,43 @@ public class App implements ApplicationRunner {
 				}
 			}
 		}
+		//now we have accessions as sets
+		//this is so that we can check for membership and add new ones efficiently
+		
+		//need to convert them to lists so they can be sorted and then sliced		
+		this.sampleAccs = new ArrayList<>(sampleAccs);
+		this.groupAccs = new ArrayList<>(groupAccs);
+		Collections.sort(this.sampleAccs);
+		Collections.sort(this.groupAccs);
+		
 		//slice down to section specified by arguments
-		int count = sampleAccs.size();
-		int offsetSize = count / offsetTotal;
+		int offsetSize = this.sampleAccs.size() / offsetTotal;
 		int start = offsetSize * offsetCount;
-		sampleAccs = sampleAccs.subList(start, start+offsetSize);
+		this.sampleAccs = this.sampleAccs.subList(start, start+offsetSize);
 
-		count = groupAccs.size();
-		offsetSize = count / offsetTotal;
+		offsetSize = this.groupAccs.size() / offsetTotal;
 		start = offsetSize * offsetCount;
-		groupAccs = groupAccs.subList(start, start+offsetSize);
+		this.groupAccs = this.groupAccs.subList(start, start+offsetSize);
 	}
 
 	/**
 	 * Reads from a buffered reader and extracts sample and group accessions into the appropriate
 	 * lists on this object.
 	 */
-	private void handleBufferedReader(BufferedReader br) throws IOException {
+	private void handleBufferedReader(BufferedReader br, Set<String> sampleAccSet, Set<String> groupAccSet) throws IOException {
 		String line;
 		while ((line = br.readLine()) != null) {
 			line = line.trim();
 			log.debug("reading line '"+line+"'");
 	        if (line.matches("^SAM[END]A?[0-9]+$")) {
-	        	if (!sampleAccs.contains(line)) {
+	        	if (!sampleAccSet.contains(line)) {
 	        		log.debug("adding sample accession "+line);
-	        		sampleAccs.add(line);
+	        		sampleAccSet.add(line);
 	        	}
 	        } else if(line.matches("^SAM[END]G[0-9]+$")) {
-				if (!groupAccs.contains(line)) {
+				if (!groupAccSet.contains(line)) {
 	        		log.debug("adding group accession "+line);
-	        		groupAccs.add(line);
+	        		groupAccSet.add(line);
 	        	}
 	        }  
 		}
