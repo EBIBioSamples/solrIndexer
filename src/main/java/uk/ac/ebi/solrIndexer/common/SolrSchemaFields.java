@@ -2,14 +2,19 @@ package uk.ac.ebi.solrIndexer.common;
 
 public class SolrSchemaFields {
 
+	public static final String ACC = "accession";
+	public static final String UPDATE_DATE = "update_date";
+	public static final String RELEASE_DATE = "release_date";
+
 	/* ------------------------------- */
 	/* --         BIOSAMPLE         -- */
 	/* ------------------------------- */
-	public static final String ID = "id";
-	public static final String SAMPLE_ACC = "sample_acc";
-	public static final String SAMPLE_UPDATE_DATE = "sample_update_date";
-	public static final String SAMPLE_RELEASE_DATE = "sample_release_date";
 	public static final String SAMPLE_GRP_ACC = "sample_grp_accessions";
+
+	/* ------------------------------- */
+	/* --           GROUP           -- */
+	/* ------------------------------- */
+	public static final String GRP_SAMPLE_ACC = "grp_sample_accessions";
 
 	/* ------------------------------- */
 	/* --            MSI            -- */
@@ -20,20 +25,12 @@ public class SolrSchemaFields {
 	public static final String SUBMISSION_UPDATE_DATE = "submission_update_date";
 
 	/* ------------------------------- */
-	/* --         DB_REC_REF        -- */
+	/* --         REFERENCES        -- */
 	/* ------------------------------- */
-	public static final String REFERENCES = "external_references";
-	public static final String DB_ACC = "data_base_acc";
-	public static final String DB_NAME = "data_base_name";
-	public static final String DB_URL = "data_base_url";
-
-	/* ------------------------------- */
-	/* --           GROUP           -- */
-	/* ------------------------------- */
-	public static final String GROUP_ACC = "group_acc";
-	public static final String GROUP_UPDATE_DATE = "group_update_date";
-	public static final String GROUP_RELEASE_DATE = "group_release_date";
-	public static final String GRP_SAMPLE_ACC = "grp_sample_accessions";
+	public static final String REFERENCES = "external_references_json";
+	public static final String REFERENCES_ACC = "external_references_acc";
+	public static final String REFERENCES_NAME = "external_references_name";
+	public static final String REFERENCES_URL = "external_references_url";
 
 	/* ------------------------------- */
 	/* --        Solr Schema        -- */
@@ -43,7 +40,7 @@ public class SolrSchemaFields {
 	public static final String CRT_TYPE = "crt_type";
 
 	/* --- Other --- */
-	public static final String XML = "xmlAPI";
+	public static final String XML = "api_xml";
 
 	/* --- BioSolr Plugin Field ---*/
 	public static final String BIO_SOLR_FIELD = "ontology_uri";
