@@ -91,10 +91,9 @@ public class SolrManager {
 
 		SolrInputDocument document = new SolrInputDocument();
 
-		document.addField(ID, bsg.getAcc());
-		document.addField(GROUP_ACC, bsg.getAcc());
-		document.addField(GROUP_UPDATE_DATE, Formater.formatDateToSolr(bsg.getUpdateDate()));
-		document.addField(GROUP_RELEASE_DATE, Formater.formatDateToSolr(bsg.getReleaseDate()));
+		document.addField(ACC, bsg.getAcc());
+		document.addField(UPDATE_DATE, Formater.formatDateToSolr(bsg.getUpdateDate()));
+		document.addField(RELEASE_DATE, Formater.formatDateToSolr(bsg.getReleaseDate()));
 		document.addField(CONTENT_TYPE, "group");
 
 		Set<MSI> msi = bsg.getMSIs();
@@ -149,10 +148,9 @@ public class SolrManager {
 
 		SolrInputDocument document = new SolrInputDocument();
 
-		document.addField(ID, bs.getAcc());
-		document.addField(SAMPLE_ACC, bs.getAcc());
-		document.addField(SAMPLE_UPDATE_DATE, Formater.formatDateToSolr(bs.getUpdateDate()));
-		document.addField(SAMPLE_RELEASE_DATE, Formater.formatDateToSolr(bs.getReleaseDate()));
+		document.addField(ACC, bs.getAcc());
+		document.addField(UPDATE_DATE, Formater.formatDateToSolr(bs.getUpdateDate()));
+		document.addField(RELEASE_DATE, Formater.formatDateToSolr(bs.getReleaseDate()));
 		document.addField(CONTENT_TYPE, "sample");
 
 		Set<MSI> msi = bs.getMSIs();
@@ -217,9 +215,9 @@ public class SolrManager {
 				.forEach(databaseRecordRef -> {
 
 					// For search purposes
-					document.addField(DB_NAME, StringUtils.isNotEmpty(databaseRecordRef.getDbName()) ? databaseRecordRef.getDbName() : "-");
-					document.addField(DB_URL, databaseRecordRef.getUrl());
-					document.addField(DB_ACC, StringUtils.isNotEmpty(databaseRecordRef.getAcc()) ? databaseRecordRef.getAcc() : "-");
+					document.addField(REFERENCES_NAME, StringUtils.isNotEmpty(databaseRecordRef.getDbName()) ? databaseRecordRef.getDbName() : "-");
+					document.addField(REFERENCES_URL, databaseRecordRef.getUrl());
+					document.addField(REFERENCES_ACC, StringUtils.isNotEmpty(databaseRecordRef.getAcc()) ? databaseRecordRef.getAcc() : "-");
 
 					ObjectNode ref = nodeFactory.objectNode();
 					ref.put("Name", StringUtils.isNotEmpty(databaseRecordRef.getDbName()) ? databaseRecordRef.getDbName() : "");
@@ -236,9 +234,9 @@ public class SolrManager {
 						&& UrlValidator.getInstance().isValid(entity.getURI()))
 				.forEach(entity -> {
 
-					document.addField(DB_NAME,  StringUtils.isNotEmpty(entity.getService().getTitle()) ? entity.getService().getName() : "-");
-					document.addField(DB_URL, entity.getURI());
-					document.addField(DB_ACC, StringUtils.isNotEmpty(entity.getAccession()) ? entity.getAccession() : "-");
+					document.addField(REFERENCES_NAME,  StringUtils.isNotEmpty(entity.getService().getTitle()) ? entity.getService().getName() : "-");
+					document.addField(REFERENCES_URL, entity.getURI());
+					document.addField(REFERENCES_ACC, StringUtils.isNotEmpty(entity.getAccession()) ? entity.getAccession() : "-");
 
 					ObjectNode ref = nodeFactory.objectNode();
 					ref.put("Name", StringUtils.isNotEmpty(entity.getService().getTitle()) ? entity.getService().getName() : "");
