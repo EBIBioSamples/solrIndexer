@@ -170,19 +170,13 @@
        a "*" only at the start or the end.  -->
    
     <dynamicField name="*_i"  type="int"    indexed="true"  stored="true"/>
-    <dynamicField name="*_is" type="ints"    indexed="true"  stored="true"/>
     <dynamicField name="*_s"  type="string"  indexed="true"  stored="true" multiValued="true" />
-    <dynamicField name="*_ss" type="strings"  indexed="true"  stored="true"/>
     <dynamicField name="*_l"  type="long"   indexed="true"  stored="true"/>
-    <dynamicField name="*_ls" type="longs"   indexed="true"  stored="true"/>
     <dynamicField name="*_t"   type="text_general" indexed="true" stored="true"/>
     <dynamicField name="*_txt" type="text_general" indexed="true" stored="true"/>
     <dynamicField name="*_b"  type="boolean" indexed="true" stored="true"/>
-    <dynamicField name="*_bs" type="booleans" indexed="true" stored="true"/>
     <dynamicField name="*_f"  type="float"  indexed="true"  stored="true"/>
-    <dynamicField name="*_fs" type="floats"  indexed="true"  stored="true"/>
     <dynamicField name="*_d"  type="double" indexed="true"  stored="true"/>
-    <dynamicField name="*_ds" type="doubles" indexed="true"  stored="true"/>
 
     <!-- Type used to index the lat and lon components for the "location" FieldType -->
     <dynamicField name="*_coordinate"  type="tdouble" indexed="true"  stored="false" />
