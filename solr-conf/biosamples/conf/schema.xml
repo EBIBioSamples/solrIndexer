@@ -233,8 +233,6 @@
 
   <copyField source="*_crt" dest="text"/>    
 
-  <copyField source="sample_name_crt" dest="name"/>
-
   <copyField source="submission_description" dest="description"/>
 
   <copyField source="content_type" dest="text"/>
