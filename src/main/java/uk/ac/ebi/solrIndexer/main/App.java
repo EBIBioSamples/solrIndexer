@@ -331,8 +331,6 @@ public class App implements ApplicationRunner {
 				log.info("Reading accessions from standard input");
 				try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
 					handleBufferedReader(br, sampleAccs, groupAccs);
-			    } catch (FileNotFoundException e) {
-					log.error("Unable to find "+filename, e);
 				} catch (IOException e) {
 					log.error("Unable to read "+filename, e);
 				}
@@ -370,8 +368,7 @@ public class App implements ApplicationRunner {
 	}
 
 	/**
-	 * Reads from a buffered reader and extracts sample and group accessions into the appropriate
-	 * lists on this object.
+	 * Reads from a buffered reader and extracts sample and group accessions into the sets provided.
 	 */
 	private void handleBufferedReader(BufferedReader br, Set<String> sampleAccSet, Set<String> groupAccSet) throws IOException {
 		String line;
