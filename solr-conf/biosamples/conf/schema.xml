@@ -138,7 +138,6 @@
     <field name="external_references_url" type="string" indexed="true" stored="true" multiValued="true"/>
 
     <field name="submission_acc" type="string" indexed="true" stored="true" multiValued="false"/>
-    <field name="submission_description" type="text_general" indexed="true" stored="true" multiValued="false"/>
     <field name="submission_title" type="text_general" indexed="true" stored="true" multiValued="false"/>
   
     <field name="doc_type" type="string" indexed="true" stored="false" multiValued="false"/>
