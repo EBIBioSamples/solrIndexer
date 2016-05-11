@@ -301,7 +301,7 @@
   <copyField source="group_update_date" dest="update_date"/>
   <copyField source="sample_update_date" dest="update_date"/>
 
-  <copyField source="sample_name_crt" dest="name"/>
+<!--   <copyField source="sample_name_crt" dest="name"/> -->
 
   <copyField source="submission_description" dest="description"/>
 
