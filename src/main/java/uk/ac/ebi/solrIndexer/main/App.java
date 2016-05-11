@@ -180,6 +180,7 @@ public class App implements ApplicationRunner {
 			AnnotatorAccessor annotator = null;
 			try {
 				if (useAnnotator) {
+					log.info("Using annotator for ontology mappings");
 					annotator = new AnnotatorAccessor(
 							Resources.getInstance().getEntityManagerFactory().createEntityManager());
 					// set the solr manager to use the annotator
@@ -192,6 +193,7 @@ public class App implements ApplicationRunner {
 				// create the thread stuff if required
 				try {
 					if (poolThreadCount > 0) {
+						log.info("creating thread pool of "+poolThreadCount+" threads");
 						threadPool = Executors.newFixedThreadPool(poolThreadCount);
 					}
 
@@ -209,7 +211,7 @@ public class App implements ApplicationRunner {
 					log.info("Waiting for futures...");
 					for (Future<Integer> future : futures) {
 						callableCount += future.get();
-						log.trace("" + callableCount + " sucessful callables so far, " + futures.size() + " remaining");
+						log.trace("" + callableCount + " documents so far, " + futures.size() + " futures remaining");
 						// after each finished callable make the solr client
 						// commit
 						// populates the index as we go, and doing them all here
@@ -220,21 +222,13 @@ public class App implements ApplicationRunner {
 						// removing this in favour of commit within parameter on
 						// add
 					}
-
-					// close down thread pool
-					if (threadPool != null) {
-						log.info("Shutting down thread pool");
-						threadPool.shutdown();
-						// one day is a lot, but better safe than sorry!
-						threadPool.awaitTermination(1, TimeUnit.DAYS);
-					}
 				} finally {
 					// handle closing of thread pool in case of error
 					if (threadPool != null && !threadPool.isShutdown()) {
 						log.info("Shutting down thread pool");
 						// allow a second to cleanly terminate before forcing
 						threadPool.shutdown();
-						threadPool.awaitTermination(1, TimeUnit.SECONDS);
+						threadPool.awaitTermination(10, TimeUnit.SECONDS);
 						threadPool.shutdownNow();
 					}
 				}
@@ -266,10 +260,17 @@ public class App implements ApplicationRunner {
 				mergedClient.blockUntilFinished();
 				mergedClient.close();
 			}
+			
+			//always log how many documents we did in how long
+			//so we have at least partial progress to compare
+			long elapsedMilliseconds = System.currentTimeMillis() - startTime;
+			log.info("Generated " + callableCount + " documents in " + Formater.formatTime(elapsedMilliseconds));
+			if (callableCount > 0) {
+				log.info("Average time of "+(elapsedMilliseconds/callableCount)+" per document");
+			}
+			
 		}
 
-		log.info("Generated documents from " + callableCount + " sucessful callables in "
-				+ Formater.formatTime(System.currentTimeMillis() - startTime));
 		log.info("Indexing finished!");
 		return;
 	}
@@ -286,7 +287,7 @@ public class App implements ApplicationRunner {
 				// better way to do it
 				GroupRepoCallable callable = context.getBean(GroupRepoCallable.class, groupsClient, mergedClient, theseGroupAccs);
 
-				if (poolThreadCount == 0) {
+				if (threadPool == null) {
 					callable.call();
 				} else {
 					futures.add(threadPool.submit(callable));
@@ -307,7 +308,7 @@ public class App implements ApplicationRunner {
 				// better way to do it
 				SampleRepoCallable callable = context.getBean(SampleRepoCallable.class, samplesClient, mergedClient, theseSampleAccs);
 
-				if (poolThreadCount == 0) {
+				if (threadPool == null) {
 					callable.call();
 				} else {
 					futures.add(threadPool.submit(callable));
