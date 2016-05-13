@@ -15,7 +15,7 @@ public interface XMLService<E> {
 
 	Element getXMLElement(E type);
 
-	public default void filterDescendantOf(Element element, Filter<?> filter) {
+	default void filterDescendantOf(Element element, Filter<?> filter) {
 
 		Iterator<?> iterator = element.getDescendants().iterator();
 
@@ -28,7 +28,7 @@ public interface XMLService<E> {
 		}
 	}
 	
-	public default String clean(String in) {
+	default String clean(String in) {
 		//handle nulls
         if (in == null){
             return in;
