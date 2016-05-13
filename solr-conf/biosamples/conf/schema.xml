@@ -129,8 +129,10 @@
     <field name="name" type="text_general" indexed="false" stored="true" multiValued="false"/>
     <field name="description" type="text_general" indexed="true" stored="true" multiValued="false"/>
     <field name="api_xml" type="string" indexed="false" stored="true" multiValued="false"/>
-    <field name="update_date" type="date" indexed="true" stored="true" multiValued="false"/>
-    <field name="release_date" type="date" indexed="true" stored="true" multiValued="false"/>
+    <field name="update_date" type="rdate" indexed="true" stored="true" multiValued="false"/>
+    <field name="release_date" type="rdate" indexed="true" stored="true" multiValued="false"/>
+    <field name="updatedate" type="rdate" indexed="true" stored="true" multiValued="false"/>
+    <field name="releasedate" type="rdate" indexed="true" stored="true" multiValued="false"/>
 
     <field name="external_references_json" type="string" indexed="false" stored="true" multiValued="false"/>
     <field name="external_references_acc" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -323,6 +325,9 @@
 
     <!-- A Trie based date field for faster date range queries and date faceting. -->
     <fieldType name="tdate" class="solr.TrieDateField" precisionStep="6" positionIncrementGap="0"/>
+
+    <!-- A Date Range Field for range queries . -->
+    <fieldType name="rdate" class="solr.DateRangeField" precisionStep="6" positionIncrementGap="0"/>
 
     <!--Binary data type. The data should be sent/retrieved in as Base64 encoded Strings -->
     <fieldType name="binary" class="solr.BinaryField"/>
