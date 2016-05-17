@@ -21,10 +21,10 @@ public class Formater {
 	 * @param Date date
 	 * @return "2015-09-03T12:00:00.00Z"
 	 */
-	public static String formatDateToSolr(Date date) {
+	public static String formatDateToSolr(Date date) throws IllegalArgumentException{
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SS'Z'");
-		if (date == null) 
-			return "0000-00-00T00:00:00.00Z";
+		if (date == null)
+			throw new IllegalArgumentException("Null date provided to formatter");
 		return df.format(date);
 	}
 

@@ -3,8 +3,12 @@ package uk.ac.ebi.solrIndexer.common;
 public class SolrSchemaFields {
 
 	public static final String ACC = "accession";
-	public static final String UPDATE_DATE = "update_date";
-	public static final String RELEASE_DATE = "release_date";
+	/*
+		Release date and update date are formatted without "_"
+	 	to maintain compatibility with old queries
+	  */
+	public static final String UPDATE_DATE = "updatedate";
+	public static final String RELEASE_DATE = "releasedate";
 
 	/* ------------------------------- */
 	/* --         BIOSAMPLE         -- */
@@ -22,7 +26,7 @@ public class SolrSchemaFields {
 	public static final String SUBMISSION_ACC = "submission_acc";
 	public static final String SUBMISSION_DESCRIPTION = "submission_description";
 	public static final String SUBMISSION_TITLE = "submission_title";
-	public static final String SUBMISSION_UPDATE_DATE = "submission_update_date";
+//	public static final String SUBMISSION_UPDATE_DATE = "submission_update_date";
 
 	/* ------------------------------- */
 	/* --         REFERENCES        -- */
