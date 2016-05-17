@@ -10,7 +10,7 @@ solrIndexer.merged.corePath=http://localhost:8983/solr/merged
 solrIndexer.queueSize=1000
 
 #number of EXTRA threads to use, zero will run it all on main thread
-threadCount=4
+threadcount=4
 
 #maximum number of miliseconds before solr commits each new thing
 solrIndexer.commitWithin=60000
