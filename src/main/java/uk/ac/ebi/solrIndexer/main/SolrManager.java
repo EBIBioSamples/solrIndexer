@@ -3,11 +3,7 @@ package uk.ac.ebi.solrIndexer.main;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.*;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -92,16 +88,27 @@ public class SolrManager {
 		SolrInputDocument document = new SolrInputDocument();
 
 		document.addField(ACC, bsg.getAcc());
-		document.addField(UPDATE_DATE, Formater.formatDateToSolr(bsg.getUpdateDate()));
-		document.addField(RELEASE_DATE, Formater.formatDateToSolr(bsg.getReleaseDate()));
+		try {
+			document.addField(UPDATE_DATE, Formater.formatDateToSolr(handleUpdateDate(bsg)));
+			document.addField(RELEASE_DATE, Formater.formatDateToSolr(handleReleaseDate(bsg)));
+		} catch (IllegalArgumentException e) {
+			log.error(String.format("Invalid date for group %s",bsg.getAcc()), e);
+			return Optional.empty();
+		}
 		document.addField(CONTENT_TYPE, "group");
 
 		Set<MSI> msi = bsg.getMSIs();
 		if (msi.size() == 1) {
 			if (msi.iterator().hasNext()) {
 				MSI submission = msi.iterator().next();
-				handleMSI(submission, document, bsg);
-			}
+                try {
+                    handleMSI(submission, document, bsg);
+                } catch (IllegalArgumentException e) {
+                    log.error(String.format("Error while creating document %s", bsg.getAcc()),e);
+                    return Optional.empty();
+                }
+            }
+
 		} else {
 			log.warn("Group "+bsg.getAcc()+" has "+msi.size()+" MSIs");
 			return Optional.empty();
@@ -149,15 +156,26 @@ public class SolrManager {
 		SolrInputDocument document = new SolrInputDocument();
 
 		document.addField(ACC, bs.getAcc());
-		document.addField(UPDATE_DATE, Formater.formatDateToSolr(bs.getUpdateDate()));
-		document.addField(RELEASE_DATE, Formater.formatDateToSolr(bs.getReleaseDate()));
+		try {
+			document.addField(UPDATE_DATE, Formater.formatDateToSolr(handleUpdateDate(bs)));
+			document.addField(RELEASE_DATE, Formater.formatDateToSolr(handleReleaseDate(bs)));
+		} catch (IllegalArgumentException e) {
+			log.error(String.format("Invalid date for sample %s",bs.getAcc()), e);
+			return Optional.empty();
+		}
+
 		document.addField(CONTENT_TYPE, "sample");
 
 		Set<MSI> msi = bs.getMSIs();
 		if (msi.size() == 1) {
 			if (msi.iterator().hasNext()) {
 				MSI submission = msi.iterator().next();
-				handleMSI(submission, document, bs);
+                try {
+                    handleMSI(submission, document, bs);
+                } catch (IllegalArgumentException e) {
+                    log.error(String.format("Error while creating document %s",bs.getAcc()),e);
+                    return Optional.empty();
+                }
 			}
 		} else {
 			log.warn("Sample "+bs.getAcc()+" has "+msi.size()+" MSIs");
@@ -183,7 +201,7 @@ public class SolrManager {
 		return Optional.of(document);
 	}
 
-	private void handleMSI(MSI submission, SolrInputDocument document, Object obj) {
+	private void handleMSI(MSI submission, SolrInputDocument document, Object obj) throws IllegalArgumentException{
 		Set<Entity> externalEquivalences;
 		if (obj instanceof BioSampleGroup) {
 			BioSampleGroup bsg = (BioSampleGroup) obj;
@@ -197,11 +215,13 @@ public class SolrManager {
 		}
 	}
 
-	private void handleMSI(MSI submission, SolrInputDocument document, Set<Entity> externalEquivalences) {
+	private void handleMSI(MSI submission, SolrInputDocument document, Set<Entity> externalEquivalences) throws IllegalArgumentException{
 		document.addField(SUBMISSION_ACC,submission.getAcc());
 		document.addField(SUBMISSION_DESCRIPTION,submission.getDescription());
 		document.addField(SUBMISSION_TITLE, submission.getTitle());
-		document.addField(SUBMISSION_UPDATE_DATE,Formater.formatDateToSolr(submission.getUpdateDate()));
+
+		// Update date is not anymore saved for submission and sample but instead as a unique field
+//		document.addField(SUBMISSION_UPDATE_DATE,Formater.formatDateToSolr(submission.getUpdateDate()));
 
 		ArrayNode array = new ArrayNode(nodeFactory);
 
@@ -308,5 +328,59 @@ public class SolrManager {
 			}
 		}
 	}
+
+	private Date handleUpdateDate(BioSample bs) {
+		Date sampleUpdateDate = bs.getUpdateDate();
+
+		if (sampleUpdateDate == null) {
+			Set<MSI> msis = bs.getMSIs();
+			if ( msis.size() == 1 ) {
+                return msis.iterator().next().getUpdateDate();
+			}
+		}
+
+		return sampleUpdateDate;
+	}
+
+	private Date handleUpdateDate(BioSampleGroup bsg) {
+		Date groupUpdateDate = bsg.getUpdateDate();
+
+		if (groupUpdateDate == null) {
+			Set<MSI> msis = bsg.getMSIs();
+			if ( msis.size() == 1 ) {
+				return msis.iterator().next().getUpdateDate();
+			}
+		}
+
+		return groupUpdateDate;
+	}
+
+	private Date handleReleaseDate(BioSample bs) {
+		Date sampleReleaseDate = bs.getReleaseDate();
+
+		if (sampleReleaseDate == null) {
+			Set<MSI> msis = bs.getMSIs();
+			if ( msis.size() == 1 ) {
+				return msis.iterator().next().getReleaseDate();
+			}
+		}
+
+		return sampleReleaseDate;
+	}
+
+    private Date handleReleaseDate(BioSampleGroup bsg) {
+		Date groupReleaseDate = bsg.getReleaseDate();
+
+		if (groupReleaseDate == null) {
+			Set<MSI> msis = bsg.getMSIs();
+			if ( msis.size() == 1 ) {
+				return msis.iterator().next().getReleaseDate();
+			}
+		}
+
+		return groupReleaseDate;
+	}
+
+
 
 }
