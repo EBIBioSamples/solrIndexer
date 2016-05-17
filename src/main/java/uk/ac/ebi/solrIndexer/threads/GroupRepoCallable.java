@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
 
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 import org.slf4j.Logger;
@@ -33,7 +34,6 @@ public class GroupRepoCallable extends GroupCallable {
 	}
 
 	@Override
-	@Transactional
 	public Integer call() throws Exception {
 		log.info("Starting call()");
 
@@ -42,22 +42,32 @@ public class GroupRepoCallable extends GroupCallable {
 		int toReturn;
 		try {
 			em = emf.createEntityManager();
-			AccessibleDAO<BioSampleGroup> dao = new AccessibleDAO<>(BioSampleGroup.class, em);
-
-			List<BioSampleGroup> groups = new ArrayList<>();
-			for (String accession : accessions) {
-				log.trace(accession);
-				groups.add(dao.find(accession));
+			
+			EntityTransaction transaction = em.getTransaction();
+			try {
+				transaction.begin();
+				transaction.setRollbackOnly();			
+				
+				AccessibleDAO<BioSampleGroup> dao = new AccessibleDAO<>(BioSampleGroup.class, em);
+	
+				List<BioSampleGroup> groups = new ArrayList<>();
+				for (String accession : accessions) {
+					groups.add(dao.find(accession));
+				}
+	
+				this.groups = groups;
+				toReturn = super.call();
+				
+			} finally {
+				transaction.rollback();
 			}
-
-			this.groups = groups;
-			toReturn = super.call();
 		} finally {
 			if (em != null && em.isOpen()) {
 				em.close();
 			}
 		}
 		log.info("Finished call()");
+		
 		return toReturn;
 	}
 }

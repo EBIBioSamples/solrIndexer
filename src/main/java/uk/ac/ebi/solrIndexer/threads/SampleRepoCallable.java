@@ -5,6 +5,8 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
+import javax.transaction.UserTransaction;
 
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 import org.slf4j.Logger;
@@ -33,23 +35,33 @@ public class SampleRepoCallable extends SampleCallable {
 	}
 
 	@Override
-	@Transactional
 	public Integer call() throws Exception {
 		log.info("Starting call()");
+		
 		EntityManagerFactory emf = Resources.getInstance().getEntityManagerFactory();
 		EntityManager em = null;
 		int toReturn;
 		try {
 			em = emf.createEntityManager();
-			AccessibleDAO<BioSample> dao = new AccessibleDAO<>(BioSample.class, em);
-
-			List<BioSample> samples = new ArrayList<>();
-			for (String accession : accessions) {
-				samples.add(dao.find(accession));
+			
+			EntityTransaction transaction = em.getTransaction();
+			try {			
+				transaction.begin();
+				transaction.setRollbackOnly();
+				
+				AccessibleDAO<BioSample> dao = new AccessibleDAO<>(BioSample.class, em);
+	
+				List<BioSample> samples = new ArrayList<>();
+				for (String accession : accessions) {
+					samples.add(dao.find(accession));
+				}
+	
+				this.samples = samples;
+				toReturn = super.call();
+				
+			} finally {
+				transaction.rollback();
 			}
-
-			this.samples = samples;
-			toReturn = super.call();
 		} finally {
 			if (em != null && em.isOpen()) {
 				em.close();
