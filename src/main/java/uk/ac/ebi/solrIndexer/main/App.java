@@ -361,11 +361,12 @@ public class App implements ApplicationRunner {
 		if (!sampleAccs.isEmpty()) {
 			this.sampleAccs = new ArrayList<>(sampleAccs);
 			Collections.sort(this.sampleAccs);
-
-			//slice down to section specified by arguments
-			offsetSize = this.sampleAccs.size() / offsetTotal;
-			start = offsetSize * offsetCount;
-			this.sampleAccs = this.sampleAccs.subList(start, start+offsetSize);
+			if (offsetTotal > 0) {
+				//slice down to section specified by arguments
+				offsetSize = this.sampleAccs.size() / offsetTotal;
+				start = offsetSize * offsetCount;
+				this.sampleAccs = this.sampleAccs.subList(start, start+offsetSize);
+			}
 		} else {
 			this.doSamples = false;
 		}
@@ -373,10 +374,11 @@ public class App implements ApplicationRunner {
 		if (!groupAccs.isEmpty()) {
 			this.groupAccs = new ArrayList<>(groupAccs);
 			Collections.sort(this.groupAccs);
-
-			offsetSize = this.groupAccs.size() / offsetTotal;
-			start = offsetSize * offsetCount;
-			this.groupAccs = this.groupAccs.subList(start, start+offsetSize);
+			if (offsetTotal > 0) {
+				offsetSize = this.groupAccs.size() / offsetTotal;
+				start = offsetSize * offsetCount;
+				this.groupAccs = this.groupAccs.subList(start, start + offsetSize);
+			}
 		} else {
 			this.doGroups = false;
 		}
