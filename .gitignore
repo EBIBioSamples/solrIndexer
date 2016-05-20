@@ -36,7 +36,8 @@ fabric.properties
 
 # Personal files
 biosample-test.xml
-
+debug.sh
+run.sh
 
 # Properties files
 solrIndexer.properties
