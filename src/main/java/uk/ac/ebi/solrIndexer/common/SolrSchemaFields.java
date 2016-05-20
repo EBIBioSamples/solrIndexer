@@ -9,6 +9,7 @@ public class SolrSchemaFields {
 	  */
 	public static final String UPDATE_DATE = "updatedate";
 	public static final String RELEASE_DATE = "releasedate";
+	public static final String DESCRIPTION = "description";
 
 	/* ------------------------------- */
 	/* --         BIOSAMPLE         -- */
@@ -24,9 +25,7 @@ public class SolrSchemaFields {
 	/* --            MSI            -- */
 	/* ------------------------------- */
 	public static final String SUBMISSION_ACC = "submission_acc";
-	public static final String SUBMISSION_DESCRIPTION = "submission_description";
 	public static final String SUBMISSION_TITLE = "submission_title";
-//	public static final String SUBMISSION_UPDATE_DATE = "submission_update_date";
 
 	/* ------------------------------- */
 	/* --         REFERENCES        -- */

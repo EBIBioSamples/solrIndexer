@@ -98,9 +98,11 @@ public class SolrManager {
 		document.addField(CONTENT_TYPE, "group");
 
 		Set<MSI> msi = bsg.getMSIs();
+        MSI submission = null; 
+        
 		if (msi.size() == 1) {
 			if (msi.iterator().hasNext()) {
-				MSI submission = msi.iterator().next();
+				submission = msi.iterator().next();
                 try {
                     handleMSI(submission, document, bsg);
                 } catch (IllegalArgumentException e) {
@@ -115,10 +117,20 @@ public class SolrManager {
 		}
 
         List<String> characteristic_types = new ArrayList<>();
+        ExperimentalPropertyValue<?> groupDescriptionProperty = null;
+
         for (ExperimentalPropertyValue<?> epv : bsg.getPropertyValues()) {
-            handlePropertyValue(epv, characteristic_types, document);
+			String fieldName = epv.getType().getTermText();
+			if (!fieldName.equals("Group Description")) {
+					handlePropertyValue(epv, characteristic_types, document);
+			} else {
+                groupDescriptionProperty = epv;
+            }
         }
-		document.addField(CRT_TYPE, characteristic_types);
+        document.addField(CRT_TYPE, characteristic_types);
+        
+        // Handle description field 
+        handleGroupDescription(groupDescriptionProperty,submission,document);
 
 		Set<BioSample> samples = bsg.getSamples();
 		int samples_nr = samples.size();
@@ -134,6 +146,7 @@ public class SolrManager {
 
 		return Optional.of(document);
 	}
+
 
 	//Generate Sample Solr Document
 	public Optional<SolrInputDocument> generateBioSampleSolrDocument(BioSample bs) {
@@ -167,9 +180,10 @@ public class SolrManager {
 		document.addField(CONTENT_TYPE, "sample");
 
 		Set<MSI> msi = bs.getMSIs();
+        MSI submission = null;
 		if (msi.size() == 1) {
 			if (msi.iterator().hasNext()) {
-				MSI submission = msi.iterator().next();
+				submission = msi.iterator().next();
                 try {
                     handleMSI(submission, document, bs);
                 } catch (IllegalArgumentException e) {
@@ -183,10 +197,20 @@ public class SolrManager {
 		}
 
         List<String> characteristic_types = new ArrayList<>();
+        ExperimentalPropertyValue<?> sampleDescriptionProperty = null;
+
 		for (ExperimentalPropertyValue<?> epv : bs.getPropertyValues()) {
-            handlePropertyValue(epv, characteristic_types, document);
+            String fieldName = epv.getType().getTermText();
+            if (!fieldName.equals("Sample Description")) {
+                handlePropertyValue(epv, characteristic_types, document);
+            } else {
+                sampleDescriptionProperty = epv;
+            }
 		}
 		document.addField(CRT_TYPE, characteristic_types);
+
+        // Handle sample description
+        handleSampleDescription(bs,sampleDescriptionProperty, submission, document);
 
 		Set<BioSampleGroup> groups = bs.getGroups();
 		if (groups.size() > 0) {
@@ -217,7 +241,7 @@ public class SolrManager {
 
 	private void handleMSI(MSI submission, SolrInputDocument document, Set<Entity> externalEquivalences) throws IllegalArgumentException{
 		document.addField(SUBMISSION_ACC,submission.getAcc());
-		document.addField(SUBMISSION_DESCRIPTION,submission.getDescription());
+//		document.addField(SUBMISSION_DESCRIPTION,submission.getDescription());
 		document.addField(SUBMISSION_TITLE, submission.getTitle());
 
 		// Update date is not anymore saved for submission and sample but instead as a unique field
@@ -379,6 +403,25 @@ public class SolrManager {
 		}
 
 		return groupReleaseDate;
+	}
+
+	private void handleGroupDescription(ExperimentalPropertyValue<?> description, MSI msi, SolrInputDocument document) {
+        if (description != null && description.getType().getTermText().equalsIgnoreCase("Group Description")) {
+            document.addField(DESCRIPTION,description.getTermText());
+        } else if (msi != null) {
+            document.addField(DESCRIPTION,msi.getDescription());
+        }
+	}
+
+
+	private void handleSampleDescription(BioSample sample, ExperimentalPropertyValue<?> description, MSI msi, SolrInputDocument document) {
+        if (description != null && description.getType().getTermText().equalsIgnoreCase("Sample Description")) {
+            document.addField(DESCRIPTION,description.getTermText());
+        } else {
+            if (sample.getGroups().size() == 0 && msi != null) {
+                document.addField(DESCRIPTION,msi.getDescription());
+            }
+        }
 	}
 
 

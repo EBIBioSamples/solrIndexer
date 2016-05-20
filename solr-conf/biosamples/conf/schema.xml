@@ -153,8 +153,8 @@
     <!-- used to calculate facets -->
     <field name="crt_type" type="text_general" indexed="true" stored="false" multiValued="true"/>
 
-	<!-- Full child hierarchy, represented in JSON -->
-	<field name="child_hierarchy" type="string" indexed="false" stored="true"  multiValued="false"/>
+  	<!-- Full child hierarchy, represented in JSON -->
+  	<field name="child_hierarchy" type="string" indexed="false" stored="true"  multiValued="false"/>
  
  
     <!-- BIOSAMPLES end -->
@@ -218,13 +218,13 @@
 
   <!-- copy BIOSAMPLES fields into text too -->
   <copyField source="submission_acc" dest="text"/>
-  <copyField source="submission_description" dest="text"/>
   <copyField source="submission_title" dest="text"/>
   <copyField source="external_references_acc" dest="text"/>
   <copyField source="external_references_name" dest="text"/>
   <copyField source="external_references_url" dest="text"/>
 
-  <copyField source="*_crt" dest="text"/>    
+  <copyField source="description" dest="text"/>
+  <copyField source="*_crt" dest="text"/>
 
   <copyField source="content_type" dest="text"/>
   
@@ -251,6 +251,7 @@
 
     <!-- boolean type: "true" or "false" -->
     <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
+    <fieldType name="booleans" class="solr.BoolField" sortMissingLast="true" multiValued="true"/>
 
     <!-- sortMissingLast and sortMissingFirst attributes are optional attributes are
          currently supported on types that are sorted internally as strings
@@ -294,6 +295,10 @@
     <fieldType name="tlong" class="solr.TrieLongField" precisionStep="8" positionIncrementGap="0"/>
     <fieldType name="tdouble" class="solr.TrieDoubleField" precisionStep="8" positionIncrementGap="0"/>
 
+    <!-- Fields are necessary for BioSolR -->
+    <fieldType name="tlongs" class="solr.TrieLongField" precisionStep="8" positionIncrementGap="0"/>
+    <fieldType name="tdoubles" class="solr.TrieDoubleField" precisionStep="8" positionIncrementGap="0"/>
+
     <!-- The format for this date field is of the form 1995-12-31T23:59:59Z, and
          is a more restricted form of the canonical representation of dateTime
          http://www.w3.org/TR/xmlschema-2/#dateTime    
@@ -321,6 +326,10 @@
     <!-- A Trie based date field for faster date range queries and date faceting. -->
     <fieldType name="tdate" class="solr.TrieDateField" precisionStep="6" positionIncrementGap="0"/>
 
+    <!-- A Trie based date field for faster date range queries and date faceting. -->
+    <fieldType name="tdates" class="solr.TrieDateField" precisionStep="6" positionIncrementGap="0" multiValued="true" />
+
+    <!-- A Date Range Field for range queries . -->
     <fieldType name="rdate" class="solr.DateRangeField" />
 
     <!--Binary data type. The data should be sent/retrieved in as Base64 encoded Strings -->
