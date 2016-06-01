@@ -10,6 +10,7 @@ import javax.persistence.EntityTransaction;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +21,7 @@ import uk.ac.ebi.fg.core_model.resources.Resources;
 
 @Component
 // this makes sure that we have a different instance wherever it is used
-@Scope("prototype")
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class GroupRepoCallable extends GroupCallable {
 	private Logger log = LoggerFactory.getLogger(this.getClass());
 
