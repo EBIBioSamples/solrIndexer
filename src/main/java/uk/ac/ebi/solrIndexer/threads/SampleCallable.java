@@ -8,12 +8,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.solrIndexer.main.SolrManager;
 
 @Component
+//this makes sure that we have a different instance wherever it is used
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class SampleCallable implements Callable<Integer> {
 	private Logger log = LoggerFactory.getLogger(this.getClass());
 
