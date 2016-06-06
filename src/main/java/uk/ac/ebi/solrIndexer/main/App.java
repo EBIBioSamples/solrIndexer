@@ -111,6 +111,8 @@ public class App implements ApplicationRunner {
 		doGroups = !args.containsOption("notgroups");
 		doSamples = !args.containsOption("notsamples");
 		solrManager.setIncludeXML(args.containsOption("includexml"));
+
+		// When provided a file with accessions to index
 		if (args.containsOption("sourcefile")) {
 			//if -- is a filename then read stdin
 			handleFilenames(args.getOptionValues("sourcefile"));
@@ -352,20 +354,35 @@ public class App implements ApplicationRunner {
 		//now we have accessions as sets
 		//this is so that we can check for membership and add new ones efficiently
 		
-		//need to convert them to lists so they can be sorted and then sliced		
-		this.sampleAccs = new ArrayList<>(sampleAccs);
-		this.groupAccs = new ArrayList<>(groupAccs);
-		Collections.sort(this.sampleAccs);
-		Collections.sort(this.groupAccs);
-		
-		//slice down to section specified by arguments
-		int offsetSize = this.sampleAccs.size() / offsetTotal;
-		int start = offsetSize * offsetCount;
-		this.sampleAccs = this.sampleAccs.subList(start, start+offsetSize);
+		//need to convert them to lists so they can be sorted and then sliced
+		// But only if there are any samples and/or groups accessions
+		int offsetSize, start;
 
-		offsetSize = this.groupAccs.size() / offsetTotal;
-		start = offsetSize * offsetCount;
-		this.groupAccs = this.groupAccs.subList(start, start+offsetSize);
+		if (!sampleAccs.isEmpty()) {
+			this.sampleAccs = new ArrayList<>(sampleAccs);
+			Collections.sort(this.sampleAccs);
+			if (offsetTotal > 0) {
+				//slice down to section specified by arguments
+				offsetSize = this.sampleAccs.size() / offsetTotal;
+				start = offsetSize * offsetCount;
+				this.sampleAccs = this.sampleAccs.subList(start, start+offsetSize);
+			}
+		} else {
+			this.doSamples = false;
+		}
+
+		if (!groupAccs.isEmpty()) {
+			this.groupAccs = new ArrayList<>(groupAccs);
+			Collections.sort(this.groupAccs);
+			if (offsetTotal > 0) {
+				offsetSize = this.groupAccs.size() / offsetTotal;
+				start = offsetSize * offsetCount;
+				this.groupAccs = this.groupAccs.subList(start, start + offsetSize);
+			}
+		} else {
+			this.doGroups = false;
+		}
+
 	}
 
 	/**
