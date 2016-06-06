@@ -7,6 +7,7 @@ logs/
 testluca/	
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio
 
+*.sh
 *.iml
 
 ## Directory-based project format:
@@ -36,7 +37,8 @@ fabric.properties
 
 # Personal files
 biosample-test.xml
-
+debug.sh
+run.sh
 
 # Properties files
 solrIndexer.properties

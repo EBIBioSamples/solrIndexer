@@ -3,11 +3,7 @@ package uk.ac.ebi.solrIndexer.main;
 import static uk.ac.ebi.solrIndexer.common.SolrSchemaFields.*;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -91,28 +87,50 @@ public class SolrManager {
 
 		SolrInputDocument document = new SolrInputDocument();
 
-		document.addField(ID, bsg.getAcc());
-		document.addField(GROUP_ACC, bsg.getAcc());
-		document.addField(GROUP_UPDATE_DATE, Formater.formatDateToSolr(bsg.getUpdateDate()));
-		document.addField(GROUP_RELEASE_DATE, Formater.formatDateToSolr(bsg.getReleaseDate()));
+		document.addField(ACC, bsg.getAcc());
+		try {
+			document.addField(UPDATE_DATE, Formater.formatDateToSolr(handleUpdateDate(bsg)));
+			document.addField(RELEASE_DATE, Formater.formatDateToSolr(handleReleaseDate(bsg)));
+		} catch (IllegalArgumentException e) {
+			log.error(String.format("Invalid date for group %s",bsg.getAcc()), e);
+			return Optional.empty();
+		}
 		document.addField(CONTENT_TYPE, "group");
 
 		Set<MSI> msi = bsg.getMSIs();
+        MSI submission = null; 
+        
 		if (msi.size() == 1) {
 			if (msi.iterator().hasNext()) {
-				MSI submission = msi.iterator().next();
-				handleMSI(submission, document, bsg);
-			}
+				submission = msi.iterator().next();
+                try {
+                    handleMSI(submission, document, bsg);
+                } catch (IllegalArgumentException e) {
+                    log.error(String.format("Error while creating document %s", bsg.getAcc()),e);
+                    return Optional.empty();
+                }
+            }
+
 		} else {
 			log.warn("Group "+bsg.getAcc()+" has "+msi.size()+" MSIs");
 			return Optional.empty();
 		}
 
         List<String> characteristic_types = new ArrayList<>();
+        ExperimentalPropertyValue<?> groupDescriptionProperty = null;
+
         for (ExperimentalPropertyValue<?> epv : bsg.getPropertyValues()) {
-            handlePropertyValue(epv, characteristic_types, document);
+			String fieldName = epv.getType().getTermText();
+			if (!fieldName.equals("Group Description")) {
+					handlePropertyValue(epv, characteristic_types, document);
+			} else {
+                groupDescriptionProperty = epv;
+            }
         }
-		document.addField(CRT_TYPE, characteristic_types);
+        document.addField(CRT_TYPE, characteristic_types);
+        
+        // Handle description field 
+        handleGroupDescription(groupDescriptionProperty,submission,document);
 
 		Set<BioSample> samples = bsg.getSamples();
 		int samples_nr = samples.size();
@@ -128,6 +146,7 @@ public class SolrManager {
 
 		return Optional.of(document);
 	}
+
 
 	//Generate Sample Solr Document
 	public Optional<SolrInputDocument> generateBioSampleSolrDocument(BioSample bs) {
@@ -149,17 +168,28 @@ public class SolrManager {
 
 		SolrInputDocument document = new SolrInputDocument();
 
-		document.addField(ID, bs.getAcc());
-		document.addField(SAMPLE_ACC, bs.getAcc());
-		document.addField(SAMPLE_UPDATE_DATE, Formater.formatDateToSolr(bs.getUpdateDate()));
-		document.addField(SAMPLE_RELEASE_DATE, Formater.formatDateToSolr(bs.getReleaseDate()));
+		document.addField(ACC, bs.getAcc());
+		try {
+			document.addField(UPDATE_DATE, Formater.formatDateToSolr(handleUpdateDate(bs)));
+			document.addField(RELEASE_DATE, Formater.formatDateToSolr(handleReleaseDate(bs)));
+		} catch (IllegalArgumentException e) {
+			log.error(String.format("Invalid date for sample %s",bs.getAcc()), e);
+			return Optional.empty();
+		}
+
 		document.addField(CONTENT_TYPE, "sample");
 
 		Set<MSI> msi = bs.getMSIs();
+        MSI submission = null;
 		if (msi.size() == 1) {
 			if (msi.iterator().hasNext()) {
-				MSI submission = msi.iterator().next();
-				handleMSI(submission, document, bs);
+				submission = msi.iterator().next();
+                try {
+                    handleMSI(submission, document, bs);
+                } catch (IllegalArgumentException e) {
+                    log.error(String.format("Error while creating document %s",bs.getAcc()),e);
+                    return Optional.empty();
+                }
 			}
 		} else {
 			log.warn("Sample "+bs.getAcc()+" has "+msi.size()+" MSIs");
@@ -167,10 +197,20 @@ public class SolrManager {
 		}
 
         List<String> characteristic_types = new ArrayList<>();
+        ExperimentalPropertyValue<?> sampleDescriptionProperty = null;
+
 		for (ExperimentalPropertyValue<?> epv : bs.getPropertyValues()) {
-            handlePropertyValue(epv, characteristic_types, document);
+            String fieldName = epv.getType().getTermText();
+            if (!fieldName.equals("Sample Description")) {
+                handlePropertyValue(epv, characteristic_types, document);
+            } else {
+                sampleDescriptionProperty = epv;
+            }
 		}
 		document.addField(CRT_TYPE, characteristic_types);
+
+        // Handle sample description
+        handleSampleDescription(bs,sampleDescriptionProperty, submission, document);
 
 		Set<BioSampleGroup> groups = bs.getGroups();
 		if (groups.size() > 0) {
@@ -185,7 +225,7 @@ public class SolrManager {
 		return Optional.of(document);
 	}
 
-	private void handleMSI(MSI submission, SolrInputDocument document, Object obj) {
+	private void handleMSI(MSI submission, SolrInputDocument document, Object obj) throws IllegalArgumentException{
 		Set<Entity> externalEquivalences;
 		if (obj instanceof BioSampleGroup) {
 			BioSampleGroup bsg = (BioSampleGroup) obj;
@@ -199,11 +239,13 @@ public class SolrManager {
 		}
 	}
 
-	private void handleMSI(MSI submission, SolrInputDocument document, Set<Entity> externalEquivalences) {
+	private void handleMSI(MSI submission, SolrInputDocument document, Set<Entity> externalEquivalences) throws IllegalArgumentException{
 		document.addField(SUBMISSION_ACC,submission.getAcc());
-		document.addField(SUBMISSION_DESCRIPTION,submission.getDescription());
+//		document.addField(SUBMISSION_DESCRIPTION,submission.getDescription());
 		document.addField(SUBMISSION_TITLE, submission.getTitle());
-		document.addField(SUBMISSION_UPDATE_DATE,Formater.formatDateToSolr(submission.getUpdateDate()));
+
+		// Update date is not anymore saved for submission and sample but instead as a unique field
+//		document.addField(SUBMISSION_UPDATE_DATE,Formater.formatDateToSolr(submission.getUpdateDate()));
 
 		ArrayNode array = new ArrayNode(nodeFactory);
 
@@ -217,9 +259,9 @@ public class SolrManager {
 				.forEach(databaseRecordRef -> {
 
 					// For search purposes
-					document.addField(DB_NAME, StringUtils.isNotEmpty(databaseRecordRef.getDbName()) ? databaseRecordRef.getDbName() : "-");
-					document.addField(DB_URL, databaseRecordRef.getUrl());
-					document.addField(DB_ACC, StringUtils.isNotEmpty(databaseRecordRef.getAcc()) ? databaseRecordRef.getAcc() : "-");
+					document.addField(REFERENCES_NAME, StringUtils.isNotEmpty(databaseRecordRef.getDbName()) ? databaseRecordRef.getDbName() : "-");
+					document.addField(REFERENCES_URL, databaseRecordRef.getUrl());
+					document.addField(REFERENCES_ACC, StringUtils.isNotEmpty(databaseRecordRef.getAcc()) ? databaseRecordRef.getAcc() : "-");
 
 					ObjectNode ref = nodeFactory.objectNode();
 					ref.put("Name", StringUtils.isNotEmpty(databaseRecordRef.getDbName()) ? databaseRecordRef.getDbName() : "");
@@ -236,9 +278,9 @@ public class SolrManager {
 						&& UrlValidator.getInstance().isValid(entity.getURI()))
 				.forEach(entity -> {
 
-					document.addField(DB_NAME,  StringUtils.isNotEmpty(entity.getService().getTitle()) ? entity.getService().getName() : "-");
-					document.addField(DB_URL, entity.getURI());
-					document.addField(DB_ACC, StringUtils.isNotEmpty(entity.getAccession()) ? entity.getAccession() : "-");
+					document.addField(REFERENCES_NAME,  StringUtils.isNotEmpty(entity.getService().getTitle()) ? entity.getService().getName() : "-");
+					document.addField(REFERENCES_URL, entity.getURI());
+					document.addField(REFERENCES_ACC, StringUtils.isNotEmpty(entity.getAccession()) ? entity.getAccession() : "-");
 
 					ObjectNode ref = nodeFactory.objectNode();
 					ref.put("Name", StringUtils.isNotEmpty(entity.getService().getTitle()) ? entity.getService().getName() : "");
@@ -310,5 +352,78 @@ public class SolrManager {
 			}
 		}
 	}
+
+	private Date handleUpdateDate(BioSample bs) {
+		Date sampleUpdateDate = bs.getUpdateDate();
+
+		if (sampleUpdateDate == null) {
+			Set<MSI> msis = bs.getMSIs();
+			if ( msis.size() == 1 ) {
+                return msis.iterator().next().getUpdateDate();
+			}
+		}
+
+		return sampleUpdateDate;
+	}
+
+	private Date handleUpdateDate(BioSampleGroup bsg) {
+		Date groupUpdateDate = bsg.getUpdateDate();
+
+		if (groupUpdateDate == null) {
+			Set<MSI> msis = bsg.getMSIs();
+			if ( msis.size() == 1 ) {
+				return msis.iterator().next().getUpdateDate();
+			}
+		}
+
+		return groupUpdateDate;
+	}
+
+	private Date handleReleaseDate(BioSample bs) {
+		Date sampleReleaseDate = bs.getReleaseDate();
+
+		if (sampleReleaseDate == null) {
+			Set<MSI> msis = bs.getMSIs();
+			if ( msis.size() == 1 ) {
+				return msis.iterator().next().getReleaseDate();
+			}
+		}
+
+		return sampleReleaseDate;
+	}
+
+    private Date handleReleaseDate(BioSampleGroup bsg) {
+		Date groupReleaseDate = bsg.getReleaseDate();
+
+		if (groupReleaseDate == null) {
+			Set<MSI> msis = bsg.getMSIs();
+			if ( msis.size() == 1 ) {
+				return msis.iterator().next().getReleaseDate();
+			}
+		}
+
+		return groupReleaseDate;
+	}
+
+	private void handleGroupDescription(ExperimentalPropertyValue<?> description, MSI msi, SolrInputDocument document) {
+        if (description != null && description.getType().getTermText().equalsIgnoreCase("Group Description")) {
+            document.addField(DESCRIPTION,description.getTermText());
+        } else if (msi != null) {
+            document.addField(DESCRIPTION,msi.getDescription());
+        }
+	}
+
+
+	private void handleSampleDescription(BioSample sample, ExperimentalPropertyValue<?> description, MSI msi, SolrInputDocument document) {
+        if (description != null && description.getType().getTermText().equalsIgnoreCase("Sample Description")) {
+            document.addField(DESCRIPTION,description.getTermText());
+        } else {
+            if (sample.getGroups().size() == 0 && msi != null) {
+                document.addField(DESCRIPTION,msi.getDescription());
+            }
+        }
+	}
+
+
 
 }
