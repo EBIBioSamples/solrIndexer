@@ -853,7 +853,7 @@
       <str name="fl">*,score</str>
       <str name="wt">json</str>
       <str name="qf">
-        accessionˆ2 name description organism_crt ontology_uri_label_t ontology_uri_parent_labels_t ontology_uri_ancestors_labels_t ontology_uri_child_labels_t ontology_uri_descendants_labels_t text
+        accession^2 name description organism_crt ontology_uri_label_t ontology_uri_parent_labels_t ontology_uri_ancestors_labels_t ontology_uri_child_labels_t ontology_uri_descendants_labels_t text
       </str>
       <str name="q.alt">*:*</str>
     </lst>
