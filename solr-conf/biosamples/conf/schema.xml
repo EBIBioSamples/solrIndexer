@@ -155,7 +155,10 @@
 
   	<!-- Full child hierarchy, represented in JSON -->
   	<field name="child_hierarchy" type="string" indexed="false" stored="true"  multiValued="false"/>
- 
+
+    <field name="organizations" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="contacts" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="publications" type="string" indexed="true" stored="true" multiValued="true"/>
  
     <!-- BIOSAMPLES end -->
 

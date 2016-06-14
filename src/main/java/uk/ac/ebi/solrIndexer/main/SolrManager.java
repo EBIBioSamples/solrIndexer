@@ -23,6 +23,10 @@ import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.fg.biosd.model.organizational.MSI;
 import uk.ac.ebi.fg.biosd.model.xref.DatabaseRecordRef;
 import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
+import uk.ac.ebi.fg.core_model.organizational.Contact;
+import uk.ac.ebi.fg.core_model.organizational.ContactRole;
+import uk.ac.ebi.fg.core_model.organizational.Organization;
+import uk.ac.ebi.fg.core_model.organizational.Publication;
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.fg.myequivalents.model.Entity;
 import uk.ac.ebi.solrIndexer.common.Formater;
@@ -237,7 +241,12 @@ public class SolrManager {
 			externalEquivalences = myEquivalenceManager.getSampleExternalEquivalences(bs.getAcc());
 			handleMSI(submission, document, externalEquivalences);
 		}
+
+		handleOrganizations(submission, document);
+		handleContacts(submission, document);
+		handlePublications(submission, document);
 	}
+
 
 	private void handleMSI(MSI submission, SolrInputDocument document, Set<Entity> externalEquivalences) throws IllegalArgumentException{
 		document.addField(SUBMISSION_ACC,submission.getAcc());
@@ -413,7 +422,6 @@ public class SolrManager {
         }
 	}
 
-
 	private void handleSampleDescription(BioSample sample, ExperimentalPropertyValue<?> description, MSI msi, SolrInputDocument document) {
         if (description != null && description.getType().getTermText().equalsIgnoreCase("Sample Description")) {
             document.addField(DESCRIPTION,description.getTermText());
@@ -424,6 +432,74 @@ public class SolrManager {
         }
 	}
 
+	private void handleOrganizations(MSI submission, SolrInputDocument document) {
+		Set<Organization> organizations = submission.getOrganizations();
+		Iterator iterator = organizations.iterator();
+		while(iterator.hasNext()){
+			Organization o = (Organization) iterator.next();
+			String organization = "";
+			if(!StringUtils.isEmpty(o.getName())) {
+				organization += "Name: " + o.getName() + "; ";
+			}
+			if(!StringUtils.isEmpty(o.getAddress())) {
+				organization += "Address: " + o.getAddress() + "; ";
+			}
+			Set<ContactRole> roles = o.getOrganizationRoles();
+			if(roles != null && !roles.isEmpty()) {
+				String role = "";
+				Iterator it = roles.iterator();
+				while (it.hasNext()){
+					ContactRole cr = (ContactRole) it.next();
+					role += cr.getName() + ", ";
+				}
+				organization += "Role: " + role + "; ";
+			}
+			if(!StringUtils.isEmpty(o.getEmail())) {
+				organization += "Email: " + o.getEmail() + "; ";
+			}
+			if(!StringUtils.isEmpty(o.getUrl())) {
+				organization += "URI: " + o.getUrl();
+			}
+			document.addField(ORGANIZATIONS, organization);
+		}
+	}
 
+	private void handleContacts(MSI submission, SolrInputDocument document) {
+		Set<Contact> contacts = submission.getContacts();
+		Iterator iterator = contacts.iterator();
+		while(iterator.hasNext()){
+			Contact c = (Contact) iterator.next();
+			String contact = "";
+			if(!StringUtils.isEmpty(c.getFirstName()) || !StringUtils.isEmpty(c.getLastName())) {
+				contact += "Name: " + c.getFirstName() + " " + c.getLastName() + "; ";
+			}
+			if(!StringUtils.isEmpty(c.getAffiliation())) {
+				contact += "Affiliation: " + c.getAffiliation() + "; ";
+			}
+			if(!StringUtils.isEmpty(c.getEmail())) {
+				contact += "Email: " + c.getEmail() + "; ";
+			}
+			if(!StringUtils.isEmpty(c.getUrl())) {
+				contact += "URL: " + c.getUrl();
+			}
+			document.addField(CONTACTS, contact);
+		}
+	}
+
+	private void handlePublications(MSI submission, SolrInputDocument document) {
+		Set<Publication> publications = submission.getPublications();
+		Iterator iterator = publications.iterator();
+		while (iterator.hasNext()) {
+			Publication p = (Publication) iterator.next();
+			String publication = "";
+			if(!StringUtils.isEmpty(p.getDOI())) {
+				publication += "DOI: " + p.getDOI() + "; ";
+			}
+			if(!StringUtils.isEmpty(p.getPubmedId())) {
+				publication += "PubMed ID: " + p.getPubmedId();
+			}
+			document.addField(PUBLICATIONS, publication);
+		}
+	}
 
 }

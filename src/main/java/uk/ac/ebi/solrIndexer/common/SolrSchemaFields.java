@@ -47,4 +47,9 @@ public class SolrSchemaFields {
 
 	/* --- BioSolr Plugin Field ---*/
 	public static final String BIO_SOLR_FIELD = "ontology_uri";
+
+	/* --- Organizations, Contacts & Publications --- */
+	public static final String ORGANIZATIONS = "organizations";
+	public static final String CONTACTS = "contacts";
+	public static final String PUBLICATIONS = "publications";
 }
