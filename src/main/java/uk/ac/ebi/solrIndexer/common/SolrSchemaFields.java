@@ -49,7 +49,12 @@ public class SolrSchemaFields {
 	public static final String BIO_SOLR_FIELD = "ontology_uri";
 
 	/* --- Organizations, Contacts & Publications --- */
-	public static final String ORGANIZATIONS = "organizations";
+	public static final String ORG_NAME = "org_name";
+	public static final String ORG_EMAIL = "org_email";
+	public static final String ORG_ROLE = "org_role";
+	public static final String ORG_URL = "org_url";
+	public static final String ORG_JSON = "org_json";
+
 	public static final String CONTACTS = "contacts";
 	public static final String PUBLICATIONS = "publications";
 }

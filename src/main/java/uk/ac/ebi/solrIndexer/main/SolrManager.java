@@ -433,34 +433,41 @@ public class SolrManager {
 	}
 
 	private void handleOrganizations(MSI submission, SolrInputDocument document) {
+		ArrayNode array = new ArrayNode(nodeFactory);
+		ObjectNode org = nodeFactory.objectNode();
 		Set<Organization> organizations = submission.getOrganizations();
-		Iterator iterator = organizations.iterator();
-		while(iterator.hasNext()){
-			Organization o = (Organization) iterator.next();
-			String organization = "";
-			if(!StringUtils.isEmpty(o.getName())) {
-				organization += "Name: " + o.getName() + "; ";
+
+		organizations.stream().forEach(organization -> {
+			if (!StringUtils.isEmpty(organization.getName())) {
+				document.addField(ORG_NAME, organization.getName());
+				org.put("Name: ", organization.getName());
 			}
-			if(!StringUtils.isEmpty(o.getAddress())) {
-				organization += "Address: " + o.getAddress() + "; ";
-			}
-			Set<ContactRole> roles = o.getOrganizationRoles();
+			/* if(!StringUtils.isEmpty(organization.getAddress())) {document.addField(ORG_ADDRESS, organization.getAddress()); }*/
+
+			Set<ContactRole> roles = organization.getOrganizationRoles();
 			if(roles != null && !roles.isEmpty()) {
-				String role = "";
+				String role_str = "";
 				Iterator it = roles.iterator();
-				while (it.hasNext()){
+				while (it.hasNext()) {
 					ContactRole cr = (ContactRole) it.next();
-					role += cr.getName() + ", ";
+					role_str += cr.getName() + " ";
 				}
-				organization += "Role: " + role + "; ";
+				document.addField(ORG_ROLE, role_str);
+				org.put("Role:", role_str);
 			}
-			if(!StringUtils.isEmpty(o.getEmail())) {
-				organization += "Email: " + o.getEmail() + "; ";
+			if(!StringUtils.isEmpty(organization.getEmail())) {
+				document.addField(ORG_EMAIL, organization.getEmail());
+				org.put("E-mail: ", organization.getEmail());
 			}
-			if(!StringUtils.isEmpty(o.getUrl())) {
-				organization += "URI: " + o.getUrl();
+			if(!StringUtils.isEmpty(organization.getUrl())) {
+				document.addField(ORG_URL, organization.getUrl());
+				org.put("URL: ", organization.getUrl());
 			}
-			document.addField(ORGANIZATIONS, organization);
+			array.add(org);
+		});
+
+		if (array.size() > 0) {
+			document.addField(ORG_JSON, array.toString());
 		}
 	}
 
@@ -476,9 +483,10 @@ public class SolrManager {
 			if(!StringUtils.isEmpty(c.getAffiliation())) {
 				contact += "Affiliation: " + c.getAffiliation() + "; ";
 			}
+			/* Not showing
 			if(!StringUtils.isEmpty(c.getEmail())) {
 				contact += "Email: " + c.getEmail() + "; ";
-			}
+			}*/
 			if(!StringUtils.isEmpty(c.getUrl())) {
 				contact += "URL: " + c.getUrl();
 			}
