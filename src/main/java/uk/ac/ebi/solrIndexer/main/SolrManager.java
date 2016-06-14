@@ -437,14 +437,13 @@ public class SolrManager {
 		ObjectNode org = nodeFactory.objectNode();
 		Set<Organization> organizations = submission.getOrganizations();
 
-		organizations.stream().forEach(organization -> {
-			if (!StringUtils.isEmpty(organization.getName())) {
-				document.addField(ORG_NAME, organization.getName());
-				org.put("Name: ", organization.getName());
+		organizations.stream().forEach(o -> {
+			if (!StringUtils.isEmpty(o.getName())) {
+				document.addField(ORG_NAME, o.getName());
+				org.put("Name", o.getName());
 			}
 			/* if(!StringUtils.isEmpty(organization.getAddress())) {document.addField(ORG_ADDRESS, organization.getAddress()); }*/
-
-			Set<ContactRole> roles = organization.getOrganizationRoles();
+			Set<ContactRole> roles = o.getOrganizationRoles();
 			if(roles != null && !roles.isEmpty()) {
 				String role_str = "";
 				Iterator it = roles.iterator();
@@ -453,15 +452,15 @@ public class SolrManager {
 					role_str += cr.getName() + " ";
 				}
 				document.addField(ORG_ROLE, role_str);
-				org.put("Role:", role_str);
+				org.put("Role", role_str);
 			}
-			if(!StringUtils.isEmpty(organization.getEmail())) {
-				document.addField(ORG_EMAIL, organization.getEmail());
-				org.put("E-mail: ", organization.getEmail());
+			if(!StringUtils.isEmpty(o.getEmail())) {
+				document.addField(ORG_EMAIL, o.getEmail());
+				org.put("E-mail", o.getEmail());
 			}
-			if(!StringUtils.isEmpty(organization.getUrl())) {
-				document.addField(ORG_URL, organization.getUrl());
-				org.put("URL: ", organization.getUrl());
+			if(!StringUtils.isEmpty(o.getUrl())) {
+				document.addField(ORG_URL, o.getUrl());
+				org.put("URL", o.getUrl());
 			}
 			array.add(org);
 		});
@@ -472,41 +471,50 @@ public class SolrManager {
 	}
 
 	private void handleContacts(MSI submission, SolrInputDocument document) {
+		ArrayNode array = new ArrayNode(nodeFactory);
+		ObjectNode contact = nodeFactory.objectNode();
 		Set<Contact> contacts = submission.getContacts();
-		Iterator iterator = contacts.iterator();
-		while(iterator.hasNext()){
-			Contact c = (Contact) iterator.next();
-			String contact = "";
-			if(!StringUtils.isEmpty(c.getFirstName()) || !StringUtils.isEmpty(c.getLastName())) {
-				contact += "Name: " + c.getFirstName() + " " + c.getLastName() + "; ";
+
+		contacts.stream().forEach(c -> {
+			if(!StringUtils.isEmpty(c.getFirstName()) && !StringUtils.isEmpty(c.getLastName())) {
+				document.addField(CONTACT_NAME, c.getFirstName() + " " + c.getLastName());
+				contact.put("Name", c.getFirstName() + " " + c.getLastName());
 			}
 			if(!StringUtils.isEmpty(c.getAffiliation())) {
-				contact += "Affiliation: " + c.getAffiliation() + "; ";
+				document.addField(CONTACT_AFFILIATION, c.getAffiliation());
+				contact.put("Affiliation", c.getAffiliation());
 			}
-			/* Not showing
-			if(!StringUtils.isEmpty(c.getEmail())) {
-				contact += "Email: " + c.getEmail() + "; ";
-			}*/
 			if(!StringUtils.isEmpty(c.getUrl())) {
-				contact += "URL: " + c.getUrl();
+				document.addField(CONTACT_URL, c.getUrl());
+				contact.put("URL", c.getUrl());
 			}
-			document.addField(CONTACTS, contact);
+			array.add(contact);
+		});
+
+		if (array.size() > 0) {
+			document.addField(CONTACT_JSON, array.toString());
 		}
 	}
 
 	private void handlePublications(MSI submission, SolrInputDocument document) {
+		ArrayNode array = new ArrayNode(nodeFactory);
+		ObjectNode pub = nodeFactory.objectNode();
 		Set<Publication> publications = submission.getPublications();
-		Iterator iterator = publications.iterator();
-		while (iterator.hasNext()) {
-			Publication p = (Publication) iterator.next();
-			String publication = "";
+
+		publications.stream().forEach(p -> {
 			if(!StringUtils.isEmpty(p.getDOI())) {
-				publication += "DOI: " + p.getDOI() + "; ";
+				document.addField(PUB_DOI, p.getDOI());
+				pub.put("DOI", p.getDOI());
 			}
 			if(!StringUtils.isEmpty(p.getPubmedId())) {
-				publication += "PubMed ID: " + p.getPubmedId();
+				document.addField(PUB_PUBMED, p.getPubmedId());
+				pub.put("PubMed ID", p.getPubmedId());
 			}
-			document.addField(PUBLICATIONS, publication);
+			array.add(pub);
+		});
+
+		if (array.size() > 0) {
+			document.addField(PUB_JSON, array.toString());
 		}
 	}
 

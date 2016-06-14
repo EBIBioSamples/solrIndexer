@@ -55,6 +55,13 @@ public class SolrSchemaFields {
 	public static final String ORG_URL = "org_url";
 	public static final String ORG_JSON = "org_json";
 
-	public static final String CONTACTS = "contacts";
-	public static final String PUBLICATIONS = "publications";
+	public static final String CONTACT_NAME = "contact_name";
+	public static final String CONTACT_AFFILIATION = "contact_affiliation";
+	public static final String CONTACT_URL = "contact_url";
+	public static final String CONTACT_JSON = "contact_json";
+
+	public static final String PUB_DOI = "pub_doi";
+	public static final String PUB_PUBMED = "pub_pubmed";
+	public static final String PUB_JSON = "pub_json";
+
 }
