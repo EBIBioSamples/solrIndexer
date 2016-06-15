@@ -35,6 +35,7 @@ import uk.ac.ebi.fg.core_model.organizational.Organization;
 import uk.ac.ebi.fg.core_model.organizational.Publication;
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.fg.core_model.xref.ReferenceSource;
+import uk.ac.ebi.fg.myequivalents.managers.interfaces.EntityMappingManager;
 import uk.ac.ebi.fg.myequivalents.model.Entity;
 import uk.ac.ebi.solrIndexer.main.MyEquivalenceManager;
 
@@ -63,16 +64,16 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup> {
 	}
 
 	@Override
-	public String getXMLString(BioSampleGroup group) {
+	public String getXMLString(BioSampleGroup group, EntityMappingManager entityMappingManager) {
 
-		return renderDocument(getXMLDocument(group));
+		return renderDocument(getXMLDocument(group, entityMappingManager));
 
 	}
 
 	@Override
-	public Document getXMLDocument(BioSampleGroup group) {
+	public Document getXMLDocument(BioSampleGroup group, EntityMappingManager entityMappingManager) {
 		Document doc = generateBaseDocument();
-		Element biosampleElement = getXMLElement(group);
+		Element biosampleElement = getXMLElement(group, entityMappingManager);
 
 		doc.setRootElement(biosampleElement);
 
@@ -80,7 +81,7 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup> {
 	}
 
 	@Override
-	public Element getXMLElement(BioSampleGroup group) {
+	public Element getXMLElement(BioSampleGroup group, EntityMappingManager entityMappingManager) {
 		Element root = getDocumentRoot(group);
 
 		List<Element> submissionInfos = getSubmissionInformationElements(group);
@@ -89,7 +90,7 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup> {
 		List<Element> groupProperties = getPropertiesElements(group);
 		List<Element> groupOrganizations = getOrganizationElements(group);
 		List<Element> groupPersons = getPersonElements(group);
-		List<Element> groupDatabases = getDatabaseElements(group);
+		List<Element> groupDatabases = getDatabaseElements(group, entityMappingManager);
 		List<Element> groupPublication = getPublicationElements(group);
 		Element groupSampleIds = getSampleIdsElement(group);
 		List<Element> groupBiosamples = getBiosampleElements(group);
@@ -519,7 +520,7 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup> {
 
 	}
 
-	private List<Element> getDatabaseElements(BioSampleGroup group) {
+	private List<Element> getDatabaseElements(BioSampleGroup group, EntityMappingManager entityMappingManager) {
 
 		List<Element> databaseElements = new ArrayList<>();
 
@@ -540,7 +541,7 @@ public class BioSampleGroupXMLService implements XMLService<BioSampleGroup> {
 		}
 
 		// Add MyEquivalence references
-		Set<Entity> externalEquivalences = myEquivalentsManager.getGroupExternalEquivalences(group.getAcc());
+		Set<Entity> externalEquivalences = myEquivalentsManager.getGroupExternalEquivalences(group.getAcc(), entityMappingManager);
 		externalEquivalences.forEach(entity -> {
 
 			Element dbRecord = new Element("Database", XMLNS);

@@ -36,6 +36,7 @@ import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.fg.core_model.toplevel.Annotation;
 import uk.ac.ebi.fg.core_model.xref.ReferenceSource;
+import uk.ac.ebi.fg.myequivalents.managers.interfaces.EntityMappingManager;
 import uk.ac.ebi.fg.myequivalents.model.Entity;
 import uk.ac.ebi.solrIndexer.main.MyEquivalenceManager;
 
@@ -79,16 +80,16 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 	}
 
 	@Override
-	public String getXMLString(BioSample sample) {
+	public String getXMLString(BioSample sample, EntityMappingManager entityMappingManager) {
 
-		return renderDocument(getXMLDocument(sample));
+		return renderDocument(getXMLDocument(sample, entityMappingManager));
 	}
 
 	@Override
-	public Document getXMLDocument(BioSample sample) {
+	public Document getXMLDocument(BioSample sample, EntityMappingManager entityMappingManager) {
 
 		Document doc = generateBaseDocument();
-		Element biosampleElement = getXMLElement(sample);
+		Element biosampleElement = getXMLElement(sample, entityMappingManager);
 
 		doc.setRootElement(biosampleElement);
 
@@ -97,14 +98,14 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 	}
 
 	@Override
-	public Element getXMLElement(BioSample sample) {
+	public Element getXMLElement(BioSample sample, EntityMappingManager entityMappingManager) {
 		Element root = getDocumentRoot(sample);
 
 		// Add all properties
 		List<Element> annotations = getBiosampleAnnotations(sample);
 		List<Element> properties = getBiosampleProperties(sample);
 		List<Element> derivedFrom = getBiosampleDerivedFrom(sample);
-		List<Element> databases = getBiosampleDatabase(sample);
+		List<Element> databases = getBiosampleDatabase(sample, entityMappingManager);
 		Content groupIds = getBiosampleGroupIds(sample);
 
 		root.addContent(annotations).addContent(properties).addContent(derivedFrom).addContent(databases);
@@ -305,7 +306,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 		return annotations;
 	}
 
-	private List<Element> getBiosampleDatabase(BioSample sample) {
+	private List<Element> getBiosampleDatabase(BioSample sample, EntityMappingManager entityMappingManager) {
 
 		List<Element> databaseElements = new ArrayList<>();
 
@@ -352,7 +353,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 		});
 
 		// Add MyEquivalence references
-		Set<Entity> externalEquivalences = myEquivalentsManager.getSampleExternalEquivalences(sample.getAcc());
+		Set<Entity> externalEquivalences = myEquivalentsManager.getSampleExternalEquivalences(sample.getAcc(), entityMappingManager);
 		externalEquivalences.forEach(entity -> {
 
 			Element dbRecord = new Element("Database", XMLNS);

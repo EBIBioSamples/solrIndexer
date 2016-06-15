@@ -24,6 +24,7 @@ import uk.ac.ebi.fg.biosd.model.organizational.MSI;
 import uk.ac.ebi.fg.biosd.model.xref.DatabaseRecordRef;
 import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
+import uk.ac.ebi.fg.myequivalents.managers.interfaces.EntityMappingManager;
 import uk.ac.ebi.fg.myequivalents.model.Entity;
 import uk.ac.ebi.solrIndexer.common.Formater;
 import uk.ac.ebi.solrIndexer.service.xml.BioSampleGroupXMLService;
@@ -66,7 +67,7 @@ public class SolrManager {
 	}
 
 	//Generate Group Solr Document
-	public Optional<SolrInputDocument> generateBioSampleGroupSolrDocument(BioSampleGroup bsg) {
+	public Optional<SolrInputDocument> generateBioSampleGroupSolrDocument(BioSampleGroup bsg, EntityMappingManager entityMappingManager) {
 		//check if it should be public
 		boolean pub;
 		try {
@@ -104,7 +105,7 @@ public class SolrManager {
 			if (msi.iterator().hasNext()) {
 				submission = msi.iterator().next();
                 try {
-                    handleMSI(submission, document, bsg);
+                    handleMSI(submission, document, bsg, entityMappingManager);
                 } catch (IllegalArgumentException e) {
                     log.error(String.format("Error while creating document %s", bsg.getAcc()),e);
                     return Optional.empty();
@@ -140,7 +141,7 @@ public class SolrManager {
 		document.addField(NUMBER_OF_SAMPLES, samples_nr);
 
 		if (includeXML) {
-			String xml = groupXmlService.getXMLString(bsg);
+			String xml = groupXmlService.getXMLString(bsg, entityMappingManager);
 			document.addField(XML, xml);
 		}
 
@@ -149,7 +150,7 @@ public class SolrManager {
 
 
 	//Generate Sample Solr Document
-	public Optional<SolrInputDocument> generateBioSampleSolrDocument(BioSample bs) {
+	public Optional<SolrInputDocument> generateBioSampleSolrDocument(BioSample bs, EntityMappingManager entityMappingManager) {
 		//check if it should be public
 		boolean pub;
 		try {
@@ -185,7 +186,7 @@ public class SolrManager {
 			if (msi.iterator().hasNext()) {
 				submission = msi.iterator().next();
                 try {
-                    handleMSI(submission, document, bs);
+                    handleMSI(submission, document, bs, entityMappingManager);
                 } catch (IllegalArgumentException e) {
                     log.error(String.format("Error while creating document %s",bs.getAcc()),e);
                     return Optional.empty();
@@ -218,24 +219,25 @@ public class SolrManager {
 		}
 
 		if (includeXML) {
-			String xml = sampleXmlService.getXMLString(bs);
+			String xml = sampleXmlService.getXMLString(bs, entityMappingManager);
 			document.addField(XML, xml);
 		}
 
 		return Optional.of(document);
 	}
 
-	private void handleMSI(MSI submission, SolrInputDocument document, Object obj) throws IllegalArgumentException{
+	private void handleMSI(MSI submission, SolrInputDocument document, Object obj, EntityMappingManager entityMappingManager) throws IllegalArgumentException {
 		Set<Entity> externalEquivalences;
 		if (obj instanceof BioSampleGroup) {
 			BioSampleGroup bsg = (BioSampleGroup) obj;
-			externalEquivalences = myEquivalenceManager.getGroupExternalEquivalences(bsg.getAcc());
+			externalEquivalences = myEquivalenceManager.getGroupExternalEquivalences(bsg.getAcc(), entityMappingManager);
 			handleMSI(submission, document, externalEquivalences);
-
 		} else if (obj instanceof BioSample) {
 			BioSample bs = (BioSample) obj;
-			externalEquivalences = myEquivalenceManager.getSampleExternalEquivalences(bs.getAcc());
+			externalEquivalences = myEquivalenceManager.getSampleExternalEquivalences(bs.getAcc(), entityMappingManager);
 			handleMSI(submission, document, externalEquivalences);
+		} else {
+			throw new IllegalArgumentException("Unrecognised object "+obj);
 		}
 	}
 
@@ -423,7 +425,4 @@ public class SolrManager {
             }
         }
 	}
-
-
-
 }

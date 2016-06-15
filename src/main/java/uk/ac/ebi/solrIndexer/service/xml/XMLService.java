@@ -7,13 +7,15 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.filter.Filter;
 
+import uk.ac.ebi.fg.myequivalents.managers.interfaces.EntityMappingManager;
+
 public interface XMLService<E> {
 
-	String getXMLString(E type);
+	String getXMLString(E type, EntityMappingManager entityMappingManager);
 
-	Document getXMLDocument(E type);
+	Document getXMLDocument(E type, EntityMappingManager entityMappingManager);
 
-	Element getXMLElement(E type);
+	Element getXMLElement(E type, EntityMappingManager entityMappingManager);
 
 	public default void filterDescendantOf(Element element, Filter<?> filter) {
 

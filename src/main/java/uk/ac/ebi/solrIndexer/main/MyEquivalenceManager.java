@@ -8,6 +8,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -23,39 +25,40 @@ public class MyEquivalenceManager {
 
 	private Logger log = LoggerFactory.getLogger(this.getClass());
 
-	//@Autowired
-	//private ManagerFactory managerFactory; 
-	
 	private ManagerFactory managerFactory = null;
-	
+
 	private MyEquivalenceManager() {
 	}
+	
+	private MyEquivalenceManager(ManagerFactory managerFactory) {
+		this.managerFactory = managerFactory;
+	}	
 
-	public synchronized ManagerFactory getManagerFactory() {
+	@PostConstruct
+	public void doSetup() throws IOException {
 		if (managerFactory == null) {
-			//managerFactory = Resources.getInstance().getMyEqManagerFactory();
-
 			Properties properties = new Properties();
 			InputStream is = null;
 			try {
 				is = this.getClass().getResourceAsStream("/myeq.properties");
 				if (is == null) {
-					throw new RuntimeException("Unable to find myeq.properties");
+					throw new IOException("Unable to find myeq.properties");
 				}
 				properties.load(is);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
 			} finally {
 				if (is != null) {
 					try {
 						is.close();
 					} catch (IOException e) {
-						//do nothing
+						// do nothing
 					}
 				}
 			}
-			return new DbManagerFactory(properties);
+			managerFactory = new DbManagerFactory(properties);
 		}
+	}
+
+	public ManagerFactory getManagerFactory() {
 		return managerFactory;
 	}
 
@@ -63,94 +66,80 @@ public class MyEquivalenceManager {
 		this.managerFactory = managerFactory;
 	}
 
-	public Set<Entity> getGroupExternalEquivalences(String groupAccession) {
+	public Set<Entity> getGroupExternalEquivalences(String groupAccession, EntityMappingManager entityMappingManager) {
 		Set<Entity> otherEquivalences = new HashSet<>();
-		EntityMappingManager entityMappingManager = null;
-		try {
-			entityMappingManager = getManagerFactory().newEntityMappingManager();
-			
-			Collection<EntityMappingSearchResult.Bundle> bundles = entityMappingManager
-					.getMappings(false, "ebi.biosamples.groups:" + groupAccession).getBundles();
-	
-			if (!bundles.isEmpty()) {
-	
-				Set<Entity> entities = bundles.iterator().next().getEntities();
-	
-				for (Entity entity : entities) {
-	
-					// if (!entity.isPublic()) {
+		
+		entityMappingManager = getManagerFactory().newEntityMappingManager();
+
+		Collection<EntityMappingSearchResult.Bundle> bundles = entityMappingManager
+				.getMappings(false, "ebi.biosamples.groups:" + groupAccession).getBundles();
+
+		if (!bundles.isEmpty()) {
+
+			Set<Entity> entities = bundles.iterator().next().getEntities();
+
+			for (Entity entity : entities) {
+
+				// if (!entity.isPublic()) {
+				// continue;
+				// }
+
+				if (entity.getServiceName().equals("ebi.biosamples.groups")) {
+
+					String entityAccession = entity.getAccession();
+
+					if (entityAccession.equals(groupAccession)) {
+						continue;
+					}
+					// else if (!
+					// DataBaseStorage.isGroupPublic(entityAccession)) {
+					// log.debug("Equivalence with private or non existent
+					// group not inserted");
 					// continue;
 					// }
-	
-					if (entity.getServiceName().equals("ebi.biosamples.groups")) {
-	
-						String entityAccession = entity.getAccession();
-	
-						if (entityAccession.equals(groupAccession)) {
-							continue;
-						}
-						// else if (!
-						// DataBaseStorage.isGroupPublic(entityAccession)) {
-						// log.debug("Equivalence with private or non existent
-						// group not inserted");
-						// continue;
-						// }
-					}
-	
-					otherEquivalences.add(entity);
 				}
-	
+
+				otherEquivalences.add(entity);
 			}
-		} finally {
-			if (entityMappingManager != null ){
-				entityMappingManager.close();
-			}
+
 		}
 
 		return otherEquivalences;
 	}
 
-	public Set<Entity> getSampleExternalEquivalences(String sampleAccession) {
+	public Set<Entity> getSampleExternalEquivalences(String sampleAccession, EntityMappingManager entityMappingManager) {
 		Set<Entity> otherEquivalences = new HashSet<>();
-		EntityMappingManager entityMappingManager = null;
-		try {
-			entityMappingManager = getManagerFactory().newEntityMappingManager();
-			
-			Collection<EntityMappingSearchResult.Bundle> bundles = entityMappingManager
-					.getMappings(false, "ebi.biosamples.samples:" + sampleAccession).getBundles();
-	
-			if (!bundles.isEmpty()) {
-	
-				otherEquivalences = bundles.iterator().next().getEntities().stream().filter(entity -> {
-	
-					// if (!entity.isPublic()) {
+
+		Collection<EntityMappingSearchResult.Bundle> bundles = entityMappingManager
+				.getMappings(false, "ebi.biosamples.samples:" + sampleAccession).getBundles();
+
+		if (!bundles.isEmpty()) {
+
+			otherEquivalences = bundles.iterator().next().getEntities().stream().filter(entity -> {
+
+				// if (!entity.isPublic()) {
+				// return false;
+				// }
+				if (entity.getServiceName().equals("ebi.biosamples.samples")) {
+
+					String entityAccession = entity.getAccession();
+
+					if (entityAccession.equals(sampleAccession)) {
+						return false;
+					}
+					// TODO check if accession is public
+					// else if
+					// (!DataBaseStorage.isSamplePublic(entityAccession)){
+					// log.debug("Equivalence with private or not existent
+					// sample not inserted");
 					// return false;
 					// }
-					if (entity.getServiceName().equals("ebi.biosamples.samples")) {
-	
-						String entityAccession = entity.getAccession();
-	
-						if (entityAccession.equals(sampleAccession)) {
-							return false;
-						}
-						// TODO check if accession is public
-						// else if
-						// (!DataBaseStorage.isSamplePublic(entityAccession)){
-						// log.debug("Equivalence with private or not existent
-						// sample not inserted");
-						// return false;
-						// }
-					}
-	
-					return true;
-	
-				}).collect(Collectors.toSet());
-	
-			}
-		} finally {
-			if (entityMappingManager != null ){
-				entityMappingManager.close();
-			}
+				}
+
+				return true;
+
+			}).collect(Collectors.toSet());
+
 		}
 
 		return otherEquivalences;
