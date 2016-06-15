@@ -20,5 +20,3 @@ solrIndexer.commitWithin=60000
 #too high and multithreading not used efficiently
 groups.fetchStep=1000
 samples.fetchStep=1000
-
-onto.mapping.annotator=true

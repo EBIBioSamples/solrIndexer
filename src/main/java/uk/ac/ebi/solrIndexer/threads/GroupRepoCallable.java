@@ -1,33 +1,55 @@
 package uk.ac.ebi.solrIndexer.threads;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.Callable;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
+import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
+import uk.ac.ebi.fg.biosd.annotator.persistence.AnnotatorAccessor;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.fg.core_model.persistence.dao.hibernate.toplevel.AccessibleDAO;
 import uk.ac.ebi.fg.core_model.resources.Resources;
+import uk.ac.ebi.fg.myequivalents.managers.interfaces.EntityMappingManager;
+import uk.ac.ebi.solrIndexer.main.MyEquivalenceManager;
+import uk.ac.ebi.solrIndexer.main.SolrManager;
 
 @Component
 // this makes sure that we have a different instance wherever it is used
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class GroupRepoCallable extends GroupCallable {
+public class GroupRepoCallable implements Callable<Integer> {
 	private Logger log = LoggerFactory.getLogger(this.getClass());
 
+	private ConcurrentUpdateSolrClient client;
+	private ConcurrentUpdateSolrClient mergedClient;
 	private Iterable<String> accessions;
-	
-	public GroupRepoCallable(ConcurrentUpdateSolrClient client, ConcurrentUpdateSolrClient mergedClient, Iterable<String> accessions) {
+
+	@Autowired
+	private SolrManager solrManager;
+
+	@Autowired
+	private MyEquivalenceManager myEquivalenceManager;
+
+	@Value("${solrIndexer.commitWithin:60000}")
+	private int commitWithin;
+
+	public GroupRepoCallable(ConcurrentUpdateSolrClient client, ConcurrentUpdateSolrClient mergedClient,
+			Iterable<String> accessions) {
 		super();
 		this.client = client;
 		this.accessions = accessions;
@@ -38,27 +60,43 @@ public class GroupRepoCallable extends GroupCallable {
 	public Integer call() throws Exception {
 		log.info("Starting call()");
 
+		// setup the entity manager for interacting with relational database
 		EntityManagerFactory emf = Resources.getInstance().getEntityManagerFactory();
 		EntityManager em = null;
 		int toReturn;
 		try {
 			em = emf.createEntityManager();
-			
+
+			// start a transaction within the entity amanger
 			EntityTransaction transaction = em.getTransaction();
 			try {
 				transaction.begin();
-				transaction.setRollbackOnly();			
-				
-				AccessibleDAO<BioSampleGroup> dao = new AccessibleDAO<>(BioSampleGroup.class, em);
-	
-				List<BioSampleGroup> groups = new ArrayList<>();
-				for (String accession : accessions) {
-					groups.add(dao.find(accession));
+				transaction.setRollbackOnly();
+
+				// we can get a connection to myEquivalents
+				EntityMappingManager entityMappingManager = null;
+				try {
+					entityMappingManager = myEquivalenceManager.getManagerFactory().newEntityMappingManager();
+
+					// and a connection to the annotation system within the
+					// relational database
+					AnnotatorAccessor annotator = null;
+					try {
+						annotator = new AnnotatorAccessor(em);
+
+						toReturn = processGroups(accessions, em, entityMappingManager, annotator);
+
+					} finally {
+						if (annotator != null) {
+							annotator.close();
+						}
+					}
+				} finally {
+					if (entityMappingManager != null) {
+						entityMappingManager.close();
+					}
 				}
-	
-				this.groups = groups;
-				toReturn = super.call();
-				
+
 			} finally {
 				transaction.rollback();
 			}
@@ -68,7 +106,28 @@ public class GroupRepoCallable extends GroupCallable {
 			}
 		}
 		log.info("Finished call()");
-		
+
 		return toReturn;
+	}
+
+	private int processGroups(Iterable<String> accessions, EntityManager em, EntityMappingManager entityMappingManager,
+			AnnotatorAccessor annotator) throws SolrServerException, IOException {
+
+		AccessibleDAO<BioSampleGroup> dao = new AccessibleDAO<>(BioSampleGroup.class, em);
+		
+		int count = 0;
+		for (String accession : accessions) {
+			
+			log.trace("processing "+accession);
+
+			Optional<SolrInputDocument> doc = solrManager.generateBioSampleGroupSolrDocument(dao.find(accession),
+					entityMappingManager, annotator);
+			if (doc.isPresent()) {
+				client.add(doc.get(), commitWithin);
+				mergedClient.add(doc.get(), commitWithin);
+				count += 1;
+			}
+		}
+		return count;
 	}
 }

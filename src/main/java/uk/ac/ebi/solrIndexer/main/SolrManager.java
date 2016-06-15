@@ -35,8 +35,6 @@ public class SolrManager {
 
 	private Logger log = LoggerFactory.getLogger (this.getClass());
 
-	private AnnotatorAccessor annotator = null;
-
     @Autowired
     private BioSampleGroupXMLService groupXmlService;
 
@@ -46,28 +44,10 @@ public class SolrManager {
 	@Autowired
 	private MyEquivalenceManager myEquivalenceManager;
 
-	private boolean includeXML = false;
-
 	final JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
 
-	public AnnotatorAccessor getAnnotator() {
-		return annotator;
-	}
-
-	public void setAnnotator(AnnotatorAccessor annotator) {
-		this.annotator = annotator;
-	}
-
-	public boolean isIncludeXML() {
-		return includeXML;
-	}
-
-	public void setIncludeXML(boolean includeXML) {
-		this.includeXML = includeXML;
-	}
-
 	//Generate Group Solr Document
-	public Optional<SolrInputDocument> generateBioSampleGroupSolrDocument(BioSampleGroup bsg, EntityMappingManager entityMappingManager) {
+	public Optional<SolrInputDocument> generateBioSampleGroupSolrDocument(BioSampleGroup bsg, EntityMappingManager entityMappingManager, AnnotatorAccessor annotator ) {
 		//check if it should be public
 		boolean pub;
 		try {
@@ -123,7 +103,7 @@ public class SolrManager {
         for (ExperimentalPropertyValue<?> epv : bsg.getPropertyValues()) {
 			String fieldName = epv.getType().getTermText();
 			if (!fieldName.equals("Group Description")) {
-					handlePropertyValue(epv, characteristic_types, document);
+					handlePropertyValue(epv, characteristic_types, document, annotator);
 			} else {
                 groupDescriptionProperty = epv;
             }
@@ -140,17 +120,14 @@ public class SolrManager {
 		}
 		document.addField(NUMBER_OF_SAMPLES, samples_nr);
 
-		if (includeXML) {
-			String xml = groupXmlService.getXMLString(bsg, entityMappingManager);
-			document.addField(XML, xml);
-		}
+		document.addField(XML, groupXmlService.getXMLString(bsg, entityMappingManager));
 
 		return Optional.of(document);
 	}
 
 
 	//Generate Sample Solr Document
-	public Optional<SolrInputDocument> generateBioSampleSolrDocument(BioSample bs, EntityMappingManager entityMappingManager) {
+	public Optional<SolrInputDocument> generateBioSampleSolrDocument(BioSample bs, EntityMappingManager entityMappingManager, AnnotatorAccessor annotator ) {
 		//check if it should be public
 		boolean pub;
 		try {
@@ -203,7 +180,7 @@ public class SolrManager {
 		for (ExperimentalPropertyValue<?> epv : bs.getPropertyValues()) {
             String fieldName = epv.getType().getTermText();
             if (!fieldName.equals("Sample Description")) {
-                handlePropertyValue(epv, characteristic_types, document);
+                handlePropertyValue(epv, characteristic_types, document, annotator);
             } else {
                 sampleDescriptionProperty = epv;
             }
@@ -218,10 +195,7 @@ public class SolrManager {
 			groups.forEach(group -> document.addField(SAMPLE_GRP_ACC, group.getAcc()));
 		}
 
-		if (includeXML) {
-			String xml = sampleXmlService.getXMLString(bs, entityMappingManager);
-			document.addField(XML, xml);
-		}
+		document.addField(XML, sampleXmlService.getXMLString(bs, entityMappingManager));
 
 		return Optional.of(document);
 	}
@@ -298,7 +272,7 @@ public class SolrManager {
 
 	}
 
-	private void handlePropertyValue(ExperimentalPropertyValue<?> epv, List<String> characteristic_types, SolrInputDocument document) {
+	private void handlePropertyValue(ExperimentalPropertyValue<?> epv, List<String> characteristic_types, SolrInputDocument document, AnnotatorAccessor annotator) {
         String fieldName = Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText());
         String jsonFieldName = fieldName + "_json";
         characteristic_types.add(fieldName);

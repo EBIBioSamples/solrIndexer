@@ -1,32 +1,50 @@
 package uk.ac.ebi.solrIndexer.threads;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.Callable;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
-import javax.transaction.UserTransaction;
-
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
+import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
+import uk.ac.ebi.fg.biosd.annotator.persistence.AnnotatorAccessor;
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.core_model.persistence.dao.hibernate.toplevel.AccessibleDAO;
 import uk.ac.ebi.fg.core_model.resources.Resources;
+import uk.ac.ebi.fg.myequivalents.managers.interfaces.EntityMappingManager;
+import uk.ac.ebi.solrIndexer.main.MyEquivalenceManager;
+import uk.ac.ebi.solrIndexer.main.SolrManager;
 
 @Component
 // this makes sure that we have a different instance wherever it is used
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class SampleRepoCallable extends SampleCallable {
+public class SampleRepoCallable implements Callable<Integer> {
 	private Logger log = LoggerFactory.getLogger(this.getClass());
 
+	private ConcurrentUpdateSolrClient client;
+	private ConcurrentUpdateSolrClient mergedClient;
 	private Iterable<String> accessions;
+
+	@Autowired
+	private SolrManager solrManager;
+
+	@Autowired
+	private MyEquivalenceManager myEquivalenceManager;
+
+	@Value("${solrIndexer.commitWithin:60000}")
+	private int commitWithin;
 
 	public SampleRepoCallable(ConcurrentUpdateSolrClient client, ConcurrentUpdateSolrClient mergedClient, Iterable<String> accessions) {
 		super();
@@ -38,27 +56,43 @@ public class SampleRepoCallable extends SampleCallable {
 	@Override
 	public Integer call() throws Exception {
 		log.info("Starting call()");
-		
+
+		// setup the entity manager for interacting with relational database
 		EntityManagerFactory emf = Resources.getInstance().getEntityManagerFactory();
 		EntityManager em = null;
 		int toReturn;
 		try {
 			em = emf.createEntityManager();
-			
+
+			// start a transaction within the entity amanger
 			EntityTransaction transaction = em.getTransaction();
-			try {			
+			try {
 				transaction.begin();
 				transaction.setRollbackOnly();
 				
-				AccessibleDAO<BioSample> dao = new AccessibleDAO<>(BioSample.class, em);
-	
-				List<BioSample> samples = new ArrayList<>();
-				for (String accession : accessions) {
-					samples.add(dao.find(accession));
+				// we can get a connection to myEquivalents
+				EntityMappingManager entityMappingManager = null;
+				try {
+					entityMappingManager = myEquivalenceManager.getManagerFactory().newEntityMappingManager();
+
+					// and a connection to the annotation system within the
+					// relational database
+					AnnotatorAccessor annotator = null;
+					try {
+						annotator = new AnnotatorAccessor(em);
+
+						toReturn = processSamples(accessions, em, entityMappingManager, annotator);
+
+					} finally {
+						if (annotator != null) {
+							annotator.close();
+						}
+					}
+				} finally {
+					if (entityMappingManager != null) {
+						entityMappingManager.close();
+					}
 				}
-	
-				this.samples = samples;
-				toReturn = super.call();
 				
 			} finally {
 				transaction.rollback();
@@ -71,5 +105,25 @@ public class SampleRepoCallable extends SampleCallable {
 		log.info("Finished call()");
 
 		return toReturn;
+	}
+
+	private int processSamples(Iterable<String> accessions, EntityManager em, EntityMappingManager entityMappingManager,
+			AnnotatorAccessor annotator) throws SolrServerException, IOException {
+
+		AccessibleDAO<BioSample> dao = new AccessibleDAO<>(BioSample.class, em);
+		int count = 0;
+		for (String accession : accessions) {
+			
+			log.trace("processing "+accession);
+			
+			Optional<SolrInputDocument> doc = solrManager.generateBioSampleSolrDocument(dao.find(accession),
+					entityMappingManager, annotator);
+			if (doc.isPresent()) {
+				client.add(doc.get(), commitWithin);
+				mergedClient.add(doc.get(), commitWithin);
+				count += 1;
+			}
+		}
+		return count;
 	}
 }

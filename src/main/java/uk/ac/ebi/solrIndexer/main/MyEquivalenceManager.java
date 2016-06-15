@@ -29,10 +29,10 @@ public class MyEquivalenceManager {
 
 	private MyEquivalenceManager() {
 	}
-	
+
 	private MyEquivalenceManager(ManagerFactory managerFactory) {
 		this.managerFactory = managerFactory;
-	}	
+	}
 
 	@PostConstruct
 	public void doSetup() throws IOException {
@@ -66,76 +66,31 @@ public class MyEquivalenceManager {
 		this.managerFactory = managerFactory;
 	}
 
-	public Set<Entity> getGroupExternalEquivalences(String groupAccession, EntityMappingManager entityMappingManager) {
-		Set<Entity> otherEquivalences = new HashSet<>();
-		
-		entityMappingManager = getManagerFactory().newEntityMappingManager();
-
-		Collection<EntityMappingSearchResult.Bundle> bundles = entityMappingManager
-				.getMappings(false, "ebi.biosamples.groups:" + groupAccession).getBundles();
-
-		if (!bundles.isEmpty()) {
-
-			Set<Entity> entities = bundles.iterator().next().getEntities();
-
-			for (Entity entity : entities) {
-
-				// if (!entity.isPublic()) {
-				// continue;
-				// }
-
-				if (entity.getServiceName().equals("ebi.biosamples.groups")) {
-
-					String entityAccession = entity.getAccession();
-
-					if (entityAccession.equals(groupAccession)) {
-						continue;
-					}
-					// else if (!
-					// DataBaseStorage.isGroupPublic(entityAccession)) {
-					// log.debug("Equivalence with private or non existent
-					// group not inserted");
-					// continue;
-					// }
-				}
-
-				otherEquivalences.add(entity);
-			}
-
-		}
-
-		return otherEquivalences;
+	public Set<Entity> getGroupExternalEquivalences(String groupAccession, 
+			EntityMappingManager entityMappingManager) {
+		return getSampleExternalEquivalences("ebi.biosamples.groups", groupAccession, entityMappingManager);
 	}
 
-	public Set<Entity> getSampleExternalEquivalences(String sampleAccession, EntityMappingManager entityMappingManager) {
+	public Set<Entity> getSampleExternalEquivalences(String sampleAccession,
+			EntityMappingManager entityMappingManager) {
+		return getSampleExternalEquivalences("ebi.biosamples.samples", sampleAccession, entityMappingManager);
+	}
+
+	private Set<Entity> getSampleExternalEquivalences(String serviceName, String accession,
+			EntityMappingManager entityMappingManager) {
 		Set<Entity> otherEquivalences = new HashSet<>();
 
 		Collection<EntityMappingSearchResult.Bundle> bundles = entityMappingManager
-				.getMappings(false, "ebi.biosamples.samples:" + sampleAccession).getBundles();
+				.getMappings(false, serviceName + ":" + accession).getBundles();
 
 		if (!bundles.isEmpty()) {
-
 			otherEquivalences = bundles.iterator().next().getEntities().stream().filter(entity -> {
-
-				// if (!entity.isPublic()) {
-				// return false;
-				// }
-				if (entity.getServiceName().equals("ebi.biosamples.samples")) {
-
+				if (entity.getServiceName().equals(serviceName)) {
 					String entityAccession = entity.getAccession();
-
-					if (entityAccession.equals(sampleAccession)) {
+					if (entityAccession.equals(accession)) {
 						return false;
 					}
-					// TODO check if accession is public
-					// else if
-					// (!DataBaseStorage.isSamplePublic(entityAccession)){
-					// log.debug("Equivalence with private or not existent
-					// sample not inserted");
-					// return false;
-					// }
 				}
-
 				return true;
 
 			}).collect(Collectors.toSet());

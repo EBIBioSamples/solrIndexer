@@ -28,8 +28,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.ac.ebi.fg.biosd.annotator.persistence.AnnotatorAccessor;
-import uk.ac.ebi.fg.core_model.resources.Resources;
 import uk.ac.ebi.solrIndexer.common.Formater;
 import uk.ac.ebi.solrIndexer.threads.GroupRepoCallable;
 import uk.ac.ebi.solrIndexer.threads.SampleRepoCallable;
@@ -61,9 +59,6 @@ public class App implements ApplicationRunner {
 	@Value("${solrIndexer.threadCount:4}")
 	private int solrIndexThreadCount;
 
-	@Value("${onto.mapping.annotator:false}")
-	private boolean useAnnotator;
-
 	private ExecutorService threadPool = null;
 	private List<Future<Integer>> futures = new ArrayList<>();
 	private int callableCount = 0;
@@ -73,9 +68,6 @@ public class App implements ApplicationRunner {
 
 	@Autowired
 	private BioSDDAO jdbcdao;
-
-	@Autowired
-	private SolrManager solrManager;
 
 	private ConcurrentUpdateSolrClient groupsClient = null;
 	private ConcurrentUpdateSolrClient samplesClient = null;
@@ -93,7 +85,7 @@ public class App implements ApplicationRunner {
 	@Transactional
 	public void run(ApplicationArguments args) throws Exception {
 		log.info("Entering application.");
-		long startTime = System.currentTimeMillis();
+		long startTime = System.nanoTime();
 
 		// process arguments
 		if (args.containsOption("offsetcount")) {
@@ -110,7 +102,6 @@ public class App implements ApplicationRunner {
 		cleanup = args.containsOption("cleanup");
 		doGroups = !args.containsOption("notgroups");
 		doSamples = !args.containsOption("notsamples");
-		solrManager.setIncludeXML(args.containsOption("includexml"));
 
 		// When provided a file with accessions to index
 		if (args.containsOption("sourcefile")) {
@@ -178,66 +169,47 @@ public class App implements ApplicationRunner {
 				}
 			}
 
-			// setup annotator, if using
-			AnnotatorAccessor annotator = null;
+
+			// create the thread stuff if required
 			try {
-				if (useAnnotator) {
-					log.info("Using annotator for ontology mappings");
-					annotator = new AnnotatorAccessor(
-							Resources.getInstance().getEntityManagerFactory().createEntityManager());
-					// set the solr manager to use the annotator
-					// because spring autowires singletons,
-					// this is the same solrmanager as the one autowired in the
-					// callables
-					solrManager.setAnnotator(annotator);
+				if (poolThreadCount > 0) {
+					log.info("creating thread pool of "+poolThreadCount+" threads");
+					threadPool = Executors.newFixedThreadPool(poolThreadCount);
 				}
 
-				// create the thread stuff if required
-				try {
-					if (poolThreadCount > 0) {
-						log.info("creating thread pool of "+poolThreadCount+" threads");
-						threadPool = Executors.newFixedThreadPool(poolThreadCount);
+				// process things
+				if (mergedClient != null) {
+					if (doGroups && groupsClient != null) {
+						runGroups(groupAccs);
 					}
+					if (doSamples && samplesClient != null) {
+						runSamples(sampleAccs);
+					}
+				}
 
-					// process things
-					if (mergedClient != null) {
-						if (doGroups && groupsClient != null) {
-							runGroups(groupAccs);
-						}
-						if (doSamples && samplesClient != null) {
-							runSamples(sampleAccs);
-						}
-					}
-
-					// wait for all other futures to finish
-					log.info("Waiting for futures...");
-					for (Future<Integer> future : futures) {
-						callableCount += future.get();
-						log.trace("" + callableCount + " documents so far, " + futures.size() + " futures remaining");
-						// after each finished callable make the solr client
-						// commit
-						// populates the index as we go, and doing them all here
-						// reduces collision risk
-						// if collisions do occur, increase samples.fetchStep
-						// and groups.fetchStep
-						// client.commit();
-						// removing this in favour of commit within parameter on
-						// add
-					}
-				} finally {
-					// handle closing of thread pool in case of error
-					if (threadPool != null && !threadPool.isShutdown()) {
-						log.info("Shutting down thread pool");
-						// allow a second to cleanly terminate before forcing
-						threadPool.shutdown();
-						threadPool.awaitTermination(10, TimeUnit.SECONDS);
-						threadPool.shutdownNow();
-					}
+				// wait for all other futures to finish
+				log.info("Waiting for futures...");
+				for (Future<Integer> future : futures) {
+					callableCount += future.get();
+					log.trace("" + callableCount + " documents so far, " + futures.size() + " futures remaining");
+					// after each finished callable make the solr client
+					// commit
+					// populates the index as we go, and doing them all here
+					// reduces collision risk
+					// if collisions do occur, increase samples.fetchStep
+					// and groups.fetchStep
+					// client.commit();
+					// removing this in favour of commit within parameter on
+					// add
 				}
 			} finally {
-				// handle closing of annotator entity manager
-				if (annotator != null) {
-					annotator.close();
+				// handle closing of thread pool in case of error
+				if (threadPool != null && !threadPool.isShutdown()) {
+					log.info("Shutting down thread pool");
+					// allow a second to cleanly terminate before forcing
+					threadPool.shutdown();
+					threadPool.awaitTermination(10, TimeUnit.SECONDS);
+					threadPool.shutdownNow();
 				}
 			}
 
@@ -265,10 +237,10 @@ public class App implements ApplicationRunner {
 			
 			//always log how many documents we did in how long
 			//so we have at least partial progress to compare
-			long elapsedMilliseconds = System.currentTimeMillis() - startTime;
-			log.info("Generated " + callableCount + " documents in " + Formater.formatTime(elapsedMilliseconds));
+			long elapsedNanoseconds = System.nanoTime() - startTime;
+			log.info("Generated " + callableCount + " documents in " + Formater.formatTime(elapsedNanoseconds/1000000));
 			if (callableCount > 0) {
-				log.info("Average time of "+(elapsedMilliseconds/callableCount)+" per document");
+				log.info("Average time of "+(elapsedNanoseconds/callableCount)+"ns per document");
 			}
 			
 		}
