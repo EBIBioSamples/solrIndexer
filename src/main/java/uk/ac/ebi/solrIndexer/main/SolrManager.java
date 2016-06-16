@@ -436,10 +436,10 @@ public class SolrManager {
 
 	private void handleOrganizations(MSI submission, SolrInputDocument document) {
 		ArrayNode array = new ArrayNode(nodeFactory);
-		ObjectNode org = nodeFactory.objectNode();
 		Set<Organization> organizations = submission.getOrganizations();
 
 		organizations.stream().forEach(o -> {
+			ObjectNode org = nodeFactory.objectNode();
 			if (!StringUtils.isEmpty(o.getName())) {
 				document.addField(ORG_NAME, o.getName());
 				org.put("Name", o.getName());
@@ -474,10 +474,10 @@ public class SolrManager {
 
 	private void handleContacts(MSI submission, SolrInputDocument document) {
 		ArrayNode array = new ArrayNode(nodeFactory);
-		ObjectNode contact = nodeFactory.objectNode();
 		Set<Contact> contacts = submission.getContacts();
 
 		contacts.stream().forEach(c -> {
+			ObjectNode contact = nodeFactory.objectNode();
 			if(!StringUtils.isEmpty(c.getFirstName()) && !StringUtils.isEmpty(c.getLastName())) {
 				document.addField(CONTACT_NAME, c.getFirstName() + " " + c.getLastName());
 				contact.put("Name", c.getFirstName() + " " + c.getLastName());
@@ -500,10 +500,10 @@ public class SolrManager {
 
 	private void handlePublications(MSI submission, SolrInputDocument document) {
 		ArrayNode array = new ArrayNode(nodeFactory);
-		ObjectNode pub = nodeFactory.objectNode();
 		Set<Publication> publications = submission.getPublications();
 
 		publications.stream().forEach(p -> {
+			ObjectNode pub = nodeFactory.objectNode();
 			if(!StringUtils.isEmpty(p.getDOI())) {
 				document.addField(PUB_DOI, p.getDOI());
 				pub.put("DOI", p.getDOI());
