@@ -23,6 +23,10 @@ import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.fg.biosd.model.organizational.MSI;
 import uk.ac.ebi.fg.biosd.model.xref.DatabaseRecordRef;
 import uk.ac.ebi.fg.core_model.expgraph.properties.ExperimentalPropertyValue;
+import uk.ac.ebi.fg.core_model.organizational.Contact;
+import uk.ac.ebi.fg.core_model.organizational.ContactRole;
+import uk.ac.ebi.fg.core_model.organizational.Organization;
+import uk.ac.ebi.fg.core_model.organizational.Publication;
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.fg.myequivalents.managers.interfaces.EntityMappingManager;
 import uk.ac.ebi.fg.myequivalents.model.Entity;
@@ -213,7 +217,12 @@ public class SolrManager {
 		} else {
 			throw new IllegalArgumentException("Unrecognised object "+obj);
 		}
+
+		handleOrganizations(submission, document);
+		handleContacts(submission, document);
+		handlePublications(submission, document);
 	}
+
 
 	private void handleMSI(MSI submission, SolrInputDocument document, Set<Entity> externalEquivalences) throws IllegalArgumentException{
 		document.addField(SUBMISSION_ACC,submission.getAcc());
@@ -389,7 +398,6 @@ public class SolrManager {
         }
 	}
 
-
 	private void handleSampleDescription(BioSample sample, ExperimentalPropertyValue<?> description, MSI msi, SolrInputDocument document) {
         if (description != null && description.getType().getTermText().equalsIgnoreCase("Sample Description")) {
             document.addField(DESCRIPTION,description.getTermText());
@@ -399,4 +407,91 @@ public class SolrManager {
             }
         }
 	}
+
+	private void handleOrganizations(MSI submission, SolrInputDocument document) {
+		ArrayNode array = new ArrayNode(nodeFactory);
+		Set<Organization> organizations = submission.getOrganizations();
+
+		organizations.stream().forEach(o -> {
+			ObjectNode org = nodeFactory.objectNode();
+			if (!StringUtils.isEmpty(o.getName())) {
+				document.addField(ORG_NAME, o.getName());
+				org.put("Name", o.getName());
+			}
+			/* if(!StringUtils.isEmpty(organization.getAddress())) {document.addField(ORG_ADDRESS, organization.getAddress()); }*/
+			Set<ContactRole> roles = o.getOrganizationRoles();
+			if(roles != null && !roles.isEmpty()) {
+				String role_str = "";
+				Iterator it = roles.iterator();
+				while (it.hasNext()) {
+					ContactRole cr = (ContactRole) it.next();
+					role_str += cr.getName() + " ";
+				}
+				document.addField(ORG_ROLE, role_str);
+				org.put("Role", role_str);
+			}
+			if(!StringUtils.isEmpty(o.getEmail())) {
+				document.addField(ORG_EMAIL, o.getEmail());
+				org.put("E-mail", o.getEmail());
+			}
+			if(!StringUtils.isEmpty(o.getUrl())) {
+				document.addField(ORG_URL, o.getUrl());
+				org.put("URL", o.getUrl());
+			}
+			array.add(org);
+		});
+
+		if (array.size() > 0) {
+			document.addField(ORG_JSON, array.toString());
+		}
+	}
+
+	private void handleContacts(MSI submission, SolrInputDocument document) {
+		ArrayNode array = new ArrayNode(nodeFactory);
+		Set<Contact> contacts = submission.getContacts();
+
+		contacts.stream().forEach(c -> {
+			ObjectNode contact = nodeFactory.objectNode();
+			if(!StringUtils.isEmpty(c.getFirstName()) && !StringUtils.isEmpty(c.getLastName())) {
+				document.addField(CONTACT_NAME, c.getFirstName() + " " + c.getLastName());
+				contact.put("Name", c.getFirstName() + " " + c.getLastName());
+			}
+			if(!StringUtils.isEmpty(c.getAffiliation())) {
+				document.addField(CONTACT_AFFILIATION, c.getAffiliation());
+				contact.put("Affiliation", c.getAffiliation());
+			}
+			if(!StringUtils.isEmpty(c.getUrl())) {
+				document.addField(CONTACT_URL, c.getUrl());
+				contact.put("URL", c.getUrl());
+			}
+			array.add(contact);
+		});
+
+		if (array.size() > 0) {
+			document.addField(CONTACT_JSON, array.toString());
+		}
+	}
+
+	private void handlePublications(MSI submission, SolrInputDocument document) {
+		ArrayNode array = new ArrayNode(nodeFactory);
+		Set<Publication> publications = submission.getPublications();
+
+		publications.stream().forEach(p -> {
+			ObjectNode pub = nodeFactory.objectNode();
+			if(!StringUtils.isEmpty(p.getDOI())) {
+				document.addField(PUB_DOI, p.getDOI());
+				pub.put("DOI", p.getDOI());
+			}
+			if(!StringUtils.isEmpty(p.getPubmedId())) {
+				document.addField(PUB_PUBMED, p.getPubmedId());
+				pub.put("PubMed ID", p.getPubmedId());
+			}
+			array.add(pub);
+		});
+
+		if (array.size() > 0) {
+			document.addField(PUB_JSON, array.toString());
+		}
+	}
+
 }
