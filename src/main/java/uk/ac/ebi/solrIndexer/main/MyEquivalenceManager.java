@@ -66,34 +66,29 @@ public class MyEquivalenceManager {
 		this.managerFactory = managerFactory;
 	}
 
-	public Set<Entity> getGroupExternalEquivalences(String groupAccession, 
+	public Set<Entity> getGroupExternalEquivalences(String groupAccession,
 			EntityMappingManager entityMappingManager) {
-		return getSampleExternalEquivalences("ebi.biosamples.groups", groupAccession, entityMappingManager);
+		return getExternalEquivalences("ebi.biosamples.groups", groupAccession, entityMappingManager);
 	}
 
 	public Set<Entity> getSampleExternalEquivalences(String sampleAccession,
 			EntityMappingManager entityMappingManager) {
-		return getSampleExternalEquivalences("ebi.biosamples.samples", sampleAccession, entityMappingManager);
+		return getExternalEquivalences("ebi.biosamples.samples", sampleAccession, entityMappingManager);
 	}
 
-	private Set<Entity> getSampleExternalEquivalences(String serviceName, String accession,
-			EntityMappingManager entityMappingManager) {
+	private Set<Entity> getExternalEquivalences(String serviceName, String accession,
+												EntityMappingManager entityMappingManager) {
 		Set<Entity> otherEquivalences = new HashSet<>();
 
 		Collection<EntityMappingSearchResult.Bundle> bundles = entityMappingManager
 				.getMappings(false, serviceName + ":" + accession).getBundles();
 
 		if (!bundles.isEmpty()) {
-			otherEquivalences = bundles.iterator().next().getEntities().stream().filter(entity -> {
-				if (entity.getServiceName().equals(serviceName)) {
-					String entityAccession = entity.getAccession();
-					if (entityAccession.equals(accession)) {
-						return false;
-					}
-				}
-				return true;
-
-			}).collect(Collectors.toSet());
+			otherEquivalences =
+					bundles.iterator().next()
+							.getEntities().stream()
+							.filter(entity -> !entity.getServiceName().matches("ebi.biosamples.(samples|groups)"))
+							.collect(Collectors.toSet());
 
 		}
 
