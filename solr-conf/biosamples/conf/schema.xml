@@ -241,9 +241,10 @@
   <copyField source="external_references_url" dest="text"/>
 
   <copyField source="description" dest="text"/>
-  <copyField source="*_crt" dest="text"/>
-
   <copyField source="content_type" dest="text"/>
+  
+  <copyField source="*_crt" dest="text"/>
+  <copyField source="*_t" dest="text"/>
   
   <!-- Create a string version of crt_type for faceting -->
   <copyField source="crt_type" dest="crt_type_ft"/>
