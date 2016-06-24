@@ -480,11 +480,11 @@ public class SolrManager {
 			ObjectNode pub = nodeFactory.objectNode();
 			if(!StringUtils.isEmpty(p.getDOI())) {
 				document.addField(PUB_DOI, p.getDOI());
-				pub.put("DOI", p.getDOI());
+				pub.put("doi", p.getDOI());
 			}
 			if(!StringUtils.isEmpty(p.getPubmedId())) {
 				document.addField(PUB_PUBMED, p.getPubmedId());
-				pub.put("PubMed ID", p.getPubmedId());
+				pub.put("pubmed_id", p.getPubmedId());
 			}
 			array.add(pub);
 		});
