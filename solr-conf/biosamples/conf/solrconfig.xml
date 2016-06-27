@@ -877,6 +877,23 @@
     </lst>
   </requestHandler>
 
+  <requestHandler name="/crt/groupsamples" class="solr.SearchHandler">
+    <lst name="defaults">
+      <str name="echoParams">explicit</str>
+      <str name="defType">edismax</str>
+      <int name="rows">1</int>
+      <str name="wt">json</str>
+      <str name="fq">content_type:sample</str>
+      <str name="qf">
+        sample_grp_accessions
+      </str>
+      <str name="q.alt">*:*</str>
+      <str name="facet.field">crt_type_ft</str>
+      <int name="facet.mincount">1</int>
+      <str name="facet">true</str>
+    </lst>
+  </requestHandler>
+
   <!-- A request handler that returns indented JSON by default -->
   <requestHandler name="/query" class="solr.SearchHandler">
     <lst name="defaults">
