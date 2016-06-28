@@ -3,6 +3,7 @@ package uk.ac.ebi.solrIndexer.common;
 public class SolrSchemaFields {
 
 	public static final String ACC = "accession";
+	public static final String NAME = "name";
 	/*
 		Release date and update date are formatted without "_"
 	 	to maintain compatibility with old queries

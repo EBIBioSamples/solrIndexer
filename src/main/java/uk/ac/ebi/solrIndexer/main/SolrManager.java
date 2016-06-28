@@ -103,13 +103,17 @@ public class SolrManager {
 
         List<String> characteristic_types = new ArrayList<>();
         ExperimentalPropertyValue<?> groupDescriptionProperty = null;
+        ExperimentalPropertyValue<?> groupNameProperty = null;
 
         for (ExperimentalPropertyValue<?> epv : bsg.getPropertyValues()) {
 			String fieldName = epv.getType().getTermText();
-			if (!fieldName.equals("Group Description")) {
-					handlePropertyValue(epv, characteristic_types, document, annotator);
-			} else {
+			if (fieldName.equals("Group Description")) {
                 groupDescriptionProperty = epv;
+			} else if (fieldName.equals("Group Name")) {
+				groupNameProperty = epv;
+				handlePropertyValue(epv, characteristic_types, document, annotator);
+			} else{
+				handlePropertyValue(epv, characteristic_types, document, annotator);
             }
         }
         document.addField(CRT_TYPE, characteristic_types);
@@ -117,6 +121,11 @@ public class SolrManager {
         // Handle description field 
         handleGroupDescription(groupDescriptionProperty,submission,document);
 
+
+        if (groupNameProperty != null) {
+    		document.addField(NAME, groupNameProperty.getTermText());
+        }
+        
 		Set<BioSample> samples = bsg.getSamples();
 		int samples_nr = samples.size();
 		if (samples_nr > 0) {
@@ -180,13 +189,17 @@ public class SolrManager {
 
         List<String> characteristic_types = new ArrayList<>();
         ExperimentalPropertyValue<?> sampleDescriptionProperty = null;
+        ExperimentalPropertyValue<?> sampleNameProperty = null;
 
 		for (ExperimentalPropertyValue<?> epv : bs.getPropertyValues()) {
             String fieldName = epv.getType().getTermText();
-            if (!fieldName.equals("Sample Description")) {
-                handlePropertyValue(epv, characteristic_types, document, annotator);
+            if (fieldName.equals("Sample Description")) {
+            	sampleDescriptionProperty = epv;
+            } else if (fieldName.equals("Sample Name")) {
+            	sampleNameProperty = epv;
+            	handlePropertyValue(epv, characteristic_types, document, annotator);
             } else {
-                sampleDescriptionProperty = epv;
+            	handlePropertyValue(epv, characteristic_types, document, annotator);
             }
 		}
 		document.addField(CRT_TYPE, characteristic_types);
@@ -194,6 +207,10 @@ public class SolrManager {
         // Handle sample description
         handleSampleDescription(bs,sampleDescriptionProperty, submission, document);
 
+        if (sampleNameProperty != null) {
+    		document.addField(NAME, sampleNameProperty.getTermText());
+        }
+        
 		Set<BioSampleGroup> groups = bs.getGroups();
 		if (groups.size() > 0) {
 			groups.forEach(group -> document.addField(SAMPLE_GRP_ACC, group.getAcc()));
