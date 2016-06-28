@@ -301,24 +301,15 @@ public class SolrManager {
             }
 
             // format json
-            StringBuilder sb = new StringBuilder();
-            sb.append("{\"text\":\"").append(epv.getTermText()).append("\"");
-            if (uris.size() > 0) {
-                sb.append(",");
-                sb.append("\"ontology_terms\":[");
-            }
-            Iterator<URI> urlIt = uris.iterator();
-            while (urlIt.hasNext()) {
-                sb.append("\"").append(urlIt.next()).append("\"");
-                if (urlIt.hasNext()) {
-                    sb.append(",");
-                }
-            }
-            if (uris.size() > 0) {
-                sb.append("]");
-            }
-            sb.append("}");
-            document.addField(jsonFieldName, sb.toString());
+    		ObjectNode json = new ObjectNode(nodeFactory);
+    		json.put("text", epv.getTermText());
+    		if (uris.size() > 0) {
+    			ArrayNode ontologyTerms = json.putArray("onotology_terms");
+    			for (URI uri : uris) {
+    				ontologyTerms.add(uri.toString());
+    			}
+    		}
+    		document.addField(jsonFieldName, json.toString());
 
             //populate biosolr fields
 			for (URI uri : uris) {
