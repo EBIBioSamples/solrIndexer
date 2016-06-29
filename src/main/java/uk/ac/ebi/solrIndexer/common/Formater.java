@@ -54,6 +54,7 @@ public class Formater {
 			int number = Integer.parseInt(onto.getAcc());
 			//its a complete number, assume NCBI taxonomy
 			//TODO
+			log.warn("OntologyEntry has non-URI acession : "+onto.getAcc());
 			return Optional.empty();
 		} catch (NumberFormatException e) {
 			//do nothing, carry on 
@@ -62,7 +63,14 @@ public class Formater {
 		//see if it is already a valid URI
 		URI uri = null;
 		try {
-			uri = new URI(onto.getAcc());
+			//technically, a string like BTO:0001182 is a valid URI...
+			if (onto.getAcc().matches("^[A-Z]+:[0-9]+$")) {
+				//so explicitly remove it
+				uri = null;
+				log.warn("OntologyEntry has non-URI acession : "+onto);
+			} else {
+				uri = new URI(onto.getAcc());
+			}
 		} catch (URISyntaxException e) {
 			log.warn("OntologyEntry has non-URI acession : "+onto);
 			uri = null;
