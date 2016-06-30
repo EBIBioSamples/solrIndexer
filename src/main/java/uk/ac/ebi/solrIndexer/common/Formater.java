@@ -53,11 +53,13 @@ public class Formater {
 		try {
 			int number = Integer.parseInt(onto.getAcc());
 			//its a complete number, assume NCBI taxonomy
-			//TODO
-			log.warn("OntologyEntry has non-URI acession : "+onto.getAcc());
-			return Optional.empty();
+			URI uri = new URI("http://purl.obolibrary.org/obo/NCBITaxon_"+number);
+			//TODO validate this
+			return Optional.of(uri);
 		} catch (NumberFormatException e) {
 			//do nothing, carry on 
+		} catch (URISyntaxException e) {
+			//invalid uri, carry on
 		}
 		
 		//see if it is already a valid URI
