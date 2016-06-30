@@ -26,6 +26,7 @@ import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
 import uk.ac.ebi.fg.core_model.persistence.dao.hibernate.toplevel.AccessibleDAO;
 import uk.ac.ebi.fg.core_model.resources.Resources;
 import uk.ac.ebi.fg.myequivalents.managers.interfaces.EntityMappingManager;
+import uk.ac.ebi.solrIndexer.main.CSVMappingService;
 import uk.ac.ebi.solrIndexer.main.MyEquivalenceManager;
 import uk.ac.ebi.solrIndexer.main.SolrManager;
 
@@ -45,15 +46,18 @@ public class GroupRepoCallable implements Callable<Integer> {
 	@Autowired
 	private MyEquivalenceManager myEquivalenceManager;
 
+	private CSVMappingService csvService;
+
 	@Value("${solrIndexer.commitWithin:60000}")
 	private int commitWithin;
 
 	public GroupRepoCallable(ConcurrentUpdateSolrClient client, ConcurrentUpdateSolrClient mergedClient,
-			Iterable<String> accessions) {
+			Iterable<String> accessions, CSVMappingService csvService) {
 		super();
 		this.client = client;
 		this.accessions = accessions;
 		this.mergedClient = mergedClient;
+		this.csvService = csvService;
 	}
 
 	@Override
@@ -120,12 +124,18 @@ public class GroupRepoCallable implements Callable<Integer> {
 			
 			log.trace("processing "+accession);
 
-			Optional<SolrInputDocument> doc = solrManager.generateBioSampleGroupSolrDocument(dao.find(accession),
+			BioSampleGroup group = dao.find(accession);
+			
+			Optional<SolrInputDocument> doc = solrManager.generateBioSampleGroupSolrDocument(group,
 					entityMappingManager, annotator);
 			if (doc.isPresent()) {
 				client.add(doc.get(), commitWithin);
 				mergedClient.add(doc.get(), commitWithin);
 				count += 1;
+			}
+			
+			if (csvService != null) {
+				csvService.handle(group, entityMappingManager);
 			}
 		}
 		return count;

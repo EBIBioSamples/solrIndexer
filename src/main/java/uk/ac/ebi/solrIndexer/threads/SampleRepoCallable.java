@@ -24,6 +24,7 @@ import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.core_model.persistence.dao.hibernate.toplevel.AccessibleDAO;
 import uk.ac.ebi.fg.core_model.resources.Resources;
 import uk.ac.ebi.fg.myequivalents.managers.interfaces.EntityMappingManager;
+import uk.ac.ebi.solrIndexer.main.CSVMappingService;
 import uk.ac.ebi.solrIndexer.main.MyEquivalenceManager;
 import uk.ac.ebi.solrIndexer.main.SolrManager;
 
@@ -43,14 +44,17 @@ public class SampleRepoCallable implements Callable<Integer> {
 	@Autowired
 	private MyEquivalenceManager myEquivalenceManager;
 
+	private CSVMappingService csvService;
+	
 	@Value("${solrIndexer.commitWithin:60000}")
 	private int commitWithin;
 
-	public SampleRepoCallable(ConcurrentUpdateSolrClient client, ConcurrentUpdateSolrClient mergedClient, Iterable<String> accessions) {
+	public SampleRepoCallable(ConcurrentUpdateSolrClient client, ConcurrentUpdateSolrClient mergedClient, Iterable<String> accessions, CSVMappingService csvService) {
 		super();
 		this.client = client;
 		this.accessions = accessions;
 		this.mergedClient = mergedClient;
+		this.csvService = csvService;
 	}
 
 	@Override
@@ -116,12 +120,18 @@ public class SampleRepoCallable implements Callable<Integer> {
 			
 			log.trace("processing "+accession);
 			
-			Optional<SolrInputDocument> doc = solrManager.generateBioSampleSolrDocument(dao.find(accession),
+			BioSample sample = dao.find(accession);
+			
+			Optional<SolrInputDocument> doc = solrManager.generateBioSampleSolrDocument(sample,
 					entityMappingManager, annotator);
 			if (doc.isPresent()) {
 				client.add(doc.get(), commitWithin);
 				mergedClient.add(doc.get(), commitWithin);
 				count += 1;
+			}
+			
+			if (csvService != null) {
+				csvService.handle(sample, entityMappingManager);
 			}
 		}
 		return count;

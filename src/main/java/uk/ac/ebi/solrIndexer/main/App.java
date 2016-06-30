@@ -68,6 +68,9 @@ public class App implements ApplicationRunner {
 
 	@Autowired
 	private BioSDDAO jdbcdao;
+	
+	@Autowired
+	private CSVMappingService csvService;
 
 	private ConcurrentUpdateSolrClient groupsClient = null;
 	private ConcurrentUpdateSolrClient samplesClient = null;
@@ -78,6 +81,7 @@ public class App implements ApplicationRunner {
 	private boolean cleanup = false;
 	private boolean doGroups = true;
 	private boolean doSamples = true;
+	private boolean doCSV = false;
 	private int offsetCount = 0;
 	private int offsetTotal = -1;
 
@@ -102,6 +106,7 @@ public class App implements ApplicationRunner {
 		cleanup = args.containsOption("cleanup");
 		doGroups = !args.containsOption("notgroups");
 		doSamples = !args.containsOption("notsamples");
+		doCSV = args.containsOption("csv");
 
 		// When provided a file with accessions to index
 		if (args.containsOption("sourcefile")) {
@@ -259,7 +264,12 @@ public class App implements ApplicationRunner {
 				// their own dao object
 				// this is apparently bad Inversion Of Control but I can't see a
 				// better way to do it
-				GroupRepoCallable callable = context.getBean(GroupRepoCallable.class, groupsClient, mergedClient, theseGroupAccs);
+				GroupRepoCallable callable;
+				if (doCSV) {
+					callable = context.getBean(GroupRepoCallable.class, groupsClient, mergedClient, theseGroupAccs, csvService);
+				} else {
+					callable = context.getBean(GroupRepoCallable.class, groupsClient, mergedClient, theseGroupAccs, null);					
+				}
 
 				if (threadPool == null) {
 					callable.call();
@@ -280,7 +290,12 @@ public class App implements ApplicationRunner {
 				// their own dao object
 				// this is apparently bad Inversion Of Control but I can't see a
 				// better way to do it
-				SampleRepoCallable callable = context.getBean(SampleRepoCallable.class, samplesClient, mergedClient, theseSampleAccs);
+				SampleRepoCallable callable;
+				if (doCSV) {
+					callable = context.getBean(SampleRepoCallable.class, samplesClient, mergedClient, theseSampleAccs, csvService);
+				} else {
+					callable = context.getBean(SampleRepoCallable.class, samplesClient, mergedClient, theseSampleAccs, null);
+				}
 
 				if (threadPool == null) {
 					callable.call();
