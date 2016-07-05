@@ -48,7 +48,7 @@ public class SolrManager {
 	@Autowired
 	private MyEquivalenceManager myEquivalenceManager;
 
-	final JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
+	private final JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
 
 	//Generate Group Solr Document
 	public Optional<SolrInputDocument> generateBioSampleGroupSolrDocument(BioSampleGroup bsg, EntityMappingManager entityMappingManager, AnnotatorAccessor annotator ) {
