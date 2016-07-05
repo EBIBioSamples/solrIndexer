@@ -53,6 +53,26 @@ public class CSVMappingService implements AutoCloseable {
 	private CSVPrinter hasExternalLinkGroupPrinter;
 	private CSVPrinter hasExternalLinkSamplePrinter;
 
+	private int offsetCount = -1;
+
+	public void setOffsetCount(int offsetCount) {
+		this.offsetCount = offsetCount;
+	}
+
+	/**
+	 * If using offset stepping then incorporate that into the output files for csvs
+	 * so they can be easily joined together later
+	 * @param prefix
+	 * @return
+	 */
+	private File getFile(String prefix) {
+		if (offsetCount >= 0) {
+			return new File(outpath, "sample." + offsetCount + ".csv");
+		} else {
+			return new File(outpath, "sample.csv");
+		}
+	}
+
 	/*
 	 * Sets up csv printers for every sample/relationship by using FileWriter
 	 * and BufferedWriter
@@ -61,26 +81,21 @@ public class CSVMappingService implements AutoCloseable {
 	public void doSetup() throws IOException {
 		// TODO create in temp dirs, then atomically swap into file location
 		outpath.mkdirs();
-		samplePrinter = new CSVPrinter(new BufferedWriter(new FileWriter(new File(outpath, "sample.csv"))),
+		samplePrinter = new CSVPrinter(new BufferedWriter(new FileWriter(getFile("sample"))), CSVFormat.DEFAULT);
+		groupPrinter = new CSVPrinter(new BufferedWriter(new FileWriter(getFile("group"))), CSVFormat.DEFAULT);
+		membershipPrinter = new CSVPrinter(new BufferedWriter(new FileWriter(getFile("membership"))),
 				CSVFormat.DEFAULT);
-		groupPrinter = new CSVPrinter(new BufferedWriter(new FileWriter(new File(outpath, "group.csv"))),
+		derivationPrinter = new CSVPrinter(new BufferedWriter(new FileWriter(getFile("derivation"))),
 				CSVFormat.DEFAULT);
-		membershipPrinter = new CSVPrinter(new BufferedWriter(new FileWriter(new File(outpath, "membership.csv"))),
+		sameAsPrinter = new CSVPrinter(new BufferedWriter(new FileWriter(getFile("sameas"))), CSVFormat.DEFAULT);
+		childOfPrinter = new CSVPrinter(new BufferedWriter(new FileWriter(getFile("childof"))), CSVFormat.DEFAULT);
+		recurationPrinter = new CSVPrinter(new BufferedWriter(new FileWriter(getFile("recuratedfrom"))),
 				CSVFormat.DEFAULT);
-		derivationPrinter = new CSVPrinter(new BufferedWriter(new FileWriter(new File(outpath, "derivation.csv"))),
+		externalLinkPrinter = new CSVPrinter(new BufferedWriter(new FileWriter(getFile("links"))), CSVFormat.DEFAULT);
+		hasExternalLinkGroupPrinter = new CSVPrinter(new BufferedWriter(new FileWriter(getFile("haslink_group"))),
 				CSVFormat.DEFAULT);
-		sameAsPrinter = new CSVPrinter(new BufferedWriter(new FileWriter(new File(outpath, "sameas.csv"))),
+		hasExternalLinkSamplePrinter = new CSVPrinter(new BufferedWriter(new FileWriter(getFile("haslink_sample"))),
 				CSVFormat.DEFAULT);
-		childOfPrinter = new CSVPrinter(new BufferedWriter(new FileWriter(new File(outpath, "childof.csv"))),
-				CSVFormat.DEFAULT);
-		recurationPrinter = new CSVPrinter(new BufferedWriter(new FileWriter(new File(outpath, "recuratedfrom.csv"))),
-				CSVFormat.DEFAULT);
-		externalLinkPrinter = new CSVPrinter(new BufferedWriter(new FileWriter(new File(outpath, "links.csv"))),
-				CSVFormat.DEFAULT);
-		hasExternalLinkGroupPrinter = new CSVPrinter(
-				new BufferedWriter(new FileWriter(new File(outpath, "haslink_group.csv"))), CSVFormat.DEFAULT);
-		hasExternalLinkSamplePrinter = new CSVPrinter(
-				new BufferedWriter(new FileWriter(new File(outpath, "haslink_sample.csv"))), CSVFormat.DEFAULT);
 	}
 
 	/*

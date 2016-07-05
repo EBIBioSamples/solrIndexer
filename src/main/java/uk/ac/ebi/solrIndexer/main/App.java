@@ -97,16 +97,15 @@ public class App implements ApplicationRunner {
 			// internally
 			// better human readable and LSF compatability
 			offsetCount = Integer.parseInt(args.getOptionValues("offsetcount").get(0)) - 1;
+			csvService.setOffsetCount(offsetCount);
 		}
 		if (args.containsOption("offsettotal")) {
 			offsetTotal = Integer.parseInt(args.getOptionValues("offsettotal").get(0));
 		}
-		// wipes the existing index
-		// will only apply if offsetCount==0
-		cleanup = args.containsOption("cleanup");
 		doGroups = !args.containsOption("notgroups");
 		doSamples = !args.containsOption("notsamples");
 		doCSV = args.containsOption("csv");
+		
 
 		// When provided a file with accessions to index
 		if (args.containsOption("sourcefile")) {
@@ -160,19 +159,6 @@ public class App implements ApplicationRunner {
 			// create solr index
 			// maybe we want this, maybe not?
 			// client.setParser(new XMLResponseParser());
-			if (cleanup && offsetCount == 0) {
-				log.warn("DELETING EXISTING SOLR INDEX!!!");
-				// CAUTION: deletes everything!
-				if (groupsClient != null) {
-					groupsClient.deleteByQuery("*:*");
-				}
-				if (samplesClient != null) {
-					samplesClient.deleteByQuery("*:*");
-				}
-				if (mergedClient != null) {
-					mergedClient.deleteByQuery("*:*");
-				}
-			}
 
 
 			// create the thread stuff if required
