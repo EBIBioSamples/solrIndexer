@@ -1542,8 +1542,23 @@
       <bool name="enabled">true</bool>
       <str name="annotationField">ontology_uri</str>
 
-      <str name="olsBaseURL">http://www.ebi.ac.uk/ols/beta/api</str>
+      <str name="olsBaseURL">http://www.ebi.ac.uk/ols/api</str>
       <str name="olsOntology">efo</str>
+    </processor>
+    <processor class="solr.LogUpdateProcessorFactory" />
+    <processor class="solr.DistributedUpdateProcessorFactory" />
+    <processor class="solr.RunUpdateProcessorFactory" />
+  </updateRequestProcessorChain>
+  
+  <!-- also query against NCBI taxonomy -->
+  <!-- good for extra coverage, but gets very noisy with synonyms etc -->
+  <updateRequestProcessorChain name="ontology">
+    <processor class="uk.co.flax.biosolr.solr.update.processor.OntologyUpdateProcessorFactory">
+      <bool name="enabled">true</bool>
+      <str name="annotationField">ontology_uri</str>
+
+      <str name="olsBaseURL">http://www.ebi.ac.uk/ols/api</str>
+      <str name="olsOntology">ncbitaxon</str>
     </processor>
     <processor class="solr.LogUpdateProcessorFactory" />
     <processor class="solr.DistributedUpdateProcessorFactory" />
