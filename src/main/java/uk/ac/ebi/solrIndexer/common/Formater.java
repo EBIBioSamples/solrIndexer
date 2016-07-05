@@ -65,11 +65,12 @@ public class Formater {
 		//see if it is already a valid URI
 		URI uri = null;
 		try {
-			//technically, a string like BTO:0001182 is a valid URI...
-			if (onto.getAcc().matches("^[A-Z]+:[0-9]+$")) {
+			//technically, a string like BTO:0001182 or EFO_0000462 is a valid URI...
+			if (onto.getAcc().matches("^[A-Z]+[:_][0-9]+$")) {
 				//so explicitly remove it
 				uri = null;
 				log.warn("OntologyEntry has non-URI acession : "+onto);
+				//TODO try to resolve these against OLS
 			} else {
 				uri = new URI(onto.getAcc());
 			}
