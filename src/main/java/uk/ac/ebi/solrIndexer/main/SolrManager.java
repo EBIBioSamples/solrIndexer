@@ -305,43 +305,34 @@ public class SolrManager {
 
         document.addField(fieldName, epv.getTermText());
 
-        if (annotator != null) {
-			// Ontologies from Annotator
-        	
-            List<OntologyEntry> ontologyEntries = annotator.getAllOntologyEntries(epv);
-            List<URI> uris = new ArrayList<>();
-            for (OntologyEntry oe : ontologyEntries) {
-				Optional<URI> uri = Formater.getOntologyTermURI(oe);
-				if (uri.isPresent() && !uris.contains(uri.get())) {
-					uris.add(uri.get());
-				}	
-            }
+		// add ontology term(s) from Annotator
+        //convert them to URIs
+        List<OntologyEntry> ontologyEntries = annotator.getAllOntologyEntries(epv);
+        List<URI> uris = new ArrayList<>();
+        for (OntologyEntry oe : ontologyEntries) {
+			Optional<URI> uri = Formater.getOntologyTermURI(oe);
+			if (uri.isPresent() && !uris.contains(uri.get())) {
+				uris.add(uri.get());
+			}	
+        }
 
-            // format json
-    		ObjectNode json = new ObjectNode(nodeFactory);
-    		json.put("text", epv.getTermText());
-    		if (uris.size() > 0) {
-    			ArrayNode ontologyTerms = json.putArray("ontology_terms");
-    			for (URI uri : uris) {
-    				ontologyTerms.add(uri.toString());
-    			}
-    		}
-    		document.addField(jsonFieldName, json.toString());
-
-            //populate biosolr fields
+        // format json
+		ObjectNode json = new ObjectNode(nodeFactory);
+		json.put("text", epv.getTermText());
+		if (uris.size() > 0) {
+			ArrayNode ontologyTerms = json.putArray("ontology_terms");
 			for (URI uri : uris) {
-				log.trace("adding "+BIO_SOLR_FIELD+" "+uri);
-				if (uri != null) {
-					document.addField(BIO_SOLR_FIELD, uri);
-				}
+				ontologyTerms.add(uri.toString());
 			}
-        } else {
-			// Ontologies from Submission
-            if (epv.getSingleOntologyTerm() != null) {
-				Optional<URI> uri = Formater.getOntologyTermURI(epv.getSingleOntologyTerm());
-				if (uri.isPresent()) {
-					document.addField(Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText()), uri.get().toString());
-				}
+		}
+		//now add the json to the solr document
+		document.addField(jsonFieldName, json.toString());
+
+        //populate biosolr fields on the json document
+		for (URI uri : uris) {
+			log.trace("adding "+BIO_SOLR_FIELD+" "+uri);
+			if (uri != null) {
+				document.addField(BIO_SOLR_FIELD, uri);
 			}
 		}
 	}
