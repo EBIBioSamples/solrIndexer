@@ -4,10 +4,8 @@
 .settings/
 .DS_Store
 logs/
-testluca/	
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio
 
-*.sh
 *.iml
 
 ## Directory-based project format:
@@ -35,16 +33,8 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 
-# Personal files
-biosample-test.xml
-debug.sh
-run.sh
-
 # Properties files
-solrIndexer.properties
-application.properties
-hibernate.properties
-myeq.properties
+*.properties
 
 # data files in conf directory - ignore
 solr-conf/*/data
