@@ -48,7 +48,7 @@ public class GroupRepoCallable implements Callable<Integer> {
 
 	private CSVMappingService csvService;
 
-	@Value("${solrIndexer.commitWithin:60000}")
+	@Value("${solrindexer.solr.commitwithin:60000}")
 	private int commitWithin;
 
 	public GroupRepoCallable(ConcurrentUpdateSolrClient client, ConcurrentUpdateSolrClient mergedClient,

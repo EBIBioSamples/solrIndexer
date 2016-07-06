@@ -33,31 +33,36 @@ import uk.ac.ebi.solrIndexer.threads.GroupRepoCallable;
 import uk.ac.ebi.solrIndexer.threads.SampleRepoCallable;
 
 @Component
-@PropertySource("solrIndexer.properties")
 public class App implements ApplicationRunner {
 
 	private Logger log = LoggerFactory.getLogger(this.getClass());
 
-	@Value("${threadcount:0}")
+	@Value("${solrindexer.threadcount:0}")
 	private int poolThreadCount;
 
-	@Value("${samples.fetchStep:1000}")
+	@Value("${solrindexer.fetchstep.samples:1000}")
 	private int samplesFetchStep;
 
-	@Value("${groups.fetchStep:1000}")
+	@Value("${solrindexer.fetchstep.groups:1000}")
 	private int groupsFetchStep;
 
-	@Value("${solrIndexer.groups.corePath}")
+	@Value("${solrindexer.solr.corepath.groups}")
 	private String solrIndexGroupsCorePath;
-	@Value("${solrIndexer.samples.corePath}")
+	@Value("${solrindexer.solr.corepath.samples}")
 	private String solrIndexSamplesCorePath;
-	@Value("${solrIndexer.merged.corePath}")
+	@Value("${solrindexer.solr.corepath.merged}")
 	private String solrIndexMergedCorePath;
 
-	@Value("${solrIndexer.queueSize:1000}")
+	@Value("${solrindexer.solr.queuesize:1000}")
 	private int solrIndexQueueSize;
-	@Value("${solrIndexer.threadCount:4}")
+	@Value("${solrindexer.solr.threadcount:4}")
 	private int solrIndexThreadCount;
+	
+	//Note this is a 1-n value not 0-(n-1)
+	@Value("${solrindexer.offset.count:0}")
+	private int offsetCount = 0;
+	@Value("${solrindexer.offset.total:0}")
+	private int offsetTotal = -1;
 
 	private ExecutorService threadPool = null;
 	private List<Future<Integer>> futures = new ArrayList<>();
@@ -78,12 +83,9 @@ public class App implements ApplicationRunner {
 	private List<String> groupAccs = new ArrayList<>();
 	private List<String> sampleAccs = new ArrayList<>();;
 
-	private boolean cleanup = false;
 	private boolean doGroups = true;
 	private boolean doSamples = true;
 	private boolean doCSV = false;
-	private int offsetCount = 0;
-	private int offsetTotal = -1;
 
 	@Override
 	@Transactional
@@ -91,20 +93,19 @@ public class App implements ApplicationRunner {
 		log.info("Entering application.");
 		long startTime = System.nanoTime();
 
-		// process arguments
-		if (args.containsOption("offsetcount")) {
-			// subtract one so we use 1 to Total externally and 0 to (Total-1)
-			// internally
-			// better human readable and LSF compatability
-			offsetCount = Integer.parseInt(args.getOptionValues("offsetcount").get(0)) - 1;
-			csvService.setOffsetCount(offsetCount);
-		}
-		if (args.containsOption("offsettotal")) {
-			offsetTotal = Integer.parseInt(args.getOptionValues("offsettotal").get(0));
-		}
 		doGroups = !args.containsOption("notgroups");
 		doSamples = !args.containsOption("notsamples");
-		doCSV = args.containsOption("csv");
+		doCSV = args.containsOption("csv");		
+		
+		if (doGroups) {
+			log.info("Will process groups");
+		}	
+		if (doSamples) {
+			log.info("Will process samples");
+		}
+		if (doCSV) {
+			log.info("Will output csv files");
+		}
 		
 
 		// When provided a file with accessions to index
@@ -124,7 +125,7 @@ public class App implements ApplicationRunner {
 				if (offsetTotal > 0) {
 					int count = jdbcdao.getGroupCount();
 					int offsetSize = count / offsetTotal;
-					int start = offsetSize * offsetCount;
+					int start = offsetSize * (offsetCount-1);
 					log.info("Getting group accessions for chunk " + offsetCount + " of " + offsetTotal);
 					groupAccs = jdbcdao.getGroupAccessions(start, offsetSize);
 					log.info("got " + groupAccs.size() + " groups");
@@ -143,7 +144,7 @@ public class App implements ApplicationRunner {
 				if (offsetTotal > 0) {
 					int count = jdbcdao.getSampleCount();
 					int offsetSize = count / offsetTotal;
-					int start = offsetSize * offsetCount;
+					int start = offsetSize * (offsetCount-1);
 					log.info("Getting sample accessions for chunk " + offsetCount + " of " + offsetTotal);
 					sampleAccs = jdbcdao.getSampleAccessions(start, offsetSize);
 					log.info("got " + sampleAccs.size() + " samples");
@@ -337,7 +338,7 @@ public class App implements ApplicationRunner {
 			if (offsetTotal > 0) {
 				//slice down to section specified by arguments
 				offsetSize = this.sampleAccs.size() / offsetTotal;
-				start = offsetSize * offsetCount;
+				start = offsetSize * (offsetCount-1);
 				this.sampleAccs = this.sampleAccs.subList(start, start+offsetSize);
 			}
 		} else {
@@ -349,7 +350,7 @@ public class App implements ApplicationRunner {
 			Collections.sort(this.groupAccs);
 			if (offsetTotal > 0) {
 				offsetSize = this.groupAccs.size() / offsetTotal;
-				start = offsetSize * offsetCount;
+				start = offsetSize * (offsetCount-1);
 				this.groupAccs = this.groupAccs.subList(start, start + offsetSize);
 			}
 		} else {

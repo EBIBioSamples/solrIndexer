@@ -12,6 +12,8 @@ import javax.annotation.PreDestroy;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -36,11 +38,17 @@ import java.util.*;
 @Service
 public class CSVMappingService implements AutoCloseable {
 
+	private Logger log = LoggerFactory.getLogger(this.getClass());
+	
 	@Autowired
 	private MyEquivalenceManager myEquivalenceManager;
 
-	@Value("${neo4jIndexer.outpath:output}")
+	@Value("${neo4jindexer.outpath:output}")
 	private File outpath;
+
+	// Note this is a 1-n value not 0-(n-1)
+	@Value("${solrindexer.offset.count:0}")
+	private int offsetCount = 0;
 
 	private CSVPrinter samplePrinter;
 	private CSVPrinter groupPrinter;
@@ -53,23 +61,18 @@ public class CSVMappingService implements AutoCloseable {
 	private CSVPrinter hasExternalLinkGroupPrinter;
 	private CSVPrinter hasExternalLinkSamplePrinter;
 
-	private int offsetCount = -1;
-
-	public void setOffsetCount(int offsetCount) {
-		this.offsetCount = offsetCount;
-	}
-
 	/**
-	 * If using offset stepping then incorporate that into the output files for csvs
-	 * so they can be easily joined together later
+	 * If using offset stepping then incorporate that into the output files for
+	 * csvs so they can be easily joined together later
+	 * 
 	 * @param prefix
 	 * @return
 	 */
 	private File getFile(String prefix) {
-		if (offsetCount >= 0) {
-			return new File(outpath, "sample." + offsetCount + ".csv");
+		if (offsetCount > 0) {
+			return new File(outpath, prefix+"." + offsetCount + ".csv");
 		} else {
-			return new File(outpath, "sample.csv");
+			return new File(outpath, prefix+".csv");
 		}
 	}
 
@@ -115,21 +118,45 @@ public class CSVMappingService implements AutoCloseable {
 		hasExternalLinkSamplePrinter.close();
 	}
 
-	private boolean valid(BioSampleGroup group) {
-		if (group == null)
+	private boolean valid(BioSampleGroup bsg) {
+		if (bsg == null) {
 			return false;
-		// must be owned by one msi and one msi only
-		if (group.getMSIs().size() != 1)
+		}
+		//check if it should be public
+		boolean pub;
+		try {
+			pub = bsg.isPublic();
+		} catch (IllegalStateException e) {
+			//has multiple msis
+			log.error("Group " + bsg.getAcc() + " has unusual MSIs, skipping", e);
 			return false;
+		}
+
+		if (!pub) {
+			log.trace("Group "+bsg.getAcc()+" is private, skipping");
+			return false;
+		}
 		return true;
 	}
 
-	private boolean valid(BioSample sample) {
-		if (sample == null)
+	private boolean valid(BioSample bs) {
+		if (bs == null) {
 			return false;
-		// must be owned by one msi and one msi only
-		if (sample.getMSIs().size() != 1)
+		}
+		// check if it should be public
+		boolean pub;
+		try {
+			pub = bs.isPublic();
+		} catch (IllegalStateException e) {
+			// has multiple msis
+			log.error("Sample " + bs.getAcc() + " has unusual MSIs, skipping", e);
 			return false;
+		}
+
+		if (!pub) {
+			log.trace("Sample " + bs.getAcc() + " is private, skipping");
+			return false;
+		}
 		return true;
 	}
 
@@ -365,7 +392,10 @@ public class CSVMappingService implements AutoCloseable {
 
 	public void handle(BioSample sample, EntityMappingManager entityMappingManager) throws IOException {
 
+		
 		if (valid(sample)) {
+			
+			log.trace("Outputtting csv for "+sample.getAcc());
 
 			Set<String> dburls = new HashSet<String>();
 			dburls.addAll(convertDbRefs(sample.getDatabaseRecordRefs()));
@@ -416,7 +446,10 @@ public class CSVMappingService implements AutoCloseable {
 	}
 
 	public void handle(BioSampleGroup group, EntityMappingManager entityMappingManager) throws IOException {
+		
 		if (valid(group)) {
+			
+			log.trace("Outputtting csv for "+group.getAcc());			
 
 			Set<String> dburls = new HashSet<String>();
 			dburls.addAll(convertDbRefs(group.getDatabaseRecordRefs()));

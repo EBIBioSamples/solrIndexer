@@ -46,7 +46,7 @@ public class SampleRepoCallable implements Callable<Integer> {
 
 	private CSVMappingService csvService;
 	
-	@Value("${solrIndexer.commitWithin:60000}")
+	@Value("${solrindexer.solr.commitwithin:60000}")
 	private int commitWithin;
 
 	public SampleRepoCallable(ConcurrentUpdateSolrClient client, ConcurrentUpdateSolrClient mergedClient, Iterable<String> accessions, CSVMappingService csvService) {
