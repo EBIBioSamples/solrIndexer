@@ -39,3 +39,4 @@ fabric.properties
 # data files in conf directory - ignore
 solr-conf/*/data
 
+/load_env.sh
