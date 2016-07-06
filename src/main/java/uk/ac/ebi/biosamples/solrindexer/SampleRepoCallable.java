@@ -1,4 +1,4 @@
-package uk.ac.ebi.solrIndexer.threads;
+package uk.ac.ebi.biosamples.solrindexer;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,7 +9,6 @@ import java.util.concurrent.Callable;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
-
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 import org.apache.solr.common.SolrInputDocument;
@@ -21,19 +20,19 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import uk.ac.ebi.biosamples.solrindexer.service.CSVMappingService;
+import uk.ac.ebi.biosamples.solrindexer.service.MyEquivalenceManager;
+import uk.ac.ebi.biosamples.solrindexer.service.SolrManager;
 import uk.ac.ebi.fg.biosd.annotator.persistence.AnnotatorAccessor;
-import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
+import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.core_model.persistence.dao.hibernate.toplevel.AccessibleDAO;
 import uk.ac.ebi.fg.core_model.resources.Resources;
 import uk.ac.ebi.fg.myequivalents.managers.interfaces.EntityMappingManager;
-import uk.ac.ebi.solrIndexer.main.CSVMappingService;
-import uk.ac.ebi.solrIndexer.main.MyEquivalenceManager;
-import uk.ac.ebi.solrIndexer.main.SolrManager;
 
 @Component
 // this makes sure that we have a different instance wherever it is used
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class GroupRepoCallable implements Callable<Integer> {
+public class SampleRepoCallable implements Callable<Integer> {
 	private Logger log = LoggerFactory.getLogger(this.getClass());
 
 	private ConcurrentUpdateSolrClient client;
@@ -47,12 +46,11 @@ public class GroupRepoCallable implements Callable<Integer> {
 	private MyEquivalenceManager myEquivalenceManager;
 
 	private CSVMappingService csvService;
-
+	
 	@Value("${solrindexer.solr.commitwithin:60000}")
 	private int commitWithin;
 
-	public GroupRepoCallable(ConcurrentUpdateSolrClient client, ConcurrentUpdateSolrClient mergedClient,
-			Iterable<String> accessions, CSVMappingService csvService) {
+	public SampleRepoCallable(ConcurrentUpdateSolrClient client, ConcurrentUpdateSolrClient mergedClient, Iterable<String> accessions, CSVMappingService csvService) {
 		super();
 		this.client = client;
 		this.accessions = accessions;
@@ -76,7 +74,7 @@ public class GroupRepoCallable implements Callable<Integer> {
 			try {
 				transaction.begin();
 				transaction.setRollbackOnly();
-
+				
 				// we can get a connection to myEquivalents
 				EntityMappingManager entityMappingManager = null;
 				try {
@@ -88,7 +86,7 @@ public class GroupRepoCallable implements Callable<Integer> {
 					try {
 						annotator = new AnnotatorAccessor(em);
 
-						toReturn = processGroups(accessions, em, entityMappingManager, annotator);
+						toReturn = processSamples(accessions, em, entityMappingManager, annotator);
 
 					} finally {
 						if (annotator != null) {
@@ -100,7 +98,7 @@ public class GroupRepoCallable implements Callable<Integer> {
 						entityMappingManager.close();
 					}
 				}
-
+				
 			} finally {
 				transaction.rollback();
 			}
@@ -114,19 +112,18 @@ public class GroupRepoCallable implements Callable<Integer> {
 		return toReturn;
 	}
 
-	private int processGroups(Iterable<String> accessions, EntityManager em, EntityMappingManager entityMappingManager,
+	private int processSamples(Iterable<String> accessions, EntityManager em, EntityMappingManager entityMappingManager,
 			AnnotatorAccessor annotator) throws SolrServerException, IOException {
 
-		AccessibleDAO<BioSampleGroup> dao = new AccessibleDAO<>(BioSampleGroup.class, em);
-		
+		AccessibleDAO<BioSample> dao = new AccessibleDAO<>(BioSample.class, em);
 		int count = 0;
 		for (String accession : accessions) {
 			
 			log.trace("processing "+accession);
-
-			BioSampleGroup group = dao.find(accession);
 			
-			Optional<SolrInputDocument> doc = solrManager.generateBioSampleGroupSolrDocument(group,
+			BioSample sample = dao.find(accession);
+			
+			Optional<SolrInputDocument> doc = solrManager.generateBioSampleSolrDocument(sample,
 					entityMappingManager, annotator);
 			if (doc.isPresent()) {
 				client.add(doc.get(), commitWithin);
@@ -135,7 +132,7 @@ public class GroupRepoCallable implements Callable<Integer> {
 			}
 			
 			if (csvService != null) {
-				csvService.handle(group, entityMappingManager);
+				csvService.handle(sample, entityMappingManager);
 			}
 		}
 		return count;

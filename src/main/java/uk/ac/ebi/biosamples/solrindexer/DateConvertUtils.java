@@ -1,4 +1,4 @@
-package uk.ac.ebi.solrIndexer.common;
+package uk.ac.ebi.biosamples.solrindexer;
 
 /**
  * Created by lucacherubin on 2016/05/20.

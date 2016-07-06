@@ -1,4 +1,4 @@
-package uk.ac.ebi.solrIndexer.main;
+package uk.ac.ebi.biosamples.solrindexer;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

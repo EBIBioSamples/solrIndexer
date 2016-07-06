@@ -1,10 +1,10 @@
-package uk.ac.ebi.solrIndexer.commonTest;
+package uk.ac.ebi.biosamples.solrindexer;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import uk.ac.ebi.solrIndexer.common.Formater;
+import uk.ac.ebi.biosamples.solrindexer.Formater;
 
 public class FormaterTest {
 

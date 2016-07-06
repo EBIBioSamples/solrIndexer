@@ -1,4 +1,4 @@
-package uk.ac.ebi.solrIndexer.common;
+package uk.ac.ebi.biosamples.solrindexer;
 
 import java.net.URI;
 import java.net.URISyntaxException;

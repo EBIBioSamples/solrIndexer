@@ -1,4 +1,4 @@
-package uk.ac.ebi.solrIndexer.common;
+package uk.ac.ebi.biosamples.solrindexer;
 
 public class SolrSchemaFields {
 

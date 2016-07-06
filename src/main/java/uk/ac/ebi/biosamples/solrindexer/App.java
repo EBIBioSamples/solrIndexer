@@ -1,4 +1,4 @@
-package uk.ac.ebi.solrIndexer.main;
+package uk.ac.ebi.biosamples.solrindexer;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -28,9 +28,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import uk.ac.ebi.solrIndexer.common.Formater;
-import uk.ac.ebi.solrIndexer.threads.GroupRepoCallable;
-import uk.ac.ebi.solrIndexer.threads.SampleRepoCallable;
+import uk.ac.ebi.biosamples.solrindexer.service.BioSDDAO;
+import uk.ac.ebi.biosamples.solrindexer.service.CSVMappingService;
 
 @Component
 public class App implements ApplicationRunner {

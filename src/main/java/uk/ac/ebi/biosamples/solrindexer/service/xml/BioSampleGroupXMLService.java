@@ -1,4 +1,4 @@
-package uk.ac.ebi.solrIndexer.service.xml;
+package uk.ac.ebi.biosamples.solrindexer.service.xml;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import uk.ac.ebi.biosamples.solrindexer.service.MyEquivalenceManager;
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.expgraph.properties.SampleCommentValue;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
@@ -37,7 +38,6 @@ import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.fg.core_model.xref.ReferenceSource;
 import uk.ac.ebi.fg.myequivalents.managers.interfaces.EntityMappingManager;
 import uk.ac.ebi.fg.myequivalents.model.Entity;
-import uk.ac.ebi.solrIndexer.main.MyEquivalenceManager;
 
 @Component
 public class BioSampleGroupXMLService implements XMLService<BioSampleGroup> {

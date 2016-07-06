@@ -1,4 +1,4 @@
-package uk.ac.ebi.solrIndexer.utilities;
+package uk.ac.ebi.biosamples.solrindexer;
 
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;

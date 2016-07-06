@@ -1,4 +1,4 @@
-package uk.ac.ebi.solrIndexer.main;
+package uk.ac.ebi.biosamples.solrindexer.service;
 
 import java.util.List;
 
