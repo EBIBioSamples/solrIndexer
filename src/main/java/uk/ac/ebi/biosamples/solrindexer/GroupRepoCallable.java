@@ -132,11 +132,13 @@ public class GroupRepoCallable implements Callable<Integer> {
 				client.add(doc.get(), commitWithin);
 				mergedClient.add(doc.get(), commitWithin);
 				count += 1;
+				
+				//only output the csv if we managed to generate a solr document successfully
+				if (csvService != null) {
+					csvService.handle(group, entityMappingManager);
+				}
 			}
 			
-			if (csvService != null) {
-				csvService.handle(group, entityMappingManager);
-			}
 		}
 		return count;
 	}
