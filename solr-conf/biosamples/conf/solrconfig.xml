@@ -982,7 +982,8 @@
 
   <requestHandler name="/update" class="solr.UpdateRequestHandler">
        <lst name="defaults">
-         <str name="update.chain">ontology</str>
+         <str name="update.chain">ontologyefo</str>
+         <str name="update.chain">ontologyncbi</str>
        </lst>
   </requestHandler>
 
@@ -1539,7 +1540,7 @@
 
   <!-- Ontology lookup processor chain -->
 
-  <updateRequestProcessorChain name="ontology">
+  <updateRequestProcessorChain name="ontologyefo">
     <processor class="uk.co.flax.biosolr.solr.update.processor.OntologyUpdateProcessorFactory">
       <bool name="enabled">true</bool>
       <str name="annotationField">ontology_uri</str>
@@ -1554,7 +1555,7 @@
   
   <!-- also query against NCBI taxonomy -->
   <!-- good for extra coverage, but gets very noisy with synonyms etc -->
-  <updateRequestProcessorChain name="ontology">
+  <updateRequestProcessorChain name="ontologyncbi">
     <processor class="uk.co.flax.biosolr.solr.update.processor.OntologyUpdateProcessorFactory">
       <bool name="enabled">true</bool>
       <str name="annotationField">ontology_uri</str>
