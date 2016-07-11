@@ -42,8 +42,8 @@ echo "Creating indexes..."
 time nice $NEO4J_BIN/neo4j-shell -path $NEO_DATA/graph.db.tmp -file $IMPORTER/indexes.cypher
 
 #replace graph 
-rm -rf $NEO_DATA/graph.db
-mv $NEO_DATA/graph.db.tmp $NEO_DATA/graph.db
+#rm -rf $NEO_DATA/graph.db
+#mv $NEO_DATA/graph.db.tmp $NEO_DATA/graph.db
     
 echo "All Done!"
     
