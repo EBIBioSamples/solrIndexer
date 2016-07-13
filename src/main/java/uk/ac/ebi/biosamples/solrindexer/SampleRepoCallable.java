@@ -122,6 +122,10 @@ public class SampleRepoCallable implements Callable<Integer> {
 			log.trace("processing "+accession);
 			
 			BioSample sample = dao.find(accession);
+			if (sample == null) {
+				log.warn("Unable to find sample "+accession);
+				continue;
+			}
 			
 			Optional<SolrInputDocument> doc = solrManager.generateBioSampleSolrDocument(sample,
 					entityMappingManager, annotator);

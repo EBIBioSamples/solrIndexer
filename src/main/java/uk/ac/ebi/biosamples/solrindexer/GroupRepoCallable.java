@@ -126,6 +126,11 @@ public class GroupRepoCallable implements Callable<Integer> {
 
 			BioSampleGroup group = dao.find(accession);
 			
+			if (group == null) {
+				log.warn("Unable to find group "+accession);
+				continue;
+			}
+			
 			Optional<SolrInputDocument> doc = solrManager.generateBioSampleGroupSolrDocument(group,
 					entityMappingManager, annotator);
 			if (doc.isPresent()) {
