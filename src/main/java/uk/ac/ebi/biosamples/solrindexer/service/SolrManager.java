@@ -319,6 +319,10 @@ public class SolrManager {
         // format json
 		ObjectNode json = new ObjectNode(nodeFactory);
 		json.put("text", epv.getTermText());
+		json.put("type", epv.getType().getTermText());
+		if (epv.getUnit() != null) {
+			json.put("unit",epv.getUnit().getTermText());
+		}
 		if (uris.size() > 0) {
 			ArrayNode ontologyTerms = json.putArray("ontology_terms");
 			for (URI uri : uris) {
