@@ -890,7 +890,11 @@
         sample_grp_accessions
       </str>
       <str name="q.alt">*:*</str>
+      <str name="facet.field">accession</str>
+      <str name="facet.field">name</str>
+      <str name="facet.field">description</str>
       <str name="facet.field">crt_type_ft</str>
+      <str name="facet.field">external_references_url</str>
       <int name="facet.mincount">1</int>
       <str name="facet">true</str>
     </lst>
