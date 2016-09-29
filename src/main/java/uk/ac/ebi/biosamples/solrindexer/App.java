@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -64,7 +65,7 @@ public class App implements ApplicationRunner {
 	private int offsetTotal = -1;
 
 	private ExecutorService threadPool = null;
-	private List<Future<Integer>> futures = new ArrayList<>();
+	private List<Future<Integer>> futures = new LinkedList<>();
 	private int callableCount = 0;
 
 	@Autowired
@@ -181,17 +182,20 @@ public class App implements ApplicationRunner {
 				// wait for all other futures to finish
 				log.info("Waiting for futures...");
 				for (Future<Integer> future : futures) {
-					callableCount += future.get();
-					log.trace("" + callableCount + " documents so far, " + futures.size() + " futures remaining");
-					// after each finished callable make the solr client
-					// commit
-					// populates the index as we go, and doing them all here
-					// reduces collision risk
-					// if collisions do occur, increase samples.fetchStep
-					// and groups.fetchStep
-					// client.commit();
-					// removing this in favour of commit within parameter on
-					// add
+					Integer countOfFuture = future.get();
+					if (countOfFuture != null) {
+						callableCount += countOfFuture;
+						log.trace("" + callableCount + " documents so far, " + futures.size() + " futures remaining");
+						// after each finished callable make the solr client
+						// commit
+						// populates the index as we go, and doing them all here
+						// reduces collision risk
+						// if collisions do occur, increase samples.fetchStep
+						// and groups.fetchStep
+						// client.commit();
+						// removing this in favour of commit within parameter on
+						// add
+					}
 				}
 			} finally {
 				// handle closing of thread pool in case of error
@@ -199,7 +203,7 @@ public class App implements ApplicationRunner {
 					log.info("Shutting down thread pool");
 					// allow a second to cleanly terminate before forcing
 					threadPool.shutdown();
-					threadPool.awaitTermination(10, TimeUnit.MINUTES);
+					threadPool.awaitTermination(60, TimeUnit.MINUTES);
 					threadPool.shutdownNow();
 				}
 			}
