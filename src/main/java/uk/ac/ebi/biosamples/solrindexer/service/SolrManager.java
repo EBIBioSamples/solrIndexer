@@ -302,6 +302,11 @@ public class SolrManager {
         String fieldName = Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText());
         String jsonFieldName = fieldName + "_json";
         characteristic_types.add(fieldName);
+        
+        
+        if (fieldName.equals("SampleTab FTP location")) {
+        	return;
+        }
 
         document.addField(fieldName, epv.getTermText());
 
