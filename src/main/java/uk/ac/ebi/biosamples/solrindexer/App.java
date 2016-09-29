@@ -260,7 +260,9 @@ public class App implements ApplicationRunner {
 				if (threadPool == null) {
 					callable.call();
 				} else {
-					futures.add(threadPool.submit(callable));
+					Future<Integer> future = threadPool.submit(callable);
+					if (future == null) throw new NullPointerException("Future should not be null");
+					futures.add(future);
 				}
 			}
 		}
@@ -286,7 +288,9 @@ public class App implements ApplicationRunner {
 				if (threadPool == null) {
 					callable.call();
 				} else {
-					futures.add(threadPool.submit(callable));
+					Future<Integer> future = threadPool.submit(callable);
+					if (future == null) throw new NullPointerException("Future should not be null");
+					futures.add(future);
 				}
 			}
 		}
