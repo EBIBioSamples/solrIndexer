@@ -199,7 +199,7 @@ public class App implements ApplicationRunner {
 					log.info("Shutting down thread pool");
 					// allow a second to cleanly terminate before forcing
 					threadPool.shutdown();
-					threadPool.awaitTermination(10, TimeUnit.SECONDS);
+					threadPool.awaitTermination(10, TimeUnit.MINUTES);
 					threadPool.shutdownNow();
 				}
 			}
