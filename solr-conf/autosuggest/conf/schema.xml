@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<schema name="example" version="1.5">
+
+
+
+    <!-- Field to use to determine and enforce document uniqueness. 
+      Unless this field is marked with required="false", it will be a required field
+   -->
+
+    <defaultSearchField>term_autosuggest</defaultSearchField>
+    <uniqueKey>id</uniqueKey>
+
+    <types>
+        <fieldType name="string" class="solr.StrField" sortMissingLast="true" />
+        <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true" />
+        <fieldType name="int" class="solr.TrieIntField" precisionStep="0" positionIncrementGap="0" />
+        <fieldType name="float" class="solr.TrieFloatField" precisionStep="0" positionIncrementGap="0" />
+        <fieldType name="long" class="solr.TrieLongField" precisionStep="0" positionIncrementGap="0" />
+        <fieldType name="double" class="solr.TrieDoubleField" precisionStep="0" positionIncrementGap="0" />
+
+        <fieldType name="date" class="solr.TrieDateField" precisionStep="0" positionIncrementGap="0" />
+
+        <fieldType name="textWhitespaceEdge" class="solr.TextField">
+            <analyzer type="index">
+                <!--<filter class="solr.LowerCaseFilterFactory" />-->
+                <tokenizer class="solr.WhitespaceTokenizerFactory" />
+                <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
+                <filter class="solr.EdgeNGramFilterFactory" minGramSize="1" maxGramSize="35" />
+            </analyzer>
+            <analyzer type="query">
+                <!--<filter class="solr.LowerCaseFilterFactory" />-->
+                <tokenizer class="solr.WhitespaceTokenizerFactory" />
+                <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
+            </analyzer>
+        </fieldType>
+        <fieldType name="textEdge" class="solr.TextField">
+            <analyzer type="index">
+                <!-- This is a way to not tokenize the field -->
+                <!-- Could be sobstituted by -->
+                <!--<tokenizer class="solr.PatternTokenizerFactory" pattern="______" />-->
+                <tokenizer class="solr.KeywordTokenizerFactory"></tokenizer>
+                <filter class="solr.LowerCaseFilterFactory" />
+                <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
+                <filter class="solr.EdgeNGramFilterFactory" minGramSize="1" maxGramSize="35" />
+            </analyzer>
+            <analyzer type="query">
+                <!--<tokenizer class="solr.PatternTokenizerFactory" pattern="_______" />-->
+                <tokenizer class="solr.KeywordTokenizerFactory"></tokenizer>
+                <filter class="solr.LowerCaseFilterFactory" />
+                <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
+            </analyzer>
+        </fieldType>
+        <fieldType name="textWhitespace" class="solr.TextField">
+            <analyzer>
+                <filter class="solr.LowerCaseFilterFactory" />
+                <tokenizer class="solr.WhitespaceTokenizerFactory" />
+                <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
+            </analyzer>
+        </fieldType>
+
+        <fieldType name="textSpell" class="solr.TextField" positionIncrementGap="100">
+            <analyzer>
+                <tokenizer class="solr.StandardTokenizerFactory" />
+                <filter class="solr.StandardFilterFactory" />
+                <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
+            </analyzer>
+        </fieldType>
+
+    </types>
+
+    <fields>
+
+        <field name="_version_" type="long" indexed="true" stored="true" />
+        <field name="_root_" type="string" indexed="true" stored="false" />
+
+        <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+        <field name="autosuggest_term_label" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+
+        <!-- Autosuggest fields -->
+        <!-- field name="term_autosuggest_analysed" type="textWhitespaceEdge" indexed="true" stored="true" multiValued="true" termVectors="true" termPositions="true" termOffsets="true"/-->
+        <field name="term_autosuggest" type="textWhitespaceEdge" indexed="true" stored="true" multiValued="false" />
+        <field name="term_autosuggest_na" type="string" indexed="true" stored="true" multiValued="false" />
+        <field name="term_autosuggest_ws" type="textWhitespace" indexed="true" stored="true" multiValued="false" />
+        <field name="term_autosuggest_e" type="textEdge" indexed="true" stored="true" multiValued="false" />
+
+        <copyField source="autosuggest_term_label" dest="term_autosuggest" />
+        <copyField source="autosuggest_term_label" dest="term_autosuggest_na" />
+        <copyField source="autosuggest_term_label" dest="term_autosuggest_ws" />
+        <copyField source="autosuggest_term_label" dest="term_autosuggest_e" />
+
+    </fields>
+</schema>
