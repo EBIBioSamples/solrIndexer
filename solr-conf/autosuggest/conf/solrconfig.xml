@@ -1543,7 +1543,7 @@
 
   <!-- Ontology lookup processor chain -->
 
-  <updateRequestProcessorChain name="ontologyefo">
+  <!--<updateRequestProcessorChain name="ontologyefo">
     <processor class="uk.co.flax.biosolr.solr.update.processor.OntologyUpdateProcessorFactory">
       <bool name="enabled">true</bool>
       <str name="annotationField">ontology_uri</str>
@@ -1554,11 +1554,11 @@
     <processor class="solr.LogUpdateProcessorFactory" />
     <processor class="solr.DistributedUpdateProcessorFactory" />
     <processor class="solr.RunUpdateProcessorFactory" />
-  </updateRequestProcessorChain>
+  </updateRequestProcessorChain>-->
   
   <!-- also query against NCBI taxonomy -->
   <!-- good for extra coverage, but gets very noisy with synonyms etc -->
-  <updateRequestProcessorChain name="ontologyncbi">
+  <!--<updateRequestProcessorChain name="ontologyncbi">
     <processor class="uk.co.flax.biosolr.solr.update.processor.OntologyUpdateProcessorFactory">
       <bool name="enabled">true</bool>
       <str name="annotationField">ontology_uri</str>
@@ -1569,7 +1569,7 @@
     <processor class="solr.LogUpdateProcessorFactory" />
     <processor class="solr.DistributedUpdateProcessorFactory" />
     <processor class="solr.RunUpdateProcessorFactory" />
-  </updateRequestProcessorChain>
+  </updateRequestProcessorChain>-->
 
   <!-- Response Writers
 
