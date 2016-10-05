@@ -614,11 +614,11 @@
     </listener>
     <listener event="firstSearcher" class="solr.QuerySenderListener">
       <arr name="queries">
-        <!--
-        <lst>
-          <str name="q">static firstSearcher warming in solrconfig.xml</str>
-        </lst>
-        -->
+      <!-- Biosamples customized warming queries -->
+        <lst><str name="q">hipsci</str><str name="facet">true</str><str name="facet.field">crt_type</str></lst>
+        <lst><str name="q">ebisc</str><str name="facet">true</str><str name="facet.field">crt_type</str></lst>
+        <lst><str name="q">faang</str><str name="facet">true</str><str name="facet.field">crt_type</str></lst>
+        <lst><str name="q">*:*</str><str name="facet">true</str><str name="facet.field">crt_type</str></lst>
       </arr>
     </listener>
 
