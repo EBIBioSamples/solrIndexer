@@ -16,8 +16,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.client.solrj.response.FacetField;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,11 +60,19 @@ public class App implements ApplicationRunner {
 	private String solrIndexSamplesCorePath;
 	@Value("${solrindexer.solr.corepath.merged}")
 	private String solrIndexMergedCorePath;
+	@Value("${solrindexer.solr.corepath.autosuggest}")
+	private String solrIndexAutosuggestCorePath;
 
 	@Value("${solrindexer.solr.queuesize:1000}")
 	private int solrIndexQueueSize;
 	@Value("${solrindexer.solr.threadcount:4}")
 	private int solrIndexThreadCount;
+
+	@Value("${solrindexer.autosuggest.field}")
+	private String autosuggestField;
+
+	@Value("${solrindexer.autosuggest.mincount}")
+	private int autosuggestMinCount;
 	
 	//Note this is a 1-n value not 0-(n-1)
 	@Value("${solrindexer.offset.count:0}")
@@ -241,7 +257,55 @@ public class App implements ApplicationRunner {
 		}
 
 		log.info("Indexing finished!");
+		if (offsetCount >= offsetTotal) {
+			populateAutosuggestCore();
+		}
 		return;
+	}
+
+	private void populateAutosuggestCore() {
+		log.info("Starting autosuggest core population");
+
+		SolrClient sourceClient = new HttpSolrClient(solrIndexMergedCorePath);
+		SolrQuery query = new SolrQuery();
+		query.setQuery("*:*")
+				.setFacet(true)
+				.setFacetLimit(-1)
+				.setFacetMinCount(autosuggestMinCount)
+				.setFacetSort("count")
+				.setParam("facet.field",autosuggestField);
+
+		try {
+			QueryResponse response = sourceClient.query(query);
+            FacetField suggestFacets = response.getFacetField("onto_suggest");
+            suggestFacets.getValues().forEach(f -> {
+                log.info(String.format("%s - %d", f.getName(), f.getCount()));
+            });
+            List<String> suggestTerms = suggestFacets.getValues().stream()
+                    .map(FacetField.Count::getName)
+                    .collect(Collectors.toList());
+
+			if (suggestTerms.isEmpty()) {
+				throw new IOException("No terms for autosuggestion has been returned from the origin core");
+			}
+
+            SolrClient destClient = new HttpSolrClient(solrIndexAutosuggestCorePath);
+            List<SolrInputDocument> docs = suggestTerms.stream()
+                    .map(t -> {
+                        SolrInputDocument doc = new SolrInputDocument();
+                        doc.addField("autosuggest_term_label", t);
+                        return doc;
+                    }).collect(Collectors.toList());
+			destClient.add(docs);
+			destClient.commit();
+
+		} catch (IOException e) {
+			log.error("There was a problem while retrieving documents from the merged core",e);
+		} catch (SolrServerException e) {
+			log.error("A problem occurred with solr server",e);
+		}
+
+		log.info("Population of autosuggest core finished");
 	}
 
 	private void runGroups(List<String> groupAccs) throws Exception {

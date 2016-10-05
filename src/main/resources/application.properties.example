@@ -2,6 +2,7 @@
 solrindexer.solr.corepath.groups=http://localhost:8983/solr/groups
 solrindexer.solr.corepath.samples=http://localhost:8983/solr/samples
 solrindexer.solr.corepath.merged=http://localhost:8983/solr/merged
+solrindexer.solr.corepath.autosuggest=http://localhost:8983/solr/autosuggest
 
 ##OPTIONAL
 #number of documents to queue at once
@@ -10,6 +11,13 @@ solrindexer.solr.corepath.merged=http://localhost:8983/solr/merged
 solrindexer.solr.queuesize=1000
 #number of threads to use to send to solr
 solrindexer.solr.threadcount=4
+
+# Autosuggest data
+#autosuggest field
+solrindexer.autosuggest.field=onto_suggest
+#number of documents that have an autosuggest value
+solrindexer.autosuggest.mincount=100
+
 
 #number of EXTRA threads to use, zero will run it all on main thread
 solrindexer.threadcount=0
