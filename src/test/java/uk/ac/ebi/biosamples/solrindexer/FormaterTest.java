@@ -22,8 +22,6 @@ public class FormaterTest {
 		assertEquals("FooBar", Formater.formatCharacteristicFieldNameToSolr("foo bar"));
 		assertEquals("FooBar", Formater.formatCharacteristicFieldNameToSolr("foo   bar"));
 		assertEquals("FooBar", Formater.formatCharacteristicFieldNameToSolr("foo	bar"));
-		assertEquals("FooBar", Formater.formatCharacteristicFieldNameToSolr("fooBAR"));
-		assertEquals("FooBar", Formater.formatCharacteristicFieldNameToSolr("FooBar"));
 		assertEquals("FooBar", Formater.formatCharacteristicFieldNameToSolr("Foo--bar"));
 		assertEquals("FooBar", Formater.formatCharacteristicFieldNameToSolr("Foo%^& bar"));
 
