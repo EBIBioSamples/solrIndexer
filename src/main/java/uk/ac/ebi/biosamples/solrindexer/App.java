@@ -68,10 +68,10 @@ public class App implements ApplicationRunner {
 	@Value("${solrindexer.solr.threadcount:4}")
 	private int solrIndexThreadCount;
 
-	@Value("${solrindexer.autosuggest.field}")
+	@Value("${solrindexer.autosuggest.field:onto_suggest}")
 	private String autosuggestField;
 
-	@Value("${solrindexer.autosuggest.mincount}")
+	@Value("${solrindexer.autosuggest.mincount:100}")
 	private int autosuggestMinCount;
 	
 	//Note this is a 1-n value not 0-(n-1)
