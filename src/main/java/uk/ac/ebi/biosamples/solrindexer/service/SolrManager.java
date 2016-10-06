@@ -324,7 +324,8 @@ public class SolrManager {
         // format json
 		ObjectNode json = new ObjectNode(nodeFactory);
 		json.put("text", epv.getTermText());
-		json.put("type", epv.getType().getTermText());
+		//Removed as it can be confusing because it duplicates and mangles the type string  in the JSON map of attributes
+		//json.put("type", epv.getType().getTermText());
 		if (epv.getUnit() != null) {
 			json.put("unit",epv.getUnit().getTermText());
 		}
