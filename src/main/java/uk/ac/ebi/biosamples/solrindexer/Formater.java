@@ -31,10 +31,29 @@ public class Formater {
 	/**
 	 * Formats Characteristics Names to Field Names Accepted by Solr
 	 * @param  strimg
-	 * @return String trimmed and with spaces replaced by '_' in the middle
+	 * @return Space removed and words cammelcased
 	 */
 	public static String formatCharacteristicFieldNameToSolr(String string) {
-		return string.trim().toLowerCase().replace(' ', '_') + "_crt";
+		StringBuilder builder = new StringBuilder();
+		
+		boolean spaced = true;
+		
+		for (int i=0;i < string.length(); i++) {
+			//process as String objects to handle UTF-8
+			String c = string.substring(i,i+1);
+			if (c.trim().isEmpty()) {
+				spaced = true;
+			} else if (c.matches("[^a-zA-Z0-9]")) {
+				//non-character
+				spaced = true;
+			} else if (spaced) {
+				spaced = false;
+				builder.append(c.toUpperCase());
+			} else {
+				builder.append(c.toLowerCase());
+			}
+		}
+		return builder.toString();
 	}
 
 	/**

@@ -16,7 +16,17 @@ public class FormaterTest {
 	}
 
 	@Test
-	public void testFormatOntologyTermURL() {
-		//TODO
+	public void testFrmatCharacteristicFieldNameToSolr() {
+		
+		assertEquals("FooBar", Formater.formatCharacteristicFieldNameToSolr("foo_bar"));
+		assertEquals("FooBar", Formater.formatCharacteristicFieldNameToSolr("foo bar"));
+		assertEquals("FooBar", Formater.formatCharacteristicFieldNameToSolr("foo   bar"));
+		assertEquals("FooBar", Formater.formatCharacteristicFieldNameToSolr("foo	bar"));
+		assertEquals("FooBar", Formater.formatCharacteristicFieldNameToSolr("fooBar"));
+		assertEquals("FooBar", Formater.formatCharacteristicFieldNameToSolr("fooBAR"));
+		assertEquals("FooBar", Formater.formatCharacteristicFieldNameToSolr("FooBar"));
+		assertEquals("FooBar", Formater.formatCharacteristicFieldNameToSolr("Foo--bar"));
+		assertEquals("FooBar", Formater.formatCharacteristicFieldNameToSolr("Foo%^& bar"));
+		
 	}
 }
