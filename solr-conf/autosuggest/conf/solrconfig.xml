@@ -890,9 +890,6 @@
 
 
   <requestHandler name="/update" class="solr.UpdateRequestHandler">
-    <lst name="defaults">
-      <str name="update.chain">ontologyefo</str>
-    </lst>
   </requestHandler>
 
   <updateRequestProcessorChain>
