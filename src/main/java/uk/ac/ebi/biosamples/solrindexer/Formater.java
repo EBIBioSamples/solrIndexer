@@ -53,6 +53,9 @@ public class Formater {
 				builder.append(c.toLowerCase());
 			}
 		}
+		
+		builder.append("_crt");
+		
 		return builder.toString();
 	}
 

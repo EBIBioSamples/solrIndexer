@@ -111,7 +111,7 @@ public class SolrManager {
                 groupDescriptionProperty = epv;
 			} else if (fieldName.equals("Group Name")) {
 				groupNameProperty = epv;
-				handlePropertyValue(epv, characteristic_types, document, annotator);
+				//handlePropertyValue(epv, characteristic_types, document, annotator);
 			} else{
 				handlePropertyValue(epv, characteristic_types, document, annotator);
             }
@@ -299,14 +299,16 @@ public class SolrManager {
 	}
 
 	private void handlePropertyValue(ExperimentalPropertyValue<?> epv, List<String> characteristic_types, SolrInputDocument document, AnnotatorAccessor annotator) {
-        String fieldName = Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText());
+
+        if (epv.getType().getTermText().equals("SampleTab FTP location")) {
+        	return;
+        }
+		
+		String fieldName = Formater.formatCharacteristicFieldNameToSolr(epv.getType().getTermText());
         String jsonFieldName = fieldName + "_json";
         characteristic_types.add(fieldName);
         
         
-        if (fieldName.equals("SampleTab FTP location")) {
-        	return;
-        }
 
         document.addField(fieldName, epv.getTermText());
 
