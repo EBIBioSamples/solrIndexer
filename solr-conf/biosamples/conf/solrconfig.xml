@@ -1020,6 +1020,7 @@
 
   <requestHandler name="/update" class="solr.UpdateRequestHandler">
        <lst name="defaults">
+         <str name="update.chain">utf8decoder</str>
          <str name="update.chain">ontologyefo</str>
          <str name="update.chain">ontologyncbi</str>
        </lst>
@@ -1575,6 +1576,15 @@
       <processor class="solr.RunUpdateProcessorFactory" />
     </updateRequestProcessorChain>
   -->
+  <!-- UTF8 encoding error processor chain -->
+  <updateRequestProcessorChain name="utf8decoder">
+    <processor class="uk.ac.ebi.decoder.UTF8DecodeUpdateProcessorFactory">
+      <str name="typeClass">solr.TextField</str>
+      <str name="typeClass">solr.StrField</str>
+    </processor>
+    <processor class="solr.LogUpdateProcessorFactory" />
+    <processor class="solr.RunUpdateProcessorFactory" />
+  </updateRequestProcessorChain>
 
   <!-- Ontology lookup processor chain -->
 
