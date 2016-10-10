@@ -18,16 +18,16 @@ public class FormaterTest {
 	@Test
 	public void testFrmatCharacteristicFieldNameToSolr() {
 		
-		assertEquals("FooBar_crt", Formater.formatCharacteristicFieldNameToSolr("foo_bar"));
-		assertEquals("FooBar_crt", Formater.formatCharacteristicFieldNameToSolr("foo bar"));
-		assertEquals("FooBar_crt", Formater.formatCharacteristicFieldNameToSolr("foo   bar"));
-		assertEquals("FooBar_crt", Formater.formatCharacteristicFieldNameToSolr("foo	bar"));
-		assertEquals("FooBar_crt", Formater.formatCharacteristicFieldNameToSolr("Foo--bar"));
-		assertEquals("FooBar_crt", Formater.formatCharacteristicFieldNameToSolr("Foo%^& bar"));
+		assertEquals("fooBar_crt", Formater.formatCharacteristicFieldNameToSolr("foo_bar"));
+		assertEquals("fooBar_crt", Formater.formatCharacteristicFieldNameToSolr("foo bar"));
+		assertEquals("fooBar_crt", Formater.formatCharacteristicFieldNameToSolr("foo   bar"));
+		assertEquals("fooBar_crt", Formater.formatCharacteristicFieldNameToSolr("foo	bar"));
+		assertEquals("fooBar_crt", Formater.formatCharacteristicFieldNameToSolr("Foo--bar"));
+		assertEquals("fooBar_crt", Formater.formatCharacteristicFieldNameToSolr("Foo%^& bar"));
 
-		assertEquals("Foobar_crt", Formater.formatCharacteristicFieldNameToSolr("fooBar"));
-		assertEquals("Foobar_crt", Formater.formatCharacteristicFieldNameToSolr("fooBAR"));
-		assertEquals("Foobar_crt", Formater.formatCharacteristicFieldNameToSolr("FooBAR"));
+		assertEquals("foobar_crt", Formater.formatCharacteristicFieldNameToSolr("fooBar"));
+		assertEquals("foobar_crt", Formater.formatCharacteristicFieldNameToSolr("fooBAR"));
+		assertEquals("foobar_crt", Formater.formatCharacteristicFieldNameToSolr("FooBAR"));
 		
 	}
 }

@@ -31,12 +31,12 @@ public class Formater {
 	/**
 	 * Formats Characteristics Names to Field Names Accepted by Solr
 	 * @param  strimg
-	 * @return Space removed and words cammelcased
+	 * @return Space removed and words cammelCased
 	 */
 	public static String formatCharacteristicFieldNameToSolr(String string) {
 		StringBuilder builder = new StringBuilder();
 		
-		boolean spaced = true;
+		boolean spaced = false;
 		
 		for (int i=0;i < string.length(); i++) {
 			//process as String objects to handle UTF-8
