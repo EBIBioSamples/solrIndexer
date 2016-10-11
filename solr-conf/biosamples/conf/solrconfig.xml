@@ -1020,9 +1020,9 @@
 
   <requestHandler name="/update" class="solr.UpdateRequestHandler">
        <lst name="defaults">
-         <str name="update.chain">utf8decoder</str>
          <str name="update.chain">ontologyefo</str>
          <str name="update.chain">ontologyncbi</str>
+         <str name="update.chain">utf8decoder</str>
        </lst>
   </requestHandler>
 
@@ -1583,6 +1583,7 @@
       <str name="typeClass">solr.StrField</str>
     </processor>
     <processor class="solr.LogUpdateProcessorFactory" />
+    <processor class="solr.DistributedUpdateProcessorFactory" />
     <processor class="solr.RunUpdateProcessorFactory" />
   </updateRequestProcessorChain>
 
