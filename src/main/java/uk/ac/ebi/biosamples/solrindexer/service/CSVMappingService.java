@@ -410,6 +410,7 @@ public class CSVMappingService implements AutoCloseable {
 			 * connection between the group and the url
 			 */
 			for (String url : dburls) {
+				if (url == null) continue;
 				// skip internal links, these should be captured as other
 				// relationships
 				if (url.contains("ebi.ac.uk/biosamples"))
