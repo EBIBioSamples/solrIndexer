@@ -1020,9 +1020,9 @@
 
   <requestHandler name="/update" class="solr.UpdateRequestHandler">
        <lst name="defaults">
-         <str name="update.chain">ontologyefo</str>
-         <str name="update.chain">ontologyncbi</str>
-         <str name="update.chain">utf8decoder</str>
+         <str name="update.chain">data_normalization_and_ontology_expansion</str>
+         <!-- <str name="update.chain">ontologyefo</str> -->
+         <!-- <str name="update.chain">ontologyncbi</str> -->
        </lst>
   </requestHandler>
 
@@ -1578,16 +1578,35 @@
   -->
   <!-- UTF8 encoding error processor chain -->
   <updateRequestProcessorChain name="utf8decoder">
-    <processor class="uk.ac.ebi.decoder.UTF8DecodeUpdateProcessorFactory">
-      <str name="typeClass">solr.TextField</str>
-      <str name="typeClass">solr.StrField</str>
-    </processor>
     <processor class="solr.LogUpdateProcessorFactory" />
     <processor class="solr.DistributedUpdateProcessorFactory" />
     <processor class="solr.RunUpdateProcessorFactory" />
   </updateRequestProcessorChain>
 
   <!-- Ontology lookup processor chain -->
+  <updateRequestProcessorChain name="data_normalization_and_ontology_expansion">
+    <processor class="uk.ac.ebi.decoder.UTF8DecodeUpdateProcessorFactory">
+      <str name="typeClass">solr.TextField</str>
+      <str name="typeClass">solr.StrField</str>
+    </processor>    
+    <processor class="uk.co.flax.biosolr.solr.update.processor.OntologyUpdateProcessorFactory">
+      <bool name="enabled">true</bool>
+      <str name="annotationField">ontology_uri</str>
+
+      <str name="olsBaseURL">http://www.ebi.ac.uk/ols/api</str>
+      <str name="olsOntology">efo</str>
+    </processor>
+    <!-- <processor class="uk.co.flax.biosolr.solr.update.processor.OntologyUpdateProcessorFactory">
+      <bool name="enabled">true</bool>
+      <str name="annotationField">ontology_uri</str>
+
+      <str name="olsBaseURL">http://www.ebi.ac.uk/ols/api</str>
+      <str name="olsOntology">ncbitaxon</str>
+    </processor> -->
+    <processor class="solr.LogUpdateProcessorFactory" />
+    <processor class="solr.DistributedUpdateProcessorFactory" />
+    <processor class="solr.RunUpdateProcessorFactory" />
+  </updateRequestProcessorChain>
 
   <updateRequestProcessorChain name="ontologyefo">
     <processor class="uk.co.flax.biosolr.solr.update.processor.OntologyUpdateProcessorFactory">
