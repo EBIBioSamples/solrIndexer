@@ -258,12 +258,16 @@ public class App implements ApplicationRunner {
 
 		log.info("Indexing finished!");
 		if (offsetCount >= offsetTotal) {
-			populateAutosuggestCore();
+			try {
+				populateAutosuggestCore();
+			} catch (Exception e) {
+				throw new RuntimeException("An error occurred while populating the autosuggest core");
+			}
 		}
 		return;
 	}
 
-	private void populateAutosuggestCore() {
+	private void populateAutosuggestCore() throws IOException, SolrServerException {
 		log.info("Starting autosuggest core population");
 
 		SolrClient sourceClient = new HttpSolrClient(solrIndexMergedCorePath);
@@ -301,8 +305,10 @@ public class App implements ApplicationRunner {
 
 		} catch (IOException e) {
 			log.error("There was a problem while retrieving documents from the merged core",e);
+			throw e;
 		} catch (SolrServerException e) {
 			log.error("A problem occurred with solr server",e);
+			throw e;
 		}
 
 		log.info("Population of autosuggest core finished");
