@@ -260,7 +260,8 @@
 
   
   <copyField source="*_crt" dest="text"/>
-  <copyField source="*_t" dest="text"/>
+  <!-- dont copy everything into it because we want to weight things differently in edismax queries (/search) -->
+  <!-- <copyField source="*_t" dest="text"/> -->
   
   <!-- Create a string version of crt_type for faceting -->
   <copyField source="crt_type" dest="crt_type_ft"/>

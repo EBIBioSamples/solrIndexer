@@ -647,9 +647,11 @@
 			<str name="fl">*,score</str>
 			<str name="wt">json</str>
 			<str name="qf">
-				accession^2 name description organism_crt ontology_uri_label_t
-				ontology_uri_parent_labels_t ontology_uri_ancestors_labels_t
-				ontology_uri_child_labels_t ontology_uri_descendants_labels_t text
+				accession^16 
+				name^8 organism_crt^8 
+				text^4 ontology_uri_label_t^4
+				ontology_uri_parent_labels_t^2 ontology_uri_child_labels_t^2 
+				ontology_uri_ancestors_labels_t ontology_uri_descendants_labels_t 
 			</str>
 			<str name="q.alt">*:*</str>
 		</lst>
@@ -890,7 +892,11 @@
       <str name="fl">*,score</str>
       <str name="wt">json</str>
       <str name="qf">
-        accession^2 name description organism_crt ontology_uri_label_t ontology_uri_parent_labels_t ontology_uri_ancestors_labels_t ontology_uri_child_labels_t ontology_uri_descendants_labels_t text
+				accession^16 
+				name^8 organism_crt^8 
+				text^4 ontology_uri_label_t^4
+				ontology_uri_parent_labels_t^2 ontology_uri_child_labels_t^2 
+				ontology_uri_ancestors_labels_t ontology_uri_descendants_labels_t 
       </str>
       <str name="q.alt">*:*</str>
 
@@ -905,7 +911,11 @@
       <str name="rows">0</str>
       <str name="wt">json</str>
       <str name="qf">
-        accession^2 name description organism_crt ontology_uri_label_t ontology_uri_parent_labels_t ontology_uri_ancestors_labels_t ontology_uri_child_labels_t ontology_uri_descendants_labels_t text
+				accession^16 
+				name^8 organism_crt^8 
+				text^4 ontology_uri_label_t^4
+				ontology_uri_parent_labels_t^2 ontology_uri_child_labels_t^2 
+				ontology_uri_ancestors_labels_t ontology_uri_descendants_labels_t 
       </str>
       <str name="q.alt">*:*</str>
       <str name="facet.field">crt_type_ft</str>
@@ -1594,42 +1604,8 @@
       <str name="annotationField">ontology_uri</str>
 
       <str name="olsBaseURL">http://www.ebi.ac.uk/ols/api</str>
-      <str name="olsOntology">efo</str>
-    </processor>
-    <!-- <processor class="uk.co.flax.biosolr.solr.update.processor.OntologyUpdateProcessorFactory">
-      <bool name="enabled">true</bool>
-      <str name="annotationField">ontology_uri</str>
-
-      <str name="olsBaseURL">http://www.ebi.ac.uk/ols/api</str>
-      <str name="olsOntology">ncbitaxon</str>
-    </processor> -->
-    <processor class="solr.LogUpdateProcessorFactory" />
-    <processor class="solr.DistributedUpdateProcessorFactory" />
-    <processor class="solr.RunUpdateProcessorFactory" />
-  </updateRequestProcessorChain>
-
-  <updateRequestProcessorChain name="ontologyefo">
-    <processor class="uk.co.flax.biosolr.solr.update.processor.OntologyUpdateProcessorFactory">
-      <bool name="enabled">true</bool>
-      <str name="annotationField">ontology_uri</str>
-
-      <str name="olsBaseURL">http://www.ebi.ac.uk/ols/api</str>
-      <str name="olsOntology">efo</str>
-    </processor>
-    <processor class="solr.LogUpdateProcessorFactory" />
-    <processor class="solr.DistributedUpdateProcessorFactory" />
-    <processor class="solr.RunUpdateProcessorFactory" />
-  </updateRequestProcessorChain>
-  
-  <!-- also query against NCBI taxonomy -->
-  <!-- good for extra coverage, but gets very noisy with synonyms etc -->
-  <updateRequestProcessorChain name="ontologyncbi">
-    <processor class="uk.co.flax.biosolr.solr.update.processor.OntologyUpdateProcessorFactory">
-      <bool name="enabled">true</bool>
-      <str name="annotationField">ontology_uri</str>
-
-      <str name="olsBaseURL">http://www.ebi.ac.uk/ols/api</str>
-      <str name="olsOntology">ncbitaxon</str>
+      <!-- <str name="olsOntology">efo</str> -->
+      <!-- <str name="olsOntology">ncbitaxon</str> -->
     </processor>
     <processor class="solr.LogUpdateProcessorFactory" />
     <processor class="solr.DistributedUpdateProcessorFactory" />
