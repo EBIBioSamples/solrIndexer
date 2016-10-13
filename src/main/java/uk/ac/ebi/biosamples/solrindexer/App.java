@@ -274,9 +274,14 @@ public class App implements ApplicationRunner {
 	private void populateAutosuggestCore() throws IOException, SolrServerException {
 		log.info("Starting autosuggest core population");
         List<String> suggestTerms = new ArrayList<>();
+        
 
-		try ( SolrClient sourceClient = new HttpSolrClient(solrIndexMergedCorePath);
-	            SolrClient destClient = new HttpSolrClient(solrIndexAutosuggestCorePath); ) {
+        ConcurrentUpdateSolrClient sourceClient = null;
+		ConcurrentUpdateSolrClient destClient = null;
+
+		try {			
+			sourceClient = new ConcurrentUpdateSolrClient(solrIndexMergedCorePath, solrIndexQueueSize, solrIndexThreadCount);
+			destClient = new ConcurrentUpdateSolrClient(solrIndexAutosuggestCorePath, solrIndexQueueSize, solrIndexThreadCount);
 			
 			//make something to get the list of terms for use as autosuggestions
 			SolrQuery query = new SolrQuery();
@@ -318,6 +323,17 @@ public class App implements ApplicationRunner {
 		} catch (SolrServerException e) {
 			log.error("Problem populating autosuggest",e);
 			throw e;
+		} finally {
+			if (sourceClient != null) {
+				sourceClient.commit();
+				sourceClient.blockUntilFinished();
+				sourceClient.close();
+			}
+			if (destClient != null) {
+				destClient.commit();
+				destClient.blockUntilFinished();
+				destClient.close();
+			}
 		}
 
 		log.info("Population of autosuggest core finished with "+suggestTerms.size());
@@ -385,8 +401,8 @@ public class App implements ApplicationRunner {
 	 * @param filenames
 	 */
 	private void handleFilenames(List<String> filenames) {
-		Set<String> sampleAccs =  new HashSet<>();
-		Set<String> groupAccs =  new HashSet<>();
+		Set<String> sampleAccs = new HashSet<>();
+		Set<String> groupAccs = new HashSet<>();
 		
 		for (String filename : filenames) {
 			//read from standard in if a filename is --
