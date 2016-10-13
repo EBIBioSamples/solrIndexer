@@ -120,7 +120,7 @@ public class App implements ApplicationRunner {
             try {
                 populateAutosuggestCore();
             } catch (Exception e) {
-                throw new RuntimeException("An error occurred while populating the autosuggest core");
+                throw new RuntimeException("An error occurred while populating the autosuggest core", e);
             }
             log.info("Autosuggest indexing finished");
 		} else {
@@ -273,49 +273,54 @@ public class App implements ApplicationRunner {
 
 	private void populateAutosuggestCore() throws IOException, SolrServerException {
 		log.info("Starting autosuggest core population");
+        List<String> suggestTerms = new ArrayList<>();
 
-		SolrClient sourceClient = new HttpSolrClient(solrIndexMergedCorePath);
-		SolrQuery query = new SolrQuery();
-		query.setQuery("*:*")
-				.setFacet(true)
-				.setFacetLimit(-1)
-				.setFacetMinCount(autosuggestMinCount)
-				.setFacetSort("count")
-				.setParam("facet.field",autosuggestField);
-
-		try {
+		try ( SolrClient sourceClient = new HttpSolrClient(solrIndexMergedCorePath);
+	            SolrClient destClient = new HttpSolrClient(solrIndexAutosuggestCorePath); ) {
+			
+			//make something to get the list of terms for use as autosuggestions
+			SolrQuery query = new SolrQuery();
+			query.setQuery("*:*")
+					.setFacet(true)
+					.setFacetLimit(-1)
+					.setFacetMinCount(autosuggestMinCount)
+					.setFacetSort("count")
+					.setParam("facet.field",autosuggestField);
+			
+			//use the query to get the list of autosuggestions
 			QueryResponse response = sourceClient.query(query);
             FacetField suggestFacets = response.getFacetField("onto_suggest");
+            //log each autosuggest and count for debug purposes
             suggestFacets.getValues().forEach(f -> {
-                log.info(String.format("%s - %d", f.getName(), f.getCount()));
+                log.info(String.format("onto_suggest field facet %s - %d", f.getName(), f.getCount()));
             });
-            List<String> suggestTerms = suggestFacets.getValues().stream()
+            suggestTerms = suggestFacets.getValues().stream()
                     .map(FacetField.Count::getName)
                     .collect(Collectors.toList());
 
+            //check we got a sensible result
 			if (suggestTerms.isEmpty()) {
-				throw new IOException("No terms for autosuggestion has been returned from the origin core");
+				throw new IOException("No terms for autosuggestion has been returned from "+solrIndexMergedCorePath+" "+autosuggestField);
 			}
-
-            SolrClient destClient = new HttpSolrClient(solrIndexAutosuggestCorePath);
+			
+			//now put the autosuggestions into the new core
             List<SolrInputDocument> docs = suggestTerms.stream()
-                    .map(t -> {
-                        SolrInputDocument doc = new SolrInputDocument();
-                        doc.addField("autosuggest_term_label", t);
-                        return doc;
-                    }).collect(Collectors.toList());
-			destClient.add(docs);
-			destClient.commit();
-
+                .map(t -> {
+                    SolrInputDocument doc = new SolrInputDocument();
+                    doc.addField("autosuggest_term_label", t);
+                    return doc;
+                }).collect(Collectors.toList());
+			destClient.add(docs);	
+			
 		} catch (IOException e) {
-			log.error("There was a problem while retrieving documents from the merged core",e);
+			log.error("Problem populating autosuggest",e);
 			throw e;
 		} catch (SolrServerException e) {
-			log.error("A problem occurred with solr server",e);
+			log.error("Problem populating autosuggest",e);
 			throw e;
 		}
 
-		log.info("Population of autosuggest core finished");
+		log.info("Population of autosuggest core finished with "+suggestTerms.size());
 	}
 
 	private void runGroups(List<String> groupAccs) throws Exception {
