@@ -102,6 +102,7 @@ public class App implements ApplicationRunner {
 	private boolean doGroups = true;
 	private boolean doSamples = true;
 	private boolean doCSV = false;
+	private boolean doAutosuggest = false;
 
 	@Override
 	@Transactional
@@ -111,158 +112,161 @@ public class App implements ApplicationRunner {
 
 		doGroups = !args.containsOption("notgroups");
 		doSamples = !args.containsOption("notsamples");
-		doCSV = args.containsOption("csv");		
-		
-		if (doGroups) {
-			log.info("Will process groups");
-		}	
-		if (doSamples) {
-			log.info("Will process samples");
-		}
-		if (doCSV) {
-			log.info("Will output csv files");
-		}
-		
+		doCSV = args.containsOption("csv");
+		doAutosuggest = args.containsOption("autosuggest");
 
-		// When provided a file with accessions to index
-		if (args.containsOption("sourcefile")) {
-			//if -- is a filename then read stdin
-			handleFilenames(args.getOptionValues("sourcefile"));
-		}
+		if (doAutosuggest) {
+            log.info("Will populate autosuggest core");
+            try {
+                populateAutosuggestCore();
+            } catch (Exception e) {
+                throw new RuntimeException("An error occurred while populating the autosuggest core");
+            }
+            log.info("Autosuggest indexing finished");
+		} else {
+			if (doGroups) {
+				log.info("Will process groups");
+			}
+			if (doSamples) {
+				log.info("Will process samples");
+			}
+			if (doCSV) {
+				log.info("Will output csv files");
+			}
 
-		// Merged core client initialization
-		mergedClient = new ConcurrentUpdateSolrClient(solrIndexMergedCorePath, solrIndexQueueSize, solrIndexThreadCount);
 
-		// only bother getting accessions from db if we will actually use them
-		if (doGroups) {
-			groupsClient = new ConcurrentUpdateSolrClient(solrIndexGroupsCorePath, solrIndexQueueSize, solrIndexThreadCount);
-			// don't get from db if we were given a file with them
-			if (groupAccs.size() == 0) {
-				if (offsetTotal > 0) {
-					int count = jdbcdao.getGroupCount();
-					int offsetSize = count / offsetTotal;
-					int start = offsetSize * (offsetCount-1);
-					log.info("Getting group accessions for chunk " + offsetCount + " of " + offsetTotal);
-					groupAccs = jdbcdao.getGroupAccessions(start, offsetSize);
-					log.info("got " + groupAccs.size() + " groups");
-				} else {
-					log.info("Getting group accessions");
-					groupAccs = jdbcdao.getGroupAccessions();
-					log.info("got " + groupAccs.size() + " groups");
+			// When provided a file with accessions to index
+			if (args.containsOption("sourcefile")) {
+				//if -- is a filename then read stdin
+				handleFilenames(args.getOptionValues("sourcefile"));
+			}
+
+			// Merged core client initialization
+			mergedClient = new ConcurrentUpdateSolrClient(solrIndexMergedCorePath, solrIndexQueueSize, solrIndexThreadCount);
+
+			// only bother getting accessions from db if we will actually use them
+			if (doGroups) {
+				groupsClient = new ConcurrentUpdateSolrClient(solrIndexGroupsCorePath, solrIndexQueueSize, solrIndexThreadCount);
+				// don't get from db if we were given a file with them
+				if (groupAccs.size() == 0) {
+					if (offsetTotal > 0) {
+						int count = jdbcdao.getGroupCount();
+						int offsetSize = count / offsetTotal;
+						int start = offsetSize * (offsetCount - 1);
+						log.info("Getting group accessions for chunk " + offsetCount + " of " + offsetTotal);
+						groupAccs = jdbcdao.getGroupAccessions(start, offsetSize);
+						log.info("got " + groupAccs.size() + " groups");
+					} else {
+						log.info("Getting group accessions");
+						groupAccs = jdbcdao.getGroupAccessions();
+						log.info("got " + groupAccs.size() + " groups");
+					}
 				}
 			}
-		}
-		// only bother getting accessions from db if we will actually use them
-		if (doSamples) {
-			samplesClient = new ConcurrentUpdateSolrClient(solrIndexSamplesCorePath, solrIndexQueueSize, solrIndexThreadCount);
-			// don't get from db if we were given a file with them
-			if (sampleAccs.size() == 0) {
-				if (offsetTotal > 0) {
-					int count = jdbcdao.getSampleCount();
-					int offsetSize = count / offsetTotal;
-					int start = offsetSize * (offsetCount-1);
-					log.info("Getting sample accessions for chunk " + offsetCount + " of " + offsetTotal);
-					sampleAccs = jdbcdao.getSampleAccessions(start, offsetSize);
-					log.info("got " + sampleAccs.size() + " samples");
-				} else {
-					log.info("Getting sample accessions");
-					sampleAccs = jdbcdao.getSampleAccessions();
-					log.info("Counted " + sampleAccs.size() + " samples");
+			// only bother getting accessions from db if we will actually use them
+			if (doSamples) {
+				samplesClient = new ConcurrentUpdateSolrClient(solrIndexSamplesCorePath, solrIndexQueueSize, solrIndexThreadCount);
+				// don't get from db if we were given a file with them
+				if (sampleAccs.size() == 0) {
+					if (offsetTotal > 0) {
+						int count = jdbcdao.getSampleCount();
+						int offsetSize = count / offsetTotal;
+						int start = offsetSize * (offsetCount - 1);
+						log.info("Getting sample accessions for chunk " + offsetCount + " of " + offsetTotal);
+						sampleAccs = jdbcdao.getSampleAccessions(start, offsetSize);
+						log.info("got " + sampleAccs.size() + " samples");
+					} else {
+						log.info("Getting sample accessions");
+						sampleAccs = jdbcdao.getSampleAccessions();
+						log.info("Counted " + sampleAccs.size() + " samples");
+					}
 				}
 			}
-		}
 
-		try {
-			// create solr index
-			// maybe we want this, maybe not?
-			// client.setParser(new XMLResponseParser());
-
-
-			// create the thread stuff if required
 			try {
-				if (poolThreadCount > 0) {
-					log.info("creating thread pool of "+poolThreadCount+" threads");
-					threadPool = Executors.newFixedThreadPool(poolThreadCount);
+				// create solr index
+				// maybe we want this, maybe not?
+				// client.setParser(new XMLResponseParser());
+
+
+				// create the thread stuff if required
+				try {
+					if (poolThreadCount > 0) {
+						log.info("creating thread pool of " + poolThreadCount + " threads");
+						threadPool = Executors.newFixedThreadPool(poolThreadCount);
+					}
+
+					// process things
+					if (mergedClient != null) {
+						if (doGroups && groupsClient != null) {
+							runGroups(groupAccs);
+						}
+						if (doSamples && samplesClient != null) {
+							runSamples(sampleAccs);
+						}
+					}
+
+					// wait for all other futures to finish
+					log.info("Waiting for futures...");
+					for (Future<Integer> future : futures) {
+						Integer countOfFuture = future.get();
+						if (countOfFuture != null) {
+							callableCount += countOfFuture;
+							log.trace("" + callableCount + " documents so far, " + futures.size() + " futures remaining");
+							// after each finished callable make the solr client
+							// commit
+							// populates the index as we go, and doing them all here
+							// reduces collision risk
+							// if collisions do occur, increase samples.fetchStep
+							// and groups.fetchStep
+							// client.commit();
+							// removing this in favour of commit within parameter on
+							// add
+						}
+					}
+				} finally {
+					// handle closing of thread pool in case of error
+					if (threadPool != null && !threadPool.isShutdown()) {
+						log.info("Shutting down thread pool");
+						// allow a second to cleanly terminate before forcing
+						threadPool.shutdown();
+						threadPool.awaitTermination(60, TimeUnit.MINUTES);
+						threadPool.shutdownNow();
+					}
 				}
 
-				// process things
-				if (mergedClient != null) {
-					if (doGroups && groupsClient != null) {
-						runGroups(groupAccs);
-					}
-					if (doSamples && samplesClient != null) {
-						runSamples(sampleAccs);
-					}
-				}
-
-				// wait for all other futures to finish
-				log.info("Waiting for futures...");
-				for (Future<Integer> future : futures) {
-					Integer countOfFuture = future.get();
-					if (countOfFuture != null) {
-						callableCount += countOfFuture;
-						log.trace("" + callableCount + " documents so far, " + futures.size() + " futures remaining");
-						// after each finished callable make the solr client
-						// commit
-						// populates the index as we go, and doing them all here
-						// reduces collision risk
-						// if collisions do occur, increase samples.fetchStep
-						// and groups.fetchStep
-						// client.commit();
-						// removing this in favour of commit within parameter on
-						// add
-					}
-				}
 			} finally {
-				// handle closing of thread pool in case of error
-				if (threadPool != null && !threadPool.isShutdown()) {
-					log.info("Shutting down thread pool");
-					// allow a second to cleanly terminate before forcing
-					threadPool.shutdown();
-					threadPool.awaitTermination(60, TimeUnit.MINUTES);
-					threadPool.shutdownNow();
+
+				// finish the solr clients
+				log.info("Closing solr clients");
+				if (groupsClient != null) {
+					groupsClient.commit();
+					groupsClient.blockUntilFinished();
+					groupsClient.close();
 				}
-			}
 
-		} finally {
+				if (samplesClient != null) {
+					samplesClient.commit();
+					samplesClient.blockUntilFinished();
+					samplesClient.close();
+				}
 
-			// finish the solr clients
-			log.info("Closing solr clients");
-			if (groupsClient != null) {
-				groupsClient.commit();
-				groupsClient.blockUntilFinished();
-				groupsClient.close();
-			}
+				if (mergedClient != null) {
+					mergedClient.commit();
+					mergedClient.blockUntilFinished();
+					mergedClient.close();
+				}
 
-			if (samplesClient != null) {
-				samplesClient.commit();
-				samplesClient.blockUntilFinished();
-				samplesClient.close();
-			}
+				//always log how many documents we did in how long
+				//so we have at least partial progress to compare
+				long elapsedNanoseconds = System.nanoTime() - startTime;
+				log.info("Generated " + callableCount + " documents in " + Formater.formatTime(elapsedNanoseconds / 1000000));
+				if (callableCount > 0) {
+					log.info("Average time of " + (elapsedNanoseconds / callableCount) + "ns per document");
+				}
 
-			if (mergedClient != null) {
-				mergedClient.commit();
-				mergedClient.blockUntilFinished();
-				mergedClient.close();
 			}
-			
-			//always log how many documents we did in how long
-			//so we have at least partial progress to compare
-			long elapsedNanoseconds = System.nanoTime() - startTime;
-			log.info("Generated " + callableCount + " documents in " + Formater.formatTime(elapsedNanoseconds/1000000));
-			if (callableCount > 0) {
-				log.info("Average time of "+(elapsedNanoseconds/callableCount)+"ns per document");
-			}
-			
-		}
-
-		log.info("Indexing finished!");
-		if (offsetCount >= offsetTotal) {
-			try {
-				populateAutosuggestCore();
-			} catch (Exception e) {
-				throw new RuntimeException("An error occurred while populating the autosuggest core");
-			}
+			log.info("Indexing finished!");
 		}
 		return;
 	}
