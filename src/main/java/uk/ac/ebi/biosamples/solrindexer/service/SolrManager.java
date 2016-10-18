@@ -331,7 +331,7 @@ public class SolrManager {
 			json.put("unit",epv.getUnit().getTermText());
 		}
 		if (uris.size() > 0) {
-			ArrayNode ontologyTerms = json.putArray("ontology_terms");
+			ArrayNode ontologyTerms = json.putArray("ontologyTerms");
 			for (URI uri : uris) {
 				ontologyTerms.add(uri.toString());
 			}
