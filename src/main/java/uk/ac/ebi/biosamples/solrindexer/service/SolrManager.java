@@ -131,7 +131,6 @@ public class SolrManager {
 		if (samples_nr > 0) {
 			samples.forEach(sample -> document.addField(GRP_SAMPLE_ACC, sample.getAcc()));
 		}
-		document.addField(NUMBER_OF_SAMPLES, samples_nr);
 
 		document.addField(XML, groupXmlService.getXMLString(bsg, entityMappingManager));
 

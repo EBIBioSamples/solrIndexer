@@ -145,7 +145,6 @@
     
     <field name="sample_grp_accessions" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="grp_sample_accessions" type="string" indexed="true" stored="true" multiValued="true"/>
-    <field name="number_of_samples" type="int" indexed="true" stored="true" multiValued="false"/>
 
     <!-- Field BioSolr will look to find -->
     <field name="ontology_uri" type="string" indexed="true" stored="true" multiValued="true"/>

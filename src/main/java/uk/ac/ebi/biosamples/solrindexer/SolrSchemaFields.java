@@ -40,7 +40,6 @@ public class SolrSchemaFields {
 	/* --        Solr Schema        -- */
 	/* ------------------------------- */
 	public static final String CONTENT_TYPE = "content_type";
-	public static final String NUMBER_OF_SAMPLES = "number_of_samples";
 	public static final String CRT_TYPE = "crt_type";
 
 	/* --- Other --- */
