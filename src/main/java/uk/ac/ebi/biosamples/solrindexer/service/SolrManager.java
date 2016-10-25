@@ -111,7 +111,6 @@ public class SolrManager {
                 groupDescriptionProperty = epv;
 			} else if (fieldName.equals("Group Name")) {
 				groupNameProperty = epv;
-				//handlePropertyValue(epv, characteristic_types, document, annotator);
 			} else{
 				handlePropertyValue(epv, characteristic_types, document, annotator);
             }
@@ -196,7 +195,6 @@ public class SolrManager {
             	sampleDescriptionProperty = epv;
             } else if (fieldName.equals("Sample Name")) {
             	sampleNameProperty = epv;
-            	handlePropertyValue(epv, characteristic_types, document, annotator);
             } else {
             	handlePropertyValue(epv, characteristic_types, document, annotator);
             }
