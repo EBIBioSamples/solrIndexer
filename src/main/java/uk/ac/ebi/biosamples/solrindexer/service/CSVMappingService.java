@@ -422,23 +422,24 @@ public class CSVMappingService implements AutoCloseable {
 			// this is the slow join
 			for (ExperimentalPropertyValue<?> epv : sample.getPropertyValues()) {
 				ExperimentalPropertyType ept = epv.getType();
-
-				if ("derived from".equals(ept.getTermText().toLowerCase())) {
-					printDerivation(sample.getAcc(), epv.getTermText());
-				}
-
-				if ("same as".equals(ept.getTermText().toLowerCase())) {
-					printSameAs(sample.getAcc(), epv.getTermText());
-				}
-
+				
 				// to convert to lower case does not seem to work. no
 				// idea why. for the sake of it I keep in the if clause
 				// just to make sure we catch all
+
+				if ("Derived From".equals(ept.getTermText()) || "derived from".equals(ept.getTermText().toLowerCase())) {
+					printDerivation(sample.getAcc(), epv.getTermText());
+				}
+
+				if ("Same As".equals(ept.getTermText()) ||"same as".equals(ept.getTermText().toLowerCase())) {
+					printSameAs(sample.getAcc(), epv.getTermText());
+				}
+
 				if ("Child Of".equals(ept.getTermText()) || "child of".equals(ept.getTermText().toLowerCase())) {
 					printChildOf(sample.getAcc(), epv.getTermText());
 				}
 
-				if ("recurated from".equals(ept.getTermText().toLowerCase())) {
+				if ("Recurated From".equals(ept.getTermText()) || "recurated from".equals(ept.getTermText().toLowerCase())) {
 					printRecuration(sample.getAcc(), epv.getTermText());
 				}
 			}
