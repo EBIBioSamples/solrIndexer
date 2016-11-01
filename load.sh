@@ -5,10 +5,12 @@ set -e
 source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/load_env.sh
 
 #clean any existing content
+echo "Removing any existing content at $NEO_DATA/graph.db.tmp"
 rm -rf $NEO_DATA/graph.db.tmp
 
 #combine multiple csv files and make sure they have unique lines
 #do this in parallel for all files at once
+echo "Sorted and uniquing input csv files..."
 sort -u -i -o $IMPORTER/output/sample.csv $IMPORTER/output/sample.*.csv &
 sort -u -i -o $IMPORTER/output/group.csv $IMPORTER/output/group.*.csv &
 sort -u -i -o $IMPORTER/output/links.csv $IMPORTER/output/links.*.csv &
@@ -22,6 +24,7 @@ sort -u -i -o $IMPORTER/output/haslink_sample.csv $IMPORTER/output/haslink_sampl
 wait
 
 #create new content
+echo "Creating new database..."
 time nice $NEO4J_BIN/neo4j-import --bad-tolerance 10000 --into $NEO_DATA/graph.db.tmp --i-type string \
 	--nodes:Sample "$IMPORTER/csv/sample_header.csv,`ls -1 $IMPORTER/output/sample.csv | paste -sd ,`" \
 	--nodes:Group "$IMPORTER/csv/group_header.csv,`ls -1 $IMPORTER/output/group.csv | paste -sd ,`" \
