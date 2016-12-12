@@ -150,7 +150,7 @@
     <field name="ontology_uri" type="string" indexed="true" stored="true" multiValued="true"/>
     
     <!-- used to calculate facets -->
-    <field name="crt_type" type="text_general" indexed="true" stored="false" multiValued="true"/>
+    <field name="crt_type" type="text_general" indexed="true" stored="true" multiValued="true"/>
 
   	<!-- Full child hierarchy, represented in JSON -->
   	<field name="child_hierarchy" type="string" indexed="false" stored="true"  multiValued="false"/>
