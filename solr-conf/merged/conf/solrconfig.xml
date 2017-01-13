@@ -1602,19 +1602,17 @@
     <processor class="uk.co.flax.biosolr.solr.update.processor.OntologyUpdateProcessorFactory">
       <bool name="enabled">true</bool>
       <str name="annotationField">ontology_uri</str>
-
       <str name="olsBaseURL">http://www.ebi.ac.uk/ols/api</str>
       <str name="olsOntology">efo</str>
       <str name="olsThreadpool">8</str>
     </processor>
-<!--     <processor class="uk.co.flax.biosolr.solr.update.processor.OntologyUpdateProcessorFactory"> -->
-<!--       <bool name="enabled">true</bool> -->
-<!--       <str name="annotationField">ontology_uri</str> -->
-
-<!--       <str name="olsBaseURL">http://www.ebi.ac.uk/ols/api</str> -->
-<!--       <str name="olsOntology">ncbitaxon</str> -->
-<!--       <str name="olsThreadpool">8</str> -->
-<!--     </processor> -->
+    <processor class="uk.co.flax.biosolr.solr.update.processor.OntologyUpdateProcessorFactory">
+      <bool name="enabled">true</bool>
+      <str name="annotationField">ontology_uri</str>
+      <str name="olsBaseURL">http://www.ebi.ac.uk/ols/api</str>
+      <str name="olsOntology">ncbitaxon</str>
+      <str name="olsThreadpool">8</str> 
+    </processor>
     <processor class="solr.LogUpdateProcessorFactory" />
     <processor class="solr.DistributedUpdateProcessorFactory" />
     <processor class="solr.RunUpdateProcessorFactory" />
