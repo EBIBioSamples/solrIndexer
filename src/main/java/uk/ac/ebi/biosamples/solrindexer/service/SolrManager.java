@@ -29,6 +29,7 @@ import uk.ac.ebi.fg.myequivalents.model.Entity;
 
 import java.net.URI;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static uk.ac.ebi.biosamples.solrindexer.SolrSchemaFields.*;
 
@@ -113,7 +114,7 @@ public class SolrManager {
 				handlePropertyValue(epv, characteristic_types, document, annotator);
             }
         }
-        document.addField(CRT_TYPE, characteristic_types);
+        document.addField(CRT_TYPE, characteristic_types.stream().map(crt -> crt.replaceFirst("_crt$","_facet")).collect(Collectors.toList()));
         
         // Handle description field 
         handleGroupDescription(groupDescriptionProperty,submission,document);
@@ -197,7 +198,7 @@ public class SolrManager {
             	handlePropertyValue(epv, characteristic_types, document, annotator);
             }
 		}
-		document.addField(CRT_TYPE, characteristic_types);
+		document.addField(CRT_TYPE, characteristic_types.stream().map(crt -> crt.replaceFirst("_crt$","_facet")).collect(Collectors.toList()));
 
         // Handle sample description
         handleSampleDescription(bs,sampleDescriptionProperty, submission, document);

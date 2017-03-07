@@ -211,7 +211,8 @@
     <!-- BIOSAMPLES CHARACTERISTICS -->
     <dynamicField name="*_crt" type="text_general" indexed="true" stored="true" multiValued="true"/>
     <dynamicField name="*_crt_json" type="string" indexed="false" stored="true" multiValued="true"/>
-    <dynamicField name="*_ft" type="string" indexed="true" stored="false" multiValued="true"/> 
+    <dynamicField name="*_ft" type="string" indexed="true" stored="false" multiValued="true"/>
+    <dynamicField name="*_facet" type="string" indexed="true" stored="false" multiValued="true"/>
     <!-- BIOSAMPLES CHARACTERISTICS -->
 
     <!-- uncomment the following to ignore any fields that don't already match an existing 
@@ -272,7 +273,13 @@
   <copyField source="ontology_uri_ancestors_labels_t" dest="onto_suggest"/>
   <copyField source="ontology_uri_labels_t" dest="onto_suggest"/>
   <copyField source="ontology_uri_synonyms_t" dest="onto_suggest"/>
-  <!-- BIOSAMPLES End --> 
+
+  <!-- Fields we want to facet on -->
+  <copyField source="content_type" dest="content_type_facet" />
+  <copyField source="crt_type" dest="crt_type_facet" />
+  <copyField source="*_crt" dest="*_facet" />
+  <copyField source="external_references_name" dest="external_references_name_facet" />
+  <!-- BIOSAMPLES End -->
 
     <!-- field type definitions. The "name" attribute is
        just a label to be used by field definitions.  The "class"
