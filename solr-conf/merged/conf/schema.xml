@@ -245,6 +245,7 @@
   <copyField source="external_references_acc" dest="text"/>
   <copyField source="external_references_name" dest="text"/>
   <copyField source="external_references_url" dest="text"/>
+  <copyField source="external_references_name" dest="external_references_name_ft" />
   
   <copyField source="org_name" dest="text"/>
   <copyField source="org_email" dest="text"/>

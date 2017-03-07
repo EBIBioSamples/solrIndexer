@@ -1,22 +1,15 @@
 package uk.ac.ebi.biosamples.solrindexer.service;
 
-import static uk.ac.ebi.biosamples.solrindexer.SolrSchemaFields.*;
-
-import java.net.URI;
-import java.util.*;
-
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.solr.common.SolrInputDocument;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import uk.ac.ebi.biosamples.solrindexer.Formater;
 import uk.ac.ebi.biosamples.solrindexer.service.xml.BioSampleGroupXMLService;
 import uk.ac.ebi.biosamples.solrindexer.service.xml.BioSampleXMLService;
@@ -33,6 +26,11 @@ import uk.ac.ebi.fg.core_model.organizational.Publication;
 import uk.ac.ebi.fg.core_model.terms.OntologyEntry;
 import uk.ac.ebi.fg.myequivalents.managers.interfaces.EntityMappingManager;
 import uk.ac.ebi.fg.myequivalents.model.Entity;
+
+import java.net.URI;
+import java.util.*;
+
+import static uk.ac.ebi.biosamples.solrindexer.SolrSchemaFields.*;
 
 @Component
 public class SolrManager {
@@ -258,12 +256,13 @@ public class SolrManager {
 				.forEach(databaseRecordRef -> {
 
 					// For search purposes
-					document.addField(REFERENCES_NAME, StringUtils.isNotEmpty(databaseRecordRef.getDbName()) ? databaseRecordRef.getDbName() : "-");
+					String referenceName = MyEquivalenceNameConverter.convert(databaseRecordRef.getDbName());
+					document.addField(REFERENCES_NAME, StringUtils.isNotEmpty(referenceName) ? referenceName : "-");
 					document.addField(REFERENCES_URL, databaseRecordRef.getUrl());
 					document.addField(REFERENCES_ACC, StringUtils.isNotEmpty(databaseRecordRef.getAcc()) ? databaseRecordRef.getAcc() : "-");
 
 					ObjectNode ref = nodeFactory.objectNode();
-					ref.put("Name", StringUtils.isNotEmpty(databaseRecordRef.getDbName()) ? databaseRecordRef.getDbName() : "");
+					ref.put("Name", StringUtils.isNotEmpty(referenceName) ? referenceName : "");
 					ref.put("URL", databaseRecordRef.getUrl());
 					ref.put("Acc", StringUtils.isNotEmpty(databaseRecordRef.getAcc()) ? databaseRecordRef.getAcc() : "");
 
@@ -277,12 +276,13 @@ public class SolrManager {
 						&& UrlValidator.getInstance().isValid(entity.getURI()))
 				.forEach(entity -> {
 
-					document.addField(REFERENCES_NAME,  StringUtils.isNotEmpty(entity.getService().getTitle()) ? entity.getService().getName() : "-");
+					String serviceName = MyEquivalenceNameConverter.convert(entity.getService().getName());
+					document.addField(REFERENCES_NAME,  StringUtils.isNotEmpty(entity.getService().getTitle()) ? serviceName : "-");
 					document.addField(REFERENCES_URL, entity.getURI());
 					document.addField(REFERENCES_ACC, StringUtils.isNotEmpty(entity.getAccession()) ? entity.getAccession() : "-");
 
 					ObjectNode ref = nodeFactory.objectNode();
-					ref.put("Name", StringUtils.isNotEmpty(entity.getService().getTitle()) ? entity.getService().getName() : "");
+					ref.put("Name", StringUtils.isNotEmpty(entity.getService().getTitle()) ? serviceName : "");
 					ref.put("URL", entity.getURI());
 					ref.put("Acc", StringUtils.isNotEmpty(entity.getAccession()) ? entity.getAccession() : "");
 
