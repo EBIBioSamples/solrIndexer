@@ -246,7 +246,6 @@
   <copyField source="external_references_acc" dest="text"/>
   <copyField source="external_references_name" dest="text"/>
   <copyField source="external_references_url" dest="text"/>
-  <copyField source="external_references_name" dest="external_reference_name_ft"/>
 
   <copyField source="org_name" dest="text"/>
   <copyField source="org_email" dest="text"/>
@@ -263,12 +262,7 @@
   <copyField source="*_crt" dest="text"/>
   <!-- dont copy everything into it because we want to weight things differently in edismax queries (/search) -->
   <!-- <copyField source="*_t" dest="text"/> -->
-  
-  <!-- Create a string version of crt_type for faceting -->
-  <copyField source="crt_type" dest="crt_type_ft"/>
-  <!-- and likewise a string version of *_crt for faceting -->
-  <copyField source="*_crt" dest="*_crt_ft"/>
-  
+
   <!-- Ontology based autosuggest field -->
   <copyField source="ontology_uri_ancestors_labels_t" dest="onto_suggest"/>
   <copyField source="ontology_uri_labels_t" dest="onto_suggest"/>
