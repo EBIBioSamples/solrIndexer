@@ -260,6 +260,7 @@
 
   
   <copyField source="*_crt" dest="text"/>
+  <copyField source="*_crt" dest="*_crt_ft"/>
   <!-- dont copy everything into it because we want to weight things differently in edismax queries (/search) -->
   <!-- <copyField source="*_t" dest="text"/> -->
 
