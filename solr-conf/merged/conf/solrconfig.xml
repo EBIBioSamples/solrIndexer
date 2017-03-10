@@ -916,7 +916,7 @@
 				ontology_uri_parent_labels_t^2 ontology_uri_ancestors_labels_t^2
       </str>
       <str name="q.alt">*:*</str>
-      <str name="facet.field">crt_type_ft</str>
+      <str name="facet.field">crt_type_facet</str>
       <int name="facet.mincount">1</int>
       <str name="facet">true</str>
     </lst>
@@ -935,7 +935,7 @@
       <str name="q.alt">*:*</str>
       <str name="facet.field">accession</str>
       <str name="facet.field">description</str>
-      <str name="facet.field">crt_type_ft</str>
+      <str name="facet.field">crt_type_facet</str>
       <str name="facet.field">external_references_url</str>
       <int name="facet.mincount">1</int>
       <str name="facet">true</str>
