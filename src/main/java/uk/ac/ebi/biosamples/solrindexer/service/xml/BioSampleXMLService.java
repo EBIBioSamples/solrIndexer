@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import uk.ac.ebi.biosamples.solrindexer.service.MyEquivalenceManager;
+import uk.ac.ebi.biosamples.solrindexer.service.MyEquivalenceNameConverter;
 import uk.ac.ebi.fg.biosd.model.expgraph.BioSample;
 import uk.ac.ebi.fg.biosd.model.expgraph.properties.SampleCommentValue;
 import uk.ac.ebi.fg.biosd.model.organizational.BioSampleGroup;
@@ -359,17 +360,7 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 			Element dbRecord = new Element("Database", XMLNS);
 			
 			String name = entity.getService().getTitle();
-			if (name.equals("ENA Sample Service")) {
-				name = "ENA";
-			} else if (name.equals("BioSamples Sample Service")) {
-				name = "BioSamples";
-			} else if (name.equals("ArrayExpress Sample Service")) {
-				name = "ArrayExpress";
-			} else if (name.equals("PRIDE Sample Service")) {
-				name = "PRIDE";
-			} else if (name.equals("COSMIC Sample Service")) {
-				name = "COSMIC";
-			}
+			name = MyEquivalenceNameConverter.convert(name);
 			
 			dbRecord.addContent(new Element("Name", XMLNS).setText(clean(name)));
 			dbRecord.addContent(new Element("ID", XMLNS).setText(clean(entity.getAccession())));
