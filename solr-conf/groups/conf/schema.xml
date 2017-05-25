@@ -211,7 +211,8 @@
     <!-- BIOSAMPLES CHARACTERISTICS -->
     <dynamicField name="*_crt" type="text_general" indexed="true" stored="true" multiValued="true"/>
     <dynamicField name="*_crt_json" type="string" indexed="false" stored="true" multiValued="true"/>
-    <dynamicField name="*_ft" type="string" indexed="true" stored="false" multiValued="true"/> 
+    <dynamicField name="*_ft" type="string" indexed="true" stored="false" multiValued="true"/>
+    <dynamicField name="*_facet" type="string" indexed="true" stored="false" multiValued="true"/>
     <!-- BIOSAMPLES CHARACTERISTICS -->
 
     <!-- uncomment the following to ignore any fields that don't already match an existing 
@@ -245,7 +246,7 @@
   <copyField source="external_references_acc" dest="text"/>
   <copyField source="external_references_name" dest="text"/>
   <copyField source="external_references_url" dest="text"/>
-  
+
   <copyField source="org_name" dest="text"/>
   <copyField source="org_email" dest="text"/>
   <copyField source="org_role" dest="text"/>
@@ -257,21 +258,25 @@
   <copyField source="pub_doi" dest="text"/>
   <copyField source="pub_pubmed" dest="text"/>
 
-  
   <copyField source="*_crt" dest="text"/>
   <!-- dont copy everything into it because we want to weight things differently in edismax queries (/search) -->
   <!-- <copyField source="*_t" dest="text"/> -->
-  
-  <!-- Create a string version of crt_type for faceting -->
-  <copyField source="crt_type" dest="crt_type_ft"/>
-  <!-- and likewise a string version of *_crt for faceting -->
-  <copyField source="*_crt" dest="*_crt_ft"/>
-  
+
+  <!-- Full text field -->
+  <copyField source="*_crt" dest="*_crt_ft" />
+  <copyField source="crt_type" dest="crt_type_ft" />
+
+
   <!-- Ontology based autosuggest field -->
   <copyField source="ontology_uri_ancestors_labels_t" dest="onto_suggest"/>
   <copyField source="ontology_uri_labels_t" dest="onto_suggest"/>
   <copyField source="ontology_uri_synonyms_t" dest="onto_suggest"/>
-  <!-- BIOSAMPLES End --> 
+
+  <copyField source="content_type" dest="content_type_facet" />
+  <copyField source="*_crt" dest="*_facet" />
+  <copyField source="crt_type" dest="crt_type_facet" />
+  <copyField source="external_references_name" dest="external_references_name_facet" />
+  <!-- BIOSAMPLES End -->
 
     <!-- field type definitions. The "name" attribute is
        just a label to be used by field definitions.  The "class"
