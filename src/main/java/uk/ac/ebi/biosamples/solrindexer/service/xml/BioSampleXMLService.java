@@ -357,7 +357,21 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 		externalEquivalences.forEach(entity -> {
 
 			Element dbRecord = new Element("Database", XMLNS);
-			dbRecord.addContent(new Element("Name", XMLNS).setText(clean(entity.getService().getTitle())));
+			
+			String name = entity.getService().getTitle();
+			if (name.equals("ENA Sample Service")) {
+				name = "ENA";
+			} else if (name.equals("BioSamples Sample Service")) {
+				name = "BioSamples";
+			} else if (name.equals("ArrayExpress Sample Service")) {
+				name = "ArrayExpress";
+			} else if (name.equals("PRIDE Sample Service")) {
+				name = "PRIDE";
+			} else if (name.equals("COSMIC Sample Service")) {
+				name = "COSMIC";
+			}
+			
+			dbRecord.addContent(new Element("Name", XMLNS).setText(clean(name)));
 			dbRecord.addContent(new Element("ID", XMLNS).setText(clean(entity.getAccession())));
 			dbRecord.addContent(new Element("URI", XMLNS).setText(clean(entity.getURI())));
 			databaseElements.add(dbRecord);
