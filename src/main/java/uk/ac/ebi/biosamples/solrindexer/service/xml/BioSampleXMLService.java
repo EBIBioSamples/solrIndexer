@@ -346,7 +346,11 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 			// }
 
 			Element dbRecord = new Element("Database", XMLNS);
-			dbRecord.addContent(new Element("Name", XMLNS).setText(clean(databaseRecordRef.getDbName())));
+			
+			String name = databaseRecordRef.getDbName();
+			name = MyEquivalenceNameConverter.convert(name);
+			
+			dbRecord.addContent(new Element("Name", XMLNS).setText(clean(name)));
 			dbRecord.addContent(new Element("ID", XMLNS).setText(clean(databaseRecordRef.getAcc())));
 			dbRecord.addContent(new Element("URI", XMLNS).setText(clean(databaseRecordRef.getUrl())));
 
