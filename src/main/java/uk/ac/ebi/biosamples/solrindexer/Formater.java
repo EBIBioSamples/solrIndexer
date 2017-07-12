@@ -88,7 +88,12 @@ public class Formater {
 		URI uri = null;
 		try {
 			//technically, a string like BTO:0001182 or EFO_0000462 is a valid URI...
-			if (onto.getAcc().matches("^[A-Z]+[:_][0-9]+$")) {
+			
+			if (onto.getAcc().matches("^LBO[:_][0-9]+$")) {
+				uri = new URI("http://purl.obolibrary.org/obo/"+onto.getAcc());
+			} else if (onto.getAcc().matches("^EFO[:_][0-9]+$")) {
+				uri = new URI(" http://www.ebi.ac.uk/efo/"+onto.getAcc());
+			} else if (onto.getAcc().matches("^[A-Z]+[:_][0-9]+$")) {
 				//so explicitly remove it
 				uri = null;
 				log.warn("OntologyEntry has non-URI acession : "+onto);
