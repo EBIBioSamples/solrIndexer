@@ -88,11 +88,48 @@ public class Formater {
 		URI uri = null;
 		try {
 			//technically, a string like BTO:0001182 or EFO_0000462 is a valid URI...
-			
-			if (onto.getAcc().matches("^LBO[:_][0-9]+$")) {
+			if (onto.getAcc().matches("^EFO[:_][0-9]+$")) {
+				uri = new URI("http://www.ebi.ac.uk/efo/"+onto.getAcc());
+			} else if (onto.getAcc().matches("^LBO[:_][0-9]+$")
+					|| onto.getAcc().matches("^OBI[:_][0-9]+$")
+					|| onto.getAcc().matches("^PO[:_][0-9]+$")
+					|| onto.getAcc().matches("^UBERON[:_][0-9]+$")
+					|| onto.getAcc().matches("^BTO[:_][0-9]+$")
+					|| onto.getAcc().matches("^CL[:_][0-9]+$")
+					|| onto.getAcc().matches("^PRODE[:_][0-9]+$")
+					|| onto.getAcc().matches("^GO[:_][0-9]+$")
+					|| onto.getAcc().matches("^MOD[:_][0-9]+$")
+					|| onto.getAcc().matches("^DOID[:_][0-9]+$")
+					|| onto.getAcc().matches("^UO[:_][0-9]+$")
+					|| onto.getAcc().matches("^LBO[:_][0-9]+$")
+					|| onto.getAcc().matches("^PATO[:_][0-9]+$")
+					|| onto.getAcc().matches("^PO[:_][0-9]+$")
+					|| onto.getAcc().matches("^MS[:_][0-9]+$")
+					|| onto.getAcc().matches("^OBI[:_][0-9]+$")
+					|| onto.getAcc().matches("^Orphanet[:_][0-9]+$")
+					|| onto.getAcc().matches("^MIRO[:_][0-9]+$")
+					|| onto.getAcc().matches("^MI[:_][0-9]+$")
+					|| onto.getAcc().matches("^WBbt[:_][0-9]+$")
+					|| onto.getAcc().matches("^ZFS[:_][0-9]+$")
+					|| onto.getAcc().matches("^HP[:_][0-9]+$")
+					|| onto.getAcc().matches("^EO[:_][0-9]+$")
+					|| onto.getAcc().matches("^MA[:_][0-9]+$")
+					|| onto.getAcc().matches("^MP[:_][0-9]+$")
+					|| onto.getAcc().matches("^sep[:_][0-9]+$")
+					|| onto.getAcc().matches("^CHEBI[:_][0-9]+$")
+					|| onto.getAcc().matches("NCBITaxon^[:_][0-9]+$")
+					|| onto.getAcc().matches("^FIX[:_][0-9]+$")
+					|| onto.getAcc().matches("^IDQ[:_][0-9]+$")
+					|| onto.getAcc().matches("^SO[:_][0-9]+$")
+					|| onto.getAcc().matches("^TO[:_][0-9]+$")
+					|| onto.getAcc().matches("^OGG[:_][0-9]+$")
+					|| onto.getAcc().matches("^OMIT[:_][0-9]+$")
+					|| onto.getAcc().matches("^ERO[:_][0-9]+$")
+					|| onto.getAcc().matches("^ZFA[:_][0-9]+$")
+					|| onto.getAcc().matches("^CLO[:_][0-9]+$")) {
 				uri = new URI("http://purl.obolibrary.org/obo/"+onto.getAcc());
-			} else if (onto.getAcc().matches("^EFO[:_][0-9]+$")) {
-				uri = new URI(" http://www.ebi.ac.uk/efo/"+onto.getAcc());
+			} else if (onto.getAcc().matches("^ATOL[:_][0-9]+$")) {
+					uri = new URI("http://opendata.inra.fr/ATOL/"+onto.getAcc());
 			} else if (onto.getAcc().matches("^[A-Z]+[:_][0-9]+$")) {
 				//so explicitly remove it
 				uri = null;
