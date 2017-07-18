@@ -130,7 +130,7 @@ public class Formater {
 				uri = new URI("http://purl.obolibrary.org/obo/"+onto.getAcc());
 			} else if (onto.getAcc().matches("^ATOL[:_][0-9]+$")) {
 					uri = new URI("http://opendata.inra.fr/ATOL/"+onto.getAcc());
-			} else if (onto.getAcc().matches("^[A-Z]+[:_][0-9]+$")) {
+			} else if (onto.getAcc().matches("^[a-zA-Z]+[:_][0-9]+$")) {
 				//so explicitly remove it
 				uri = null;
 				log.warn("OntologyEntry has non-URI acession : "+onto);
