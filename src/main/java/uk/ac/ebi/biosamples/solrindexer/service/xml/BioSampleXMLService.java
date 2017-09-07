@@ -269,19 +269,26 @@ public class BioSampleXMLService implements XMLService<BioSample> {
 			ReferenceSource ontologyRefSource = ontology.getSource();
 
 			if (ontologyRefSource != null) {
-
-				Element tsrName = new Element("Name", XMLNS).setText(clean(ontologyRefSource.getName()));
-				Element tsrDescription = new Element("Description", XMLNS).setText(clean(ontologyRefSource.getDescription()));
-				Element tsrURI = new Element("URI", XMLNS).setText(clean(ontologyRefSource.getUrl()));
-				Element tsrVersion = new Element("Version", XMLNS).setText(clean(ontologyRefSource.getVersion()));
-				Element tsrTermSourceID = new Element("TermSourceID", XMLNS).setText(clean(ontology.getAcc()));
+				
+				String descriptionString = clean(ontologyRefSource.getDescription());
+				String uriString = clean(ontologyRefSource.getUrl());
+				String versionString = clean(ontologyRefSource.getVersion());
+				String termSourceIdString = clean(ontology.getAcc());
 
 				List<Element> allContents = new ArrayList<>();
-				allContents.add(tsrName);
-				allContents.add(tsrDescription);
-				allContents.add(tsrURI);
-				allContents.add(tsrVersion);
-				allContents.add(tsrTermSourceID);
+				allContents.add(new Element("Name", XMLNS).setText(clean(ontologyRefSource.getName())));
+				if (descriptionString != null && descriptionString.length() > 0) {
+					allContents.add(new Element("Description", XMLNS).setText(descriptionString));
+				}
+				if (uriString != null && uriString.length() > 0) {
+					allContents.add(new Element("URI", XMLNS).setText(uriString));
+				}
+				if (versionString != null && versionString.length() > 0) {
+					allContents.add(new Element("Version", XMLNS).setText(versionString));
+				}
+				if (termSourceIdString != null && termSourceIdString.length() > 0) {
+					allContents.add(new Element("TermSourceID", XMLNS).setText(termSourceIdString));
+				}
 
 				termSourceRef.addContent(allContents);
 
